@@ -1,0 +1,186 @@
+// One deck per file. Edit this object to update its list.
+DeckforgeDecks.register({
+  "slug": "crustle-mysterious-rock-inn",
+  "name": "Crustle Mysterious Rock Inn",
+  "rank": 10,
+  "points": 326,
+  "share": "2.42%",
+  "featuredCard": [
+    3,
+    "Crustle",
+    "DRI",
+    "12"
+  ],
+  "description": "A Crustle strategy with Mega Kangaskhan ex and disruptive Trainer cards.",
+  "url": "https://limitlesstcg.com/decks",
+  "groups": [
+    {
+      "name": "Pokémon",
+      "count": 10,
+      "cards": [
+        [
+          4,
+          "Mega Kangaskhan ex",
+          "MEG",
+          "104"
+        ],
+        [
+          3,
+          "Dwebble",
+          "DRI",
+          "11"
+        ],
+        [
+          3,
+          "Crustle",
+          "DRI",
+          "12"
+        ]
+      ]
+    },
+    {
+      "name": "Trainer",
+      "count": 38,
+      "cards": [
+        [
+          4,
+          "Lillie's Determination",
+          "MEG",
+          "119"
+        ],
+        [
+          4,
+          "Boss's Orders",
+          "MEG",
+          "114"
+        ],
+        [
+          4,
+          "Team Rocket's Petrel",
+          "DRI",
+          "176"
+        ],
+        [
+          3,
+          "Hilda",
+          "WHT",
+          "84"
+        ],
+        [
+          2,
+          "Eri",
+          "TEF",
+          "146"
+        ],
+        [
+          1,
+          "Bianca's Devotion",
+          "TEF",
+          "142"
+        ],
+        [
+          1,
+          "Xerosic's Machinations",
+          "SFA",
+          "64"
+        ],
+        [
+          1,
+          "Pokémon Center Lady",
+          "MEG",
+          "123"
+        ],
+        [
+          4,
+          "Jumbo Ice Cream",
+          "PFL",
+          "91"
+        ],
+        [
+          3,
+          "Pokégear 3.0",
+          "SVI",
+          "186"
+        ],
+        [
+          2,
+          "Buddy-Buddy Poffin",
+          "TEF",
+          "144"
+        ],
+        [
+          1,
+          "Switch",
+          "MEG",
+          "130"
+        ],
+        [
+          1,
+          "Tool Scrapper",
+          "ASC",
+          "212"
+        ],
+        [
+          1,
+          "Ultra Ball",
+          "MEG",
+          "131"
+        ],
+        [
+          1,
+          "Gravity Gemstone",
+          "SCR",
+          "137"
+        ],
+        [
+          1,
+          "Handheld Fan",
+          "TWM",
+          "150"
+        ],
+        [
+          1,
+          "Hero's Cape",
+          "TEF",
+          "152"
+        ],
+        [
+          2,
+          "Team Rocket's Factory",
+          "DRI",
+          "173"
+        ],
+        [
+          1,
+          "Lumiose City",
+          "POR",
+          "77"
+        ]
+      ]
+    },
+    {
+      "name": "Energy",
+      "count": 12,
+      "cards": [
+        [
+          4,
+          "Mist Energy",
+          "TEF",
+          "161"
+        ],
+        [
+          4,
+          "Growing Grass Energy",
+          "POR",
+          "86"
+        ],
+        [
+          4,
+          "Spiky Energy",
+          "JTG",
+          "159"
+        ]
+      ]
+    }
+  ]
+});

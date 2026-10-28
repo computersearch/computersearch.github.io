@@ -1,0 +1,460 @@
+{
+  "id": "581",
+  "name": "Regional Louisville, KY",
+  "date": "2026-10-10",
+  "players": 2927,
+  "division": "Masters",
+  "source": "https://limitlesstcg.com/tournaments/581",
+  "snapshot": "2026-10-29",
+  "note": "Standings verified from Limitless; decklists pending automated import.",
+  "standings": [
+    {
+      "rank": 1,
+      "name": "Riley McKay",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 2,
+      "name": "Austin Charles",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 3,
+      "name": "Evan Campbell",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 4,
+      "name": "Rahul Reddy",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 5,
+      "name": "Henry Chao",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 6,
+      "name": "Leo Orozco",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 7,
+      "name": "Jeremy Chestnutt",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 8,
+      "name": "Maia Melban",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 9,
+      "name": "Dylan Higgins",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 10,
+      "name": "Jack Kolbert",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 11,
+      "name": "Zach Elliott",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 12,
+      "name": "Ryan Matson",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 13,
+      "name": "Aarni Karjala",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 14,
+      "name": "Gabriel Smart",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 15,
+      "name": "Haedyn Scott",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 16,
+      "name": "Justin Gilbert",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 17,
+      "name": "Brendan Dixon",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 18,
+      "name": "Caleb Rogerson",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 19,
+      "name": "Calvin Connor",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 20,
+      "name": "Liam Halliburton",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 21,
+      "name": "Ethan Hoang",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 22,
+      "name": "Juan Mora",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 23,
+      "name": "Ben Kim",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 24,
+      "name": "Ryan Rumble",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 25,
+      "name": "Julian Gort-Barry",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 26,
+      "name": "Jack Wong",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 27,
+      "name": "Ryan Tongue",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 28,
+      "name": "Jon Bieligk",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 29,
+      "name": "Patrick Liddy",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 30,
+      "name": "Alex Tran",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 31,
+      "name": "Nathan Ginsburg",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 32,
+      "name": "Daniel Sopko",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 33,
+      "name": "Lorenzo Gomez",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 34,
+      "name": "Matt Pennington",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 35,
+      "name": "Nate Kirksey",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 36,
+      "name": "Jared Weiss",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 37,
+      "name": "Thor Cornell",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 38,
+      "name": "Matt Chuang",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 39,
+      "name": "Anthony Ouertani",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 40,
+      "name": "Dylan Gunn",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 41,
+      "name": "Eli Mullen",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 42,
+      "name": "Ethan Yi",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 43,
+      "name": "Mark Foggia",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 44,
+      "name": "Raymond Liu",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 45,
+      "name": "Maxwell Johnson",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 46,
+      "name": "Kenneth Gilman",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 47,
+      "name": "Justin Templer",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 48,
+      "name": "Nicholas Westine",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 49,
+      "name": "Justin Gutzwa",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 50,
+      "name": "Dakodah Mrkvicka",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 51,
+      "name": "Collin Merli-Matthews",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 52,
+      "name": "Zachary Leverett",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 53,
+      "name": "Adam Bartholomew",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 54,
+      "name": "Saumit Kukkadapu",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 55,
+      "name": "Christopher Zervos",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 56,
+      "name": "Tiago Alves",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 57,
+      "name": "Nick Robinson",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 58,
+      "name": "Evan Aguilar",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 59,
+      "name": "Dominic Viola",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 60,
+      "name": "Tristan Pacheco",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 61,
+      "name": "Rylan Geykhman",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 62,
+      "name": "Trevor Marcos",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 63,
+      "name": "Mike Morton",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    },
+    {
+      "rank": 64,
+      "name": "Hale Obernolte",
+      "deck": null,
+      "decklist": null,
+      "decklist_url": null
+    }
+  ]
+}
