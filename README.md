@@ -1,41 +1,47 @@
-# Computer Search — modular version
+# Computer Search
 
-Open `index.html` in Firefox, or publish this entire folder to GitHub Pages. Keep the folder structure intact.
+**Computer Search** is an independent, fan-made website for exploring competitive Pokémon Trading Card Game decks, tournament results, and the cards that make each strategy work.
 
-## Add a deck
+The name is inspired by the idea of searching through a huge collection of Pokémon TCG cards to find exactly what you need. Computer Search brings that same spirit to competitive deck research: discover a deck, examine its cards, and learn from the players who use it.
 
-1. Copy an existing file in `decks/` to `decks/my-new-deck.js`.
-2. Change `slug`, `name`, `rank`, `points`, `share`, `featuredCard`, `description`, and `groups`.
-3. Keep the list at exactly **60 cards** and make each group count match its cards. Invalid decks fail validation with an error in the browser console.
-4. Add `<script src="decks/my-new-deck.js"></script>` to `index.html` **after** `js/deck-registry.js` and **before** `js/app.js`.
-5. The deck automatically appears in the rankings and gets a detail page at `#/deck/my-new-deck`. Top-three decks appear in the homepage featured area if `rank` is 1, 2, or 3.
+## Why Computer Search was created
 
-Each deck is an instance of the `Deck` class, managed by `DeckRegistry` in `js/deck-registry.js`. The shared interface, TCGdex resolver, card styling, energy images, and Cardmarket integration remain in `js/app.js` and `index.html`. The deck files contain **data only**, not duplicated UI logic.
+Competitive Pokémon TCG information is spread across tournament standings, published decklists, card databases, and individual player results. Finding a deck is often easy; understanding exactly what a player used, which card printings belong in the list, and how that deck performed can take more effort.
 
-Note: learned TCGdex mappings remain in the browser's local storage; the built-in mappings remain in the shared app code. This is a static-site architecture with no server or database required.
+Computer Search was created to make that process simpler and more enjoyable. The goal is to provide one approachable place where players can explore successful archetypes, browse tournament placements, open published player decklists, view card artwork, and copy complete lists into Pokémon TCG Live.
 
+Whether you're preparing for a tournament, learning a new deck, or simply curious about the competitive scene, Computer Search is meant to help you spend less time hunting for information and more time enjoying the game.
 
-## v25
-Deck Builder removed. This version returns to the modular ranked deck browsing experience with four deck files. No personal deck editing or browser deck library is included.
+## What you can do
 
-## Tournament results
-The Tournaments tab loads `tournaments/581.json`, seeded with the verified top 64 Louisville 2026 Masters placements from Limitless. The published decklist fields remain empty until successfully retrieved. Run `python -m http.server 8000` in this directory, then open http://localhost:8000; file:// blocks JSON fetch in Firefox.
+- **Discover decks:** Browse a curated selection of competitive archetypes and explore their cards.
+- **Explore tournament results:** See player placements and deck archetypes from published events.
+- **View player decklists:** Open a player's exact published 60-card list when complete card data is available.
+- **See the cards:** Browse card images alongside quantities, set codes, and collector numbers.
+- **Export a deck:** Copy supported lists in a format intended for Pokémon TCG Live.
 
-To update from Limitless: `pip install requests beautifulsoup4` and `python tools/import_limitless.py 581`. The importer rate-limits requests, verifies player placements and 60-card lists when possible, and writes a JSON file. Respect Limitless terms and access rules.
+Some tournament decklists are not publicly available. Computer Search marks those lists as unavailable rather than guessing their contents. Tournament imports depend on the availability and format of upstream data.
 
-## Ciphermaniac public data integration (v27)
+## A special thank you
 
-Run `python tools/import_ciphermaniac.py` to discover the latest Regional from Ciphermaniac's public `reports/tournaments.json`, retrieve `decks.json` and `players.json`, and export a top-64 tournament JSON file. The importer **fails closed** if it cannot verify all 64 player placements; it includes a decklist only when the original data provides 60 cards with exact set and collector IDs. Run the importer on a server or GitHub Actions, not in the browser: Ciphermaniac R2 has restricted CORS. Attribution and source links are preserved. The original v26 Louisville snapshot remains included; no new live import is claimed until the script successfully runs against the remote data.
+Computer Search would not be possible without the work of people who make Pokémon TCG information accessible to the community.
 
-## v28: no local Python needed
-Upload the **contents** of this folder to the root of a GitHub repository. In GitHub, enable Actions and enable Pages with **Deploy from a branch** (`main`, `/ (root)`). Under Actions select **Update tournament data** > **Run workflow** for the first import; the workflow also runs daily at 06:25 UTC. It runs Python on GitHub's servers and commits verified JSON into `tournaments/`. Your computer only needs a web browser.
+**Thank you, [Limitless TCG](https://limitlesstcg.com/),** for collecting and publishing competitive tournament results and decklists. Your work is an invaluable resource for players who want to follow the game and learn from tournament performances.
 
-The importer intentionally refuses to overwrite snapshots unless it can validate 64 placements. If upstream formats change, the GitHub Actions run will fail and existing published data remains intact. The website shows a bundled Louisville fallback until a successful import. API access, source permissions and the complete browser experience have not been tested end-to-end.
+**Thank you, [TCGdex](https://tcgdex.dev/),** for providing an accessible Pokémon TCG card database and API. Your work helps bring decklists to life with card information and artwork.
 
-## v30: Player decklist viewer
-Tournament results now link to `#/tournament/deck/{rank}` for any player with a verified
-60-card `decklist` in the imported JSON. Each card is rendered with its exact set and
-collector number, with artwork looked up through the existing TCGdex integration.
-The viewer also provides a Pokémon TCG Live text export. Players without published
-complete lists remain unlinked. This feature becomes populated after a successful
-GitHub Actions import; the bundled Louisville snapshot contains no complete lists.
+**Thank you, [Ciphermaniac](https://ciphermaniac.com/),** for building tools and datasets that make competitive tournament and deck information easier to explore. Your public data resources help make the tournament research experience possible.
+
+These acknowledgements are expressions of appreciation, not claims of sponsorship, partnership, or endorsement.
+
+## About this project
+
+Computer Search is an independent community project, not affiliated with, sponsored by, or endorsed by The Pokémon Company, Nintendo, Creatures Inc., Game Freak, Limitless TCG, TCGdex, or Ciphermaniac. Pokémon and related names, characters, and imagery belong to their respective owners.
+
+Data and artwork are credited to their respective sources. If you notice an inaccurate decklist, missing attribution, or another issue, please open an issue in this repository.
+
+## Publishing the website
+
+Computer Search is a static website designed for **GitHub Pages**. Upload the contents of this project to the root of your GitHub repository, then enable GitHub Pages under **Settings → Pages** using the `main` branch and `/ (root)` folder.
+
+The included GitHub Actions workflow is intended to update tournament JSON data automatically. The live Ciphermaniac import has not yet been verified end-to-end; published decklists appear only when the imported data contains a validated complete list. You do not need to install Python on your own computer.
