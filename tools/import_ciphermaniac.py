@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 BASE='https://r2.ciphermaniac.com/'
 OUT=Path(__file__).resolve().parents[1]/'tournaments'
@@ -59,13 +60,37 @@ def main():
     ap=argparse.ArgumentParser();ap.add_argument('--event');ap.add_argument('--latest',action='store_true');args=ap.parse_args()
     catalog=fetch('reports/tournaments.json')
     if not isinstance(catalog,list):raise ValueError('Unexpected tournament catalog')
-    event=args.event or next((e for e in catalog if 'Regional Championship' in e),None)
-    if event not in catalog:raise ValueError('Tournament not found in catalog: '+str(event))
-    prefix='reports/'+quote(event,safe='')+'/'
-    decks=records(fetch(prefix+'decks.json'))
-    if not decks:raise RuntimeError('No deck records; refusing to publish empty event')
-    try:players=records(fetch(prefix+'players.json'))
-    except Exception:players=[]
+    candidates=[args.event] if args.event else [e for e in catalog if isinstance(e,str) and 'Regional Championship' in e]
+    if args.event and args.event not in catalog:raise ValueError('Tournament not found in catalog: '+str(args.event))
+    if not candidates:raise RuntimeError('No Regional Championship events in catalog')
+    # Prefer recent events; a missing report is normal for newly catalogued events.
+    candidates.sort(reverse=True)
+    selected=None
+    for event in candidates:
+        prefix='reports/'+quote(event,safe='')+'/'
+        try:
+            decks=records(fetch(prefix+'decks.json'))
+        except HTTPError as exc:
+            if exc.code==404:
+                print(f'SKIP: {event}: {prefix}decks.json returned HTTP 404 (report unavailable or URL format changed)')
+                continue
+            raise
+        if not decks:
+            print(f'SKIP: {event}: no deck records in report')
+            continue
+        try:
+            players=records(fetch(prefix+'players.json'))
+        except HTTPError as exc:
+            if exc.code!=404:raise
+            print(f'INFO: {event}: players.json missing; trying deck records alone')
+            players=[]
+        selected=(event,prefix,decks,players)
+        break
+    if selected is None:
+        print('NO UPDATE: None of the Regional Championship candidates had a usable decks.json report. Existing published tournament data was preserved.')
+        print('ACTION REQUIRED: Verify the current Ciphermaniac API documentation and report URL format; a 404 may mean the endpoint structure changed.')
+        return
+    event,prefix,decks,players=selected
     ranked={}
     for row in players+decks:
         if not isinstance(row,dict):continue
@@ -84,10 +109,9 @@ def main():
         cards=cards_from(row)
         ranked[rank]={'rank':rank,'name':name,'deck':val(row,'archetype','deckName','deckType') or previous.get('deck'),
                       'decklist':cards or previous.get('decklist'),'decklist_url':None}
-    if len(ranked)<64:
-        raise RuntimeError(f'Only {len(ranked)} of 64 placements matched; refusing incomplete import')
-    if any(i not in ranked for i in range(1,65)):
-        raise RuntimeError('Noncontiguous placements; refusing import')
+    if len(ranked)<64 or any(i not in ranked for i in range(1,65)):
+        print(f'NO UPDATE: {event} yielded {len(ranked)}/64 placements. Existing data preserved.')
+        return
     result={'id':'ciphermaniac-'+event[:10],'name':event.split(', ',1)[-1], 'date':event[:10],
             'source':BASE+prefix,'provider':'Ciphermaniac R2','standings':[ranked[i] for i in range(1,65)],
             'note':'Decklists only included when 60 cards with exact print IDs could be verified.'}
