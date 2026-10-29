@@ -160,7 +160,45 @@ function hydrateImages(){
   }).catch(()=>node.classList.add('unavailable'));
  }
 }
-function wire(){hydrateImages();document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('selected',x.dataset.filter===activeFilter));document.querySelector('#groupContainer').innerHTML=groupMarkup();wireCardButtons();hydrateImages();hydratePrices()}));document.querySelector('#copyDeck')?.addEventListener('click',async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText(deckExport());b.innerHTML='Copied! <span>✓</span>';setTimeout(()=>{if(b.isConnected)b.innerHTML='Copy for Pokémon TCG Live <span>⧉</span>'},2200)}catch{const blob=new Blob([deckExport()],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=(featuredDecks.find(d=>location.hash.endsWith(d.slug))?.slug||'deck')+'-decklist.txt';a.click();URL.revokeObjectURL(url)}});wireCardButtons();hydratePrices();const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog').addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()})}
+
+// Copy deck text without triggering a file download. The textarea fallback also
+// supports browsers where the async Clipboard API is unavailable or denied.
+async function copyDeckToClipboard(text,button){
+ const original=button.innerHTML;
+ let copied=false;
+ if(navigator.clipboard && window.isSecureContext){
+  try{await navigator.clipboard.writeText(text);copied=true}catch(error){console.warn('Clipboard API denied; trying selection fallback',error)}
+ }
+ if(!copied){
+  const field=document.createElement('textarea');
+  field.value=text;
+  field.setAttribute('readonly','');
+  field.setAttribute('aria-label','Decklist to copy');
+  Object.assign(field.style,{position:'fixed',left:'0',top:'0',width:'1px',height:'1px',opacity:'0',zIndex:'-1'});
+  document.body.appendChild(field);
+  field.focus();field.select();field.setSelectionRange(0,field.value.length);
+  try{copied=document.execCommand('copy')}catch(error){console.warn('Legacy clipboard copy failed',error)}
+  field.remove();
+ }
+ if(copied){
+  button.textContent='Copied to clipboard ✓';
+  setTimeout(()=>{if(button.isConnected)button.innerHTML=original},2400);
+  return;
+ }
+ // Last resort: show selectable text for manual copying, never download a TXT.
+ const dialog=document.createElement('dialog');
+ dialog.className='card-dialog';
+ dialog.style.cssText='max-width:650px;width:calc(100% - 32px);color:white';
+ const heading=document.createElement('h2');heading.textContent='Copy decklist';
+ const note=document.createElement('p');note.textContent='Your browser blocked automatic clipboard access. Select the decklist below and copy it manually.';
+ const area=document.createElement('textarea');area.value=text;area.readOnly=true;
+ area.style.cssText='width:100%;height:280px;padding:12px;background:#10121e;color:white;border:1px solid #606777;border-radius:8px;font:13px/1.5 monospace';
+ const close=document.createElement('button');close.className='primary-btn';close.textContent='Close';
+ close.addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('close',()=>dialog.remove());
+ dialog.append(heading,note,area,close);document.body.appendChild(dialog);dialog.showModal();area.focus();area.select();
+}
+function wire(){hydrateImages();document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('selected',x.dataset.filter===activeFilter));document.querySelector('#groupContainer').innerHTML=groupMarkup();wireCardButtons();hydrateImages();hydratePrices()}));document.querySelector('#copyDeck')?.addEventListener('click',e=>copyDeckToClipboard(deckExport(),e.currentTarget));wireCardButtons();hydratePrices();const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog').addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()})}
 function cardmarketLink(data,c){
  const direct=[data?.pricing?.cardmarket?.url,data?.prices?.cardmarket?.url,data?.cardmarket?.url].find(u=>typeof u==='string' && /^https:\/\/(?:www\.)?cardmarket\.com\//i.test(u));
  if(direct)return {url:direct,label:'View listing on Cardmarket ↗'};
@@ -246,10 +284,7 @@ async function wireTournamentDeck(){
   const exportText=cards.map(([q,n,set,num])=>`${q} ${n} ${set} ${num}`).join('\n');
   document.title=player.name+' — Computer Search';
   node.innerHTML=`<section class="deck-heading"><div><div class="eyebrow small">${esc(event.name)} / #${esc(player.rank)}</div><h1>${esc(player.name)}<em>.</em></h1><p>${esc(player.deck||'Published tournament decklist')} · 60 cards</p></div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Player <i>decklist.</i></h2></div><button class="primary-btn copy-btn" id="copyTournamentDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div id="groupContainer"><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div></div><p class="rank-note">Exact card printings are checked against TCGdex for artwork. Cards without matching artwork retain their name and set number.</p></section>`;
-  document.getElementById('copyTournamentDeck')?.addEventListener('click',async e=>{
-   try{await navigator.clipboard.writeText(exportText);e.currentTarget.textContent='Copied ✓'}
-   catch{const blob=new Blob([exportText],{type:'text/plain'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tournament-deck-'+requested+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-  });
+  document.getElementById('copyTournamentDeck')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
   hydrateImages();
   wireCardButtons();
   const dlg=document.getElementById('cardDialog');
