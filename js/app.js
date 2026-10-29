@@ -275,13 +275,37 @@ function tournamentDisplayName(event){
  return known[id]||raw||'Regional Championship';
 }
 function tournamentPage(){return `${header()}<main class="ranked-library"><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional Championship to view confirmed Day 2 players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
+function tournamentSeason(dateString){
+ const match=String(dateString||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(!match)return null;
+ const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]);
+ const parsed=new Date(Date.UTC(year,month-1,day));
+ if(parsed.getUTCFullYear()!==year||parsed.getUTCMonth()!==month-1||parsed.getUTCDate()!==day)return null;
+ const start=month>=9?year:year-1;
+ return {key:String(start),label:`${start}–${start+1}`};
+}
+function tournamentArchiveRow(e){
+ return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="#/tournament/${encodeURIComponent(e.id)}"><span><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span style="white-space:nowrap">View results ↗</span></a>`;
+}
 async function wireTournaments(){
  const node=document.getElementById('tournamentResults');
  try{
   const events=await getTournamentIndex();
   if(!node.isConnected)return;
   if(!events.length){node.textContent='No tournaments imported yet. Run the GitHub Actions tournament importer.';return}
-  node.innerHTML=events.map(e=>`<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="#/tournament/${encodeURIComponent(e.id)}"><span><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span>View results ↗</span></a>`).join('');
+  const groups=new Map();
+  for(const event of events){
+   const season=tournamentSeason(event.date);
+   const key=season?.key||'unknown';
+   if(!groups.has(key))groups.set(key,{label:season?.label||'Date unavailable',events:[]});
+   groups.get(key).events.push(event);
+  }
+  const keys=[...groups.keys()].sort((a,b)=>a==='unknown'?1:b==='unknown'?-1:Number(b)-Number(a));
+  node.innerHTML=keys.map((key,index)=>{
+   const group=groups.get(key);
+   group.events.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.id).localeCompare(String(a.id)));
+   return `<details class="season-group" ${index===0?'open':''}><summary class="season-heading"><span><strong>${esc(group.label)} Season</strong><small>${group.events.length} Regional Championship${group.events.length===1?'':'s'}</small></span><span class="season-chevron" aria-hidden="true">⌄</span></summary><div class="season-events">${group.events.map(tournamentArchiveRow).join('')}</div></details>`;
+  }).join('');
  }catch(e){if(node.isConnected)node.textContent='Tournament index could not load: '+e.message}
 }
 function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
