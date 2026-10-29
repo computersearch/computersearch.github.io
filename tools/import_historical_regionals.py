@@ -30,6 +30,13 @@ def main():
     parser.add_argument('--delay', type=float, default=0.5)
     args = parser.parse_args()
     ids = list(dict.fromkeys(re.findall(r'\d+', args.ids)))
+    if args.discovered_file:
+        events = json.loads(open(args.discovered_file, encoding='utf-8').read())
+        if args.batch < 1 or not 1 <= args.batch_size <= 5:
+            parser.error('Batch must be >= 1 and batch size 1-5')
+        offset = (args.batch - 1) * args.batch_size
+        ids = [str(e['id']) for e in events[offset:offset + args.batch_size]]
+        print(f'Selected batch {args.batch}: {ids}', flush=True)
     if not ids or len(ids) > 5:
         parser.error('No IDs in this batch; select an existing batch or supply 1-5 IDs.')
     start, end = SEASONS[args.season]
