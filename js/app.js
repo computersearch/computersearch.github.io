@@ -241,57 +241,94 @@ function importValidation(){
  });
 }
 
-let tournamentCache=null;
-let tournamentLoadError='';
+let tournamentIndexCache=null;
+const tournamentCacheByFile=new Map();
 const tournamentHasList=p=>Array.isArray(p?.decklist)&&p.decklist.length>0&&p.decklist.every(c=>Number(c.quantity)>0&&c.name&&c.set&&c.number)&&p.decklist.reduce((n,c)=>n+Number(c.quantity),0)===60;
-async function getTournament(){
- if(tournamentCache)return tournamentCache;
+async function getTournamentIndex(){
+ if(tournamentIndexCache)return tournamentIndexCache;
  const r=await fetch('tournaments/index.json',{cache:'no-store'});
  if(!r.ok)throw Error('Tournament index HTTP '+r.status);
- const events=await r.json();
- const file=events.length?events[0].file:'581.json';
- if(!/^[a-zA-Z0-9_.-]+\.json$/.test(file))throw Error('Invalid tournament file');
- const response=await fetch('tournaments/'+file,{cache:'no-store'});
- if(!response.ok)throw Error('Tournament data HTTP '+response.status);
- const event=await response.json();
- if(!Array.isArray(event.standings))throw Error('Invalid standings');
- tournamentCache={event,events};
- return tournamentCache;
+ const data=await r.json();
+ if(!Array.isArray(data))throw Error('Invalid tournament index');
+ tournamentIndexCache=data;
+ return data;
 }
-function tournamentPage(){return `${header()}<main class="ranked-library"><div class="eyebrow">TOURNAMENT ARCHIVE / TOP 64</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Select a player with a published, verified 60-card list to view their cards and copy their Pokémon TCG Live export.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournament data…</p></div></main>${footer()}`}
+async function getTournamentById(id){
+ const events=await getTournamentIndex();
+ const entry=events.find(e=>String(e.id)===String(id));
+ if(!entry)throw Error('Tournament not found');
+ const file=String(entry.file||'');
+ if(!/^[a-zA-Z0-9_.-]+\.json$/.test(file))throw Error('Invalid tournament file');
+ if(tournamentCacheByFile.has(file))return tournamentCacheByFile.get(file);
+ const r=await fetch('tournaments/'+file,{cache:'no-store'});
+ if(!r.ok)throw Error('Tournament data HTTP '+r.status);
+ const event=await r.json();
+ if(!Array.isArray(event.standings))throw Error('Invalid tournament standings');
+ tournamentCacheByFile.set(file,event);
+ return event;
+}
+function tournamentPage(){return `${header()}<main class="ranked-library"><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional Championship to view its top 64 standings and published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
 async function wireTournaments(){
  const node=document.getElementById('tournamentResults');
  try{
-  const {event:d,events}=await getTournament();
+  const events=await getTournamentIndex();
+  if(!node.isConnected)return;
+  if(!events.length){node.textContent='No tournaments imported yet. Run the GitHub Actions tournament importer.';return}
+  node.innerHTML=events.map(e=>`<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="#/tournament/${encodeURIComponent(e.id)}"><span><strong class="rank-title">${esc(e.name||e.id)}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span>View results ↗</span></a>`).join('');
+ }catch(e){if(node.isConnected)node.textContent='Tournament index could not load: '+e.message}
+}
+function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / TOP 64</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
+async function wireTournamentEvent(id){
+ const node=document.getElementById('eventResults');
+ try{
+  const d=await getTournamentById(id);
   if(!node.isConnected)return;
   const rows=d.standings||[];
-  node.innerHTML=`<h2>${esc(d.name)}</h2><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} placements · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
-   rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="#/tournament/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
-   `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">Tournament data ↗</a>. ${events.length?'Updated by GitHub Actions.':'Showing bundled snapshot until the first successful automated import.'}</p>`;
- }catch(e){if(node.isConnected)node.textContent='Tournament data could not load. GitHub Pages serves the JSON files; for local previews use an HTTP server. '+e.message}
+  document.title=(d.name||'Tournament')+' — Computer Search';
+  node.innerHTML=`<h2>${esc(d.name||'Regional Championship')}</h2><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} placements · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
+   rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="#/tournament/${encodeURIComponent(id)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
+   `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">LimitlessTCG ↗</a></p>`;
+ }catch(e){if(node.isConnected)node.textContent='Tournament standings could not load: '+e.message}
 }
-function tournamentDeckPage(){return `${header()}<main class="deck-page"><a href="#/tournaments" class="back">← &nbsp; Back to tournament results</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
-async function wireTournamentDeck(){
+function tournamentDeckPage(id){return `${header()}<main class="deck-page"><a href="#/tournament/${encodeURIComponent(id)}" class="back">← &nbsp; Back to tournament standings</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
+async function wireTournamentDeck(id,requested){
  const node=document.getElementById('tournamentDeck');
- const requested=Number(decodeURIComponent(location.hash.split('/').pop()));
  try{
-  const {event}=await getTournament();
+  const event=await getTournamentById(id);
   if(!node.isConnected)return;
-  const player=event.standings.find(p=>Number(p.rank)===requested);
+  const player=event.standings.find(p=>Number(p.rank)===Number(requested));
   if(!player){node.textContent='Player not found in this tournament.';return}
   if(!tournamentHasList(player)){node.textContent='This player does not have a verified published 60-card decklist.';return}
   const cards=player.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
   const exportText=cards.map(([q,n,set,num])=>`${q} ${n} ${set} ${num}`).join('\n');
   document.title=player.name+' — Computer Search';
-  node.innerHTML=`<section class="deck-heading"><div><div class="eyebrow small">${esc(event.name)} / #${esc(player.rank)}</div><h1>${esc(player.name)}<em>.</em></h1><p>${esc(player.deck||'Published tournament decklist')} · 60 cards</p></div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Player <i>decklist.</i></h2></div><button class="primary-btn copy-btn" id="copyTournamentDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div id="groupContainer"><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div></div><p class="rank-note">Exact card printings are checked against TCGdex for artwork. Cards without matching artwork retain their name and set number.</p></section>`;
+  node.innerHTML=`<section class="deck-heading"><div><div class="eyebrow small">${esc(event.name)} / #${esc(player.rank)}</div><h1>${esc(player.name)}<em>.</em></h1><p>${esc(player.deck||'Published tournament decklist')} · 60 cards</p></div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Player <i>decklist.</i></h2></div><button class="primary-btn copy-btn" id="copyTournamentDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div id="groupContainer"><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div></div><p class="rank-note">Card artwork is matched by set and number using TCGdex.</p></section>`;
   document.getElementById('copyTournamentDeck')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
-  hydrateImages();
-  wireCardButtons();
+  hydrateImages();wireCardButtons();
   const dlg=document.getElementById('cardDialog');
   dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());
   dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
  }catch(e){if(node.isConnected)node.textContent='Unable to load decklist: '+e.message}
 }
-function render(){activeFilter='All';const hash=location.hash;const isLibrary=hash==='#/decks';const isTournament=hash==='#/tournaments';const isTournamentDeck=hash.startsWith('#/tournament/deck/');const isImport=hash==='#/import';const isImported=hash==='#/deck/imported'&&!!importedDeck;const isDeck=hash.startsWith('#/deck/');const selected=featuredDecks.find(d=>hash==='#/deck/'+d.slug);currentGroups=isImported?importedDeck:selected&&extraDecks[selected.slug]?extraDecks[selected.slug]:groups;app.innerHTML=isTournamentDeck?tournamentDeckPage():isTournament?tournamentPage():isImport?importPage():isLibrary?library():isImported?importedDeckPage():isDeck&&selected?deck(selected):home();document.title=isImport?'Import deck — Computer Search':isImported?'Imported deck — Computer Search':isLibrary?'Deck Rankings — Computer Search':selected?selected.name+' — Computer Search':'Computer Search — Pokémon TCG Decks';if(isTournamentDeck)wireTournamentDeck();else if(isTournament)wireTournaments();else if(isImport)wireImport();else if(isLibrary)wireLibrary();else {wire();if(isDeck)importValidation();}window.scrollTo({top:0,behavior:'instant'})}
+function render(){
+ activeFilter='All';
+ const hash=location.hash;
+ const isLibrary=hash==='#/decks';
+ const isTournament=hash==='#/tournaments';
+ const eventMatch=hash.match(/^#\/tournament\/([^/]+)$/);
+ const deckMatch=hash.match(/^#\/tournament\/([^/]+)\/deck\/(\d+)$/);
+ const isImport=hash==='#/import';const isImported=hash==='#/deck/imported'&&!!importedDeck;
+ const isDeck=hash.startsWith('#/deck/');
+ const selected=featuredDecks.find(d=>hash==='#/deck/'+d.slug);
+ currentGroups=isImported?importedDeck:selected&&extraDecks[selected.slug]?extraDecks[selected.slug]:groups;
+ app.innerHTML=deckMatch?tournamentDeckPage(deckMatch[1]):eventMatch?tournamentEventPage(eventMatch[1]):isTournament?tournamentPage():isImport?importPage():isLibrary?library():isImported?importedDeckPage():isDeck&&selected?deck(selected):home();
+ document.title=isImport?'Import deck — Computer Search':isImported?'Imported deck — Computer Search':isLibrary?'Deck Rankings — Computer Search':isTournament?'Tournaments — Computer Search':selected?selected.name+' — Computer Search':'Computer Search — Pokémon TCG Decks';
+ if(deckMatch)wireTournamentDeck(deckMatch[1],deckMatch[2]);
+ else if(eventMatch)wireTournamentEvent(eventMatch[1]);
+ else if(isTournament)wireTournaments();
+ else if(isImport)wireImport();else if(isLibrary)wireLibrary();
+ else{wire();if(isDeck)importValidation()}
+ window.scrollTo({top:0,behavior:'instant'});
+}
 window.addEventListener('hashchange',render);render();
 

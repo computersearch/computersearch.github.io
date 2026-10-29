@@ -58,7 +58,7 @@ def labs_code(tournament_id):
     return match.group(1)
 
 
-def recent_regionals(limit=3):
+def recent_regionals(limit=8):
     soup = BeautifulSoup(fetch(BASE + '/tournaments'), 'html.parser')
     found = []
     for a in soup.select('a[href]'):
@@ -177,17 +177,25 @@ def main():
     parser.add_argument('--tournament-id', help='Limitless tournament ID or four-digit Labs code')
     parser.add_argument('--max-decks', type=int, default=100)
     parser.add_argument('--delay', type=float, default=0.5)
+    parser.add_argument('--limit', type=int, default=8, help='Number of recent Regionals to check')
     args = parser.parse_args()
-    ids = [args.tournament_id] if args.tournament_id else recent_regionals()
+    ids = [args.tournament_id] if args.tournament_id else recent_regionals(max(1, args.limit))
     if not ids:
         raise RuntimeError('No Regional Championships found on tournament index')
+    successes = 0
+    failures = 0
     for event_id in ids:
         try:
             if import_one(event_id, args.delay, args.max_decks):
-                return
-        except RuntimeError as exc:
+                successes += 1
+            else:
+                failures += 1
+        except (RuntimeError, requests.RequestException, ValueError) as exc:
+            failures += 1
             print(f'SKIP {event_id}: {exc}', flush=True)
-    raise RuntimeError('No validated import. Existing tournament data was preserved.')
+    print(f'IMPORT SUMMARY: {successes} tournaments updated; {failures} unavailable or incomplete', flush=True)
+    if not successes:
+        print('NO UPDATE: existing tournament data preserved', flush=True)
 
 
 if __name__ == '__main__':
