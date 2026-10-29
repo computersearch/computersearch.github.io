@@ -1,0 +1,55 @@
+name: Backfill historical Regional Championships
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Historical season"
+        required: true
+        type: choice
+        options:
+          - "2023-24"
+          - "2024-25"
+          - "2025-26"
+          - "2026-27"
+      batch:
+        description: "Batch number (1, 2, 3...) — five tournaments per run"
+        required: true
+        default: "1"
+        type: string
+
+permissions:
+  contents: write
+concurrency:
+  group: tournament-import
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install requests beautifulsoup4
+      - name: Discover real historical tournament IDs
+        env:
+          SEASON: ${{ inputs.season }}
+        run: python tools/discover_historical_regionals.py --season "$SEASON" --output historical-regional-ids.json
+      - name: Import selected batch (full download)
+        env:
+          SEASON: ${{ inputs.season }}
+          BATCH: ${{ inputs.batch }}
+        run: python tools/import_historical_regionals.py --season "$SEASON" --discovered-file historical-regional-ids.json --batch "$BATCH" --batch-size 5
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tournaments/
+          if ! git diff --cached --quiet; then
+            git commit -m "Backfill historical Regional Championships"
+            git push
+          fi
