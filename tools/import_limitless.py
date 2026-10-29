@@ -105,7 +105,35 @@ def parse_date(value):
     return ''
 
 
-def import_one(tournament_id, delay=0.5, max_decks=100):
+def tournament_display_name(tournament_id, metadata_name):
+    """Prefer a real event title; never show a generic numeric placeholder."""
+    raw = str(metadata_name or '').strip()
+    if raw and not re.fullmatch(r'(?:Regional Championship|Tournament)\\s*#?\\d+', raw, re.I):
+        return raw
+    # Limitless's public event page often has the city in its heading/title,
+    # whereas the Labs metadata can contain only a generic event number.
+    if str(tournament_id).isdigit() and len(str(tournament_id)) != 4:
+        try:
+            page = BeautifulSoup(fetch(f'{BASE}/tournaments/{tournament_id}'), 'html.parser')
+            candidates = []
+            for node in page.select('h1, meta[property="og:title"], title'):
+                label = node.get('content', '') if node.name == 'meta' else node.get_text(' ', strip=True)
+                label = re.split(r'\\s+[|–—]\\s+Limitless(?:TCG)?', label, maxsplit=1, flags=re.I)[0].strip()
+                if label:
+                    candidates.append(label)
+            for label in candidates:
+                if 'regional' in label.lower() and not re.fullmatch(r'Regional Championship\\s*#?\\d+', label, re.I):
+                    return label
+        except (RuntimeError, requests.RequestException) as exc:
+            print(f'WARNING: event title lookup failed for {tournament_id}: {exc}', flush=True)
+    # Grounded IDs from the tournament list; fallback only if no full title found.
+    known = {'583': 'Puebla Regional Championship',
+             '582': 'Nice Regional Championship',
+             '581': 'Louisville Regional Championship'}
+    return known.get(str(tournament_id), raw or f'Tournament {tournament_id}')
+
+
+def import_one(tournament_id, delay=0.3, max_decks=None):
     code = labs_code(tournament_id)
     tid = int(code)
     print(f'Checking Limitless tournament {tournament_id} -> Labs {code}', flush=True)
@@ -113,31 +141,37 @@ def import_one(tournament_id, delay=0.5, max_decks=100):
     standings = api('standings', tournamentId=tid, division='MA')
     if not isinstance(meta, dict) or not isinstance(standings, list):
         raise RuntimeError('Invalid Labs metadata or standings response')
+    # Limitless Labs explicitly marks Day 2 players with day2 == 1.
+    # Never infer qualification from final rank or a top-64 cutoff.
     players = {}
     for row in standings:
-        try:
-            rank = int(row.get('placement'))
-        except (ValueError, TypeError, AttributeError):
+        if not isinstance(row, dict):
             continue
-        if rank not in range(1, 65) or rank in players:
+        try:
+            is_day2 = int(row.get('day2') or 0) == 1
+            rank = int(row.get('placement'))
+        except (ValueError, TypeError):
+            continue
+        if not is_day2 or rank < 1 or rank in players:
             continue
         name = str(row.get('name') or '').strip()
         if not name:
             continue
         players[rank] = {'rank': rank, 'name': name, 'deck': row.get('deck_name') or '',
-                         'decklist': None, 'decklist_url': None, '_tp_id': row.get('tp_id'),
-                         '_published': row.get('decklist')}
-    if len(players) != 64:
-        print(f'NO UPDATE: only {len(players)} top-64 placements available', flush=True)
+                         'day2': True, 'decklist': None, 'decklist_url': None,
+                         '_tp_id': row.get('tp_id'), '_published': row.get('decklist')}
+    if not players:
+        print('NO UPDATE: Labs did not explicitly identify any Day 2 players; existing data preserved', flush=True)
         return False
+    print(f'Full Masters standings: {len(standings)}; confirmed Day 2 participants: {len(players)}', flush=True)
     verified = 0
-    for rank in range(1, 65):
+    for rank in sorted(players):
         player = players[rank]
         if str(player.pop('_published') or '0').lower() not in ('1', 'true'):
             player.pop('_tp_id')
             continue
         tp_id = player.pop('_tp_id')
-        if tp_id is None or verified >= max_decks:
+        if tp_id is None:
             continue
         try:
             payload = api('decklist', tournamentId=tid, playerId=int(tp_id))
@@ -150,32 +184,31 @@ def import_one(tournament_id, delay=0.5, max_decks=100):
             print(f'SKIP rank {rank}: {exc}', flush=True)
         time.sleep(max(0.3, delay))
     if not verified:
-        print('NO UPDATE: no verified 60-card decklists; existing data preserved', flush=True)
-        return False
+        print('WARNING: No published 60-card Day 2 decklists were verified; saving confirmed Day 2 standings only', flush=True)
     date = parse_date(meta.get('date'))
-    name = str(meta.get('name') or f'Regional Championship {tournament_id}').strip()
+    name = tournament_display_name(tournament_id, meta.get('name'))
     source = f'{BASE}/tournaments/{tournament_id}' if len(str(tournament_id)) != 4 else f'{LABS}/{code}/standings'
     result = {'id': 'limitless-' + str(tournament_id), 'name': name, 'date': date,
-              'source': source, 'standings': [players[i] for i in range(1, 65)]}
+              'source': source, 'day2_only': True, 'standings': [players[i] for i in sorted(players)]}
     OUT.mkdir(parents=True, exist_ok=True)
     filename = f'limitless-{tournament_id}.json'
     index_path = OUT / 'index.json'
     old = json.loads(index_path.read_text(encoding='utf-8')) if index_path.exists() else []
     if not isinstance(old, list):
         raise RuntimeError('Existing tournaments/index.json is not a list; refusing to overwrite')
-    entry = {'id': result['id'], 'name': name, 'date': date, 'file': filename, 'source': source}
+    entry = {'id': result['id'], 'name': name, 'date': date, 'file': filename, 'source': source, 'day2_only': True, 'day2_players': len(players), 'verified_decks': verified}
     updated = [x for x in old if x.get('id') != entry['id']] + [entry]
     updated.sort(key=lambda x: x.get('date') or '', reverse=True)
     (OUT / filename).write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     index_path.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'SUCCESS: {name}: 64 placements, {verified} verified 60-card decklists', flush=True)
+    print(f'SUCCESS: {name}: {len(players)} confirmed Day 2 players (all ranks), {verified} verified 60-card decklists', flush=True)
     return True
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tournament-id', help='Limitless tournament ID or four-digit Labs code')
-    parser.add_argument('--max-decks', type=int, default=100)
+    parser.add_argument('--max-decks', type=int, default=None, help='Deprecated; all published Day 2 decklists are imported regardless of this value')
     parser.add_argument('--delay', type=float, default=0.5)
     parser.add_argument('--limit', type=int, default=8, help='Number of recent Regionals to check')
     args = parser.parse_args()

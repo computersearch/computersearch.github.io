@@ -267,25 +267,33 @@ async function getTournamentById(id){
  tournamentCacheByFile.set(file,event);
  return event;
 }
-function tournamentPage(){return `${header()}<main class="ranked-library"><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional Championship to view its top 64 standings and published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
+function tournamentDisplayName(event){
+ const raw=String(event?.name||'').trim();
+ if(raw && !/^(?:Regional Championship|Tournament)\\s*#?\\d+$/i.test(raw))return raw;
+ const id=String(event?.id||'').replace(/^limitless-/,'');
+ const known={'583':'Puebla Regional Championship','582':'Nice Regional Championship','581':'Louisville Regional Championship'};
+ return known[id]||raw||'Regional Championship';
+}
+function tournamentPage(){return `${header()}<main class="ranked-library"><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional Championship to view confirmed Day 2 players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
 async function wireTournaments(){
  const node=document.getElementById('tournamentResults');
  try{
   const events=await getTournamentIndex();
   if(!node.isConnected)return;
   if(!events.length){node.textContent='No tournaments imported yet. Run the GitHub Actions tournament importer.';return}
-  node.innerHTML=events.map(e=>`<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="#/tournament/${encodeURIComponent(e.id)}"><span><strong class="rank-title">${esc(e.name||e.id)}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span>View results ↗</span></a>`).join('');
+  node.innerHTML=events.map(e=>`<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="#/tournament/${encodeURIComponent(e.id)}"><span><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span>View results ↗</span></a>`).join('');
  }catch(e){if(node.isConnected)node.textContent='Tournament index could not load: '+e.message}
 }
-function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / TOP 64</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
+function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
 async function wireTournamentEvent(id){
  const node=document.getElementById('eventResults');
  try{
   const d=await getTournamentById(id);
   if(!node.isConnected)return;
-  const rows=d.standings||[];
-  document.title=(d.name||'Tournament')+' — Computer Search';
-  node.innerHTML=`<h2>${esc(d.name||'Regional Championship')}</h2><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} placements · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
+  const rows=(d.standings||[]).filter(p=>p.day2===true||p.madePhase2===true);
+  document.title=tournamentDisplayName(d)+' — Computer Search';
+  if(!rows.length){node.textContent='Day 2 participation has not been verified for this tournament yet. Re-run the updated importer.';return}
+  node.innerHTML=`<h2>${esc(tournamentDisplayName(d))}</h2><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} confirmed Day 2 players · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
    rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="#/tournament/${encodeURIComponent(id)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
    `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">LimitlessTCG ↗</a></p>`;
  }catch(e){if(node.isConnected)node.textContent='Tournament standings could not load: '+e.message}
@@ -297,12 +305,12 @@ async function wireTournamentDeck(id,requested){
   const event=await getTournamentById(id);
   if(!node.isConnected)return;
   const player=event.standings.find(p=>Number(p.rank)===Number(requested));
-  if(!player){node.textContent='Player not found in this tournament.';return}
+  if(!player||!(player.day2===true||player.madePhase2===true)){node.textContent='This player is not verified as a Day 2 participant.';return}
   if(!tournamentHasList(player)){node.textContent='This player does not have a verified published 60-card decklist.';return}
   const cards=player.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
   const exportText=cards.map(([q,n,set,num])=>`${q} ${n} ${set} ${num}`).join('\n');
   document.title=player.name+' — Computer Search';
-  node.innerHTML=`<section class="deck-heading"><div><div class="eyebrow small">${esc(event.name)} / #${esc(player.rank)}</div><h1>${esc(player.name)}<em>.</em></h1><p>${esc(player.deck||'Published tournament decklist')} · 60 cards</p></div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Player <i>decklist.</i></h2></div><button class="primary-btn copy-btn" id="copyTournamentDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div id="groupContainer"><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div></div><p class="rank-note">Card artwork is matched by set and number using TCGdex.</p></section>`;
+  node.innerHTML=`<section class="deck-heading"><div><div class="eyebrow small">${esc(tournamentDisplayName(event))} / #${esc(player.rank)}</div><h1>${esc(player.name)}<em>.</em></h1><p>${esc(player.deck||'Published tournament decklist')} · 60 cards</p></div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Player <i>decklist.</i></h2></div><button class="primary-btn copy-btn" id="copyTournamentDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div id="groupContainer"><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div></div><p class="rank-note">Card artwork is matched by set and number using TCGdex.</p></section>`;
   document.getElementById('copyTournamentDeck')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
   hydrateImages();wireCardButtons();
   const dlg=document.getElementById('cardDialog');
