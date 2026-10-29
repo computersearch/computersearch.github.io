@@ -11,16 +11,16 @@ concurrency:
 jobs:
   import:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Install downloader dependencies
+      - name: Install importer dependencies
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
-      - name: Fetch and validate LimitlessTCG tournament data
-        run: python tools/import_limitless.py --max-decks 100
+      - name: Import recent Regional Championships
+        run: python tools/import_limitless.py --max-decks 100 --limit 8
       - name: Commit verified tournament snapshots
         run: |
           git config user.name "github-actions[bot]"
