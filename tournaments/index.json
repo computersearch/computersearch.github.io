@@ -78,5 +78,245 @@
     "day2_only": true,
     "day2_players": 360,
     "verified_decks": 360
+  },
+  {
+    "id": "limitless-497",
+    "name": "Regional Portland, OR – Limitless",
+    "date": "2025-05-23",
+    "file": "limitless-497.json",
+    "source": "https://limitlesstcg.com/tournaments/497",
+    "day2_only": true,
+    "day2_players": 296,
+    "verified_decks": 296
+  },
+  {
+    "id": "limitless-475",
+    "name": "Regional Santiago – Limitless",
+    "date": "2025-05-17",
+    "file": "limitless-475.json",
+    "source": "https://limitlesstcg.com/tournaments/475",
+    "day2_only": true,
+    "day2_players": 196,
+    "verified_decks": 196
+  },
+  {
+    "id": "limitless-498",
+    "name": "Regional Melbourne – Limitless",
+    "date": "2025-05-17",
+    "file": "limitless-498.json",
+    "source": "https://limitlesstcg.com/tournaments/498",
+    "day2_only": true,
+    "day2_players": 97,
+    "verified_decks": 97
+  },
+  {
+    "id": "limitless-466",
+    "name": "Regional Milwaukee, WI – Limitless",
+    "date": "2025-05-02",
+    "file": "limitless-466.json",
+    "source": "https://limitlesstcg.com/tournaments/466",
+    "day2_only": true,
+    "day2_players": 281,
+    "verified_decks": 281
+  },
+  {
+    "id": "limitless-474",
+    "name": "Regional Monterrey – Limitless",
+    "date": "2025-04-19",
+    "file": "limitless-474.json",
+    "source": "https://limitlesstcg.com/tournaments/474",
+    "day2_only": true,
+    "day2_players": 205,
+    "verified_decks": 204
+  },
+  {
+    "id": "limitless-489",
+    "name": "Regional Atlanta, GA – Limitless",
+    "date": "2025-04-11",
+    "file": "limitless-489.json",
+    "source": "https://limitlesstcg.com/tournaments/489",
+    "day2_only": true,
+    "day2_players": 272,
+    "verified_decks": 272
+  },
+  {
+    "id": "limitless-477",
+    "name": "Regional Brisbane – Limitless",
+    "date": "2025-03-29",
+    "file": "limitless-477.json",
+    "source": "https://limitlesstcg.com/tournaments/477",
+    "day2_only": true,
+    "day2_players": 81,
+    "verified_decks": 81
+  },
+  {
+    "id": "limitless-468",
+    "name": "Regional Stockholm – Limitless",
+    "date": "2025-03-22",
+    "file": "limitless-468.json",
+    "source": "https://limitlesstcg.com/tournaments/468",
+    "day2_only": true,
+    "day2_players": 143,
+    "verified_decks": 143
+  },
+  {
+    "id": "limitless-473",
+    "name": "Regional Fortaleza – Limitless",
+    "date": "2025-03-08",
+    "file": "limitless-473.json",
+    "source": "https://limitlesstcg.com/tournaments/473",
+    "day2_only": true,
+    "day2_players": 123,
+    "verified_decks": 123
+  },
+  {
+    "id": "limitless-465",
+    "name": "Regional Vancouver – Limitless",
+    "date": "2025-03-07",
+    "file": "limitless-465.json",
+    "source": "https://limitlesstcg.com/tournaments/465",
+    "day2_only": true,
+    "day2_players": 234,
+    "verified_decks": 234
+  },
+  {
+    "id": "limitless-472",
+    "name": "Regional Mérida – Limitless",
+    "date": "2025-02-08",
+    "file": "limitless-472.json",
+    "source": "https://limitlesstcg.com/tournaments/472",
+    "day2_only": true,
+    "day2_players": 184,
+    "verified_decks": 184
+  },
+  {
+    "id": "limitless-484",
+    "name": "Regional San Antonio, TX – Limitless",
+    "date": "2025-01-24",
+    "file": "limitless-484.json",
+    "source": "https://limitlesstcg.com/tournaments/484",
+    "day2_only": true,
+    "day2_players": 250,
+    "verified_decks": 250
+  },
+  {
+    "id": "limitless-467",
+    "name": "Regional Birmingham – Limitless",
+    "date": "2025-01-18",
+    "file": "limitless-467.json",
+    "source": "https://limitlesstcg.com/tournaments/467",
+    "day2_only": true,
+    "day2_players": 360,
+    "verified_decks": 360
+  },
+  {
+    "id": "limitless-471",
+    "name": "Regional Rio de Janeiro – Limitless",
+    "date": "2025-01-18",
+    "file": "limitless-471.json",
+    "source": "https://limitlesstcg.com/tournaments/471",
+    "day2_only": true,
+    "day2_players": 197,
+    "verified_decks": 197
+  },
+  {
+    "id": "limitless-460",
+    "name": "Regional Toronto – Limitless",
+    "date": "2024-12-13",
+    "file": "limitless-460.json",
+    "source": "https://limitlesstcg.com/tournaments/460",
+    "day2_only": true,
+    "day2_players": 225,
+    "verified_decks": 225
+  },
+  {
+    "id": "limitless-476",
+    "name": "Regional Perth – Limitless",
+    "date": "2024-12-07",
+    "file": "limitless-476.json",
+    "source": "https://limitlesstcg.com/tournaments/476",
+    "day2_only": true,
+    "day2_players": 55,
+    "verified_decks": 55
+  },
+  {
+    "id": "limitless-458",
+    "name": "Regional Stuttgart – Limitless",
+    "date": "2024-12-01",
+    "file": "limitless-458.json",
+    "source": "https://limitlesstcg.com/tournaments/458",
+    "day2_only": true,
+    "day2_players": 305,
+    "verified_decks": 305
+  },
+  {
+    "id": "limitless-457",
+    "name": "Regional Sacramento, CA – Limitless",
+    "date": "2024-11-22",
+    "file": "limitless-457.json",
+    "source": "https://limitlesstcg.com/tournaments/457",
+    "day2_only": true,
+    "day2_players": 302,
+    "verified_decks": 302
+  },
+  {
+    "id": "limitless-455",
+    "name": "Regional Gdańsk – Limitless",
+    "date": "2024-11-02",
+    "file": "limitless-455.json",
+    "source": "https://limitlesstcg.com/tournaments/455",
+    "day2_only": true,
+    "day2_players": 115,
+    "verified_decks": 115
+  },
+  {
+    "id": "limitless-454",
+    "name": "Regional Lille – Limitless",
+    "date": "2024-10-19",
+    "file": "limitless-454.json",
+    "source": "https://limitlesstcg.com/tournaments/454",
+    "day2_only": true,
+    "day2_players": 116,
+    "verified_decks": 116
+  },
+  {
+    "id": "limitless-453",
+    "name": "Regional Louisville, KY – Limitless",
+    "date": "2024-10-11",
+    "file": "limitless-453.json",
+    "source": "https://limitlesstcg.com/tournaments/453",
+    "day2_only": true,
+    "day2_players": 194,
+    "verified_decks": 194
+  },
+  {
+    "id": "limitless-450",
+    "name": "Regional Dortmund – Limitless",
+    "date": "2024-09-28",
+    "file": "limitless-450.json",
+    "source": "https://limitlesstcg.com/tournaments/450",
+    "day2_only": true,
+    "day2_players": 161,
+    "verified_decks": 161
+  },
+  {
+    "id": "limitless-451",
+    "name": "Regional Joinville – Limitless",
+    "date": "2024-09-28",
+    "file": "limitless-451.json",
+    "source": "https://limitlesstcg.com/tournaments/451",
+    "day2_only": true,
+    "day2_players": 56,
+    "verified_decks": 56
+  },
+  {
+    "id": "limitless-449",
+    "name": "Regional Baltimore, MD – Limitless",
+    "date": "2024-09-13",
+    "file": "limitless-449.json",
+    "source": "https://limitlesstcg.com/tournaments/449",
+    "day2_only": true,
+    "day2_players": 129,
+    "verified_decks": 129
   }
 ]
