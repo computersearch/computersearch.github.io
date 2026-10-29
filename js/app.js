@@ -269,7 +269,11 @@ async function getTournamentById(id){
 }
 function tournamentDisplayName(event){
  const raw=String(event?.name||'').trim();
- if(raw && !/^(?:Regional Championship|Tournament)\\s*#?\\d+$/i.test(raw))return raw;
+ if(raw && !/^(?:Regional Championship|Tournament)\\s*#?\\d+$/i.test(raw)){
+  const clean=raw.replace(/\\s+[–—-]\\s+Limitless(?:TCG)?\\s*$/i,'').trim();
+  const regional=clean.match(/^Regional\\s+(.+)$/i);
+  return regional ? `${regional[1]} Regional Championship` : clean;
+ }
  const id=String(event?.id||'').replace(/^limitless-/,'');
  const known={'583':'Puebla Regional Championship','582':'Nice Regional Championship','581':'Louisville Regional Championship'};
  return known[id]||raw||'Regional Championship';
@@ -304,8 +308,13 @@ async function wireTournaments(){
   node.innerHTML=keys.map((key,index)=>{
    const group=groups.get(key);
    group.events.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.id).localeCompare(String(a.id)));
-   return `<details class="season-group" ${index===0?'open':''}><summary class="season-heading"><span><strong>${esc(group.label)} Season</strong><small>${group.events.length} Regional Championship${group.events.length===1?'':'s'}</small></span><span class="season-chevron" aria-hidden="true">⌄</span></summary><div class="season-events">${group.events.map(tournamentArchiveRow).join('')}</div></details>`;
+   return `<details name="computer-search-seasons" class="season-group" ${index===0?'open':''}><summary class="season-heading"><span><strong>${esc(group.label)} Season</strong><small>${group.events.length} Regional Championship${group.events.length===1?'':'s'}</small></span><span class="season-chevron" aria-hidden="true">⌄</span></summary><div class="season-events">${group.events.map(tournamentArchiveRow).join('')}</div></details>`;
   }).join('');
+  // Keep one season expanded even on browsers without native named-details grouping.
+  const sections=[...node.querySelectorAll('details.season-group')];
+  sections.forEach(section=>section.addEventListener('toggle',()=>{
+   if(section.open)sections.forEach(other=>{if(other!==section)other.open=false});
+  }));
  }catch(e){if(node.isConnected)node.textContent='Tournament index could not load: '+e.message}
 }
 function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
@@ -345,6 +354,15 @@ async function wireTournamentDeck(id,requested){
 function normalizeArchetypeName(name){
  return String(name||'').toLowerCase().normalize('NFKD').replace(/[’']/g,'').replace(/\b(pok[eé]mon|deck|box)\b/g,'').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
 }
+function matchesFeaturedArchetype(deckName, featuredNormalized){
+ const actual=normalizeArchetypeName(deckName);
+ if(!actual||!featuredNormalized)return false;
+ if(actual===featuredNormalized)return true;
+ // Tournament archetypes often include a secondary attacker or engine:
+ // e.g. "Dragapult ex / Dusknoir" or "Dragapult ex (Pidgeot)".
+ // Require a complete leading archetype phrase to avoid substring false matches.
+ return actual.startsWith(featuredNormalized+' ');
+}
 async function wireFeaturedArchetypePlayers(){
  const node=document.getElementById('featuredArchetypePlayers');
  if(!node)return;
@@ -352,6 +370,7 @@ async function wireFeaturedArchetypePlayers(){
  try{
   const events=await getTournamentIndex();
   const matches=[];
+  let failedEvents=0;
   // Limit simultaneous downloads so an archive with many seasons remains manageable.
   let next=0;
   async function worker(){
@@ -363,17 +382,17 @@ async function wireFeaturedArchetypePlayers(){
      if(String(event.date||entry.date||'').slice(0,10)<'2026-07-01')continue;
      for(const player of event.standings||[]){
       if(!(player.day2===true||player.madePhase2===true))continue;
-      if(normalizeArchetypeName(player.deck)!==target)continue;
+      if(!matchesFeaturedArchetype(player.deck,target))continue;
       matches.push({player,event,entry});
      }
-    }catch(err){console.warn('Could not load tournament for archetype results',entry.id,err)}
+    }catch(err){failedEvents++;console.warn('Could not load tournament for archetype results',entry.id,err)}
    }
   }
   await Promise.all(Array.from({length:Math.min(4,events.length)},()=>worker()));
   if(!node.isConnected||node.dataset.archetype==null)return;
   matches.sort((a,b)=>Number(a.player.rank)-Number(b.player.rank)||String(b.event.date||b.entry.date||'').localeCompare(String(a.event.date||a.entry.date||'')));
   const featured=matches.slice(0,12);
-  if(!matches.length){node.innerHTML='<p class="rank-note">No matching Day 2 players found at Regionals since July 2026.</p>';return}
+  if(!matches.length){node.innerHTML=`<p class="rank-note">${failedEvents?'Some tournament data could not be loaded. Please refresh and try again.':'No matching Day 2 players found in imported Regionals since July 2026.'}</p>`;return}
   node.innerHTML=`<p class="rank-note">Showing ${featured.length} top finish${featured.length===1?'':'es'} from ${matches.length} matching Day 2 appearance${matches.length===1?'':'s'} since July 2026 · best placement first.</p><div class="rank-rows">${featured.map(({player,event,entry})=>{
    const link=tournamentHasList(player)?`#/tournament/${encodeURIComponent(entry.id)}/deck/${encodeURIComponent(player.rank)}`:`#/tournament/${encodeURIComponent(entry.id)}`;
    return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:16px;text-decoration:none" href="${link}"><span><strong class="rank-title">${esc(player.name)}</strong><small style="display:block;margin-top:5px">${esc(tournamentDisplayName(event))} · ${esc(event.date||entry.date||'')}</small></span><span style="white-space:nowrap">#${esc(player.rank)} ${tournamentHasList(player)?'· View deck ↗':'· Standings ↗'}</span></a>`;
