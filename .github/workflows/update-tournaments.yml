@@ -20,7 +20,7 @@ jobs:
       - name: Install importer dependencies
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
       - name: Import recent Regional Championships
-        run: python tools/import_limitless.py --max-decks 100 --limit 8
+        run: python tools/import_limitless.py --limit 8
       - name: Commit verified tournament snapshots
         run: |
           git config user.name "github-actions[bot]"
