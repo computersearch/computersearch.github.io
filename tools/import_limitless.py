@@ -35,12 +35,20 @@ def tournament_ids():
     return events
 
 def find_decks(soup):
-    links={}
-    for a in soup.select('a[href]'):
-        href=a.get("href","")
-        m=re.search(r"/decks/list/(\d+)(?:[/?#]|$)",href)
-        if m:links[m[1]]=urljoin(BASE,href)
-    return list(links.values())
+    """Find deck links in anchors, data attributes and embedded scripts.
+
+    Limitless's large decklists pages may encode paths in scripts or relative URLs.
+    """
+    html=str(soup)
+    # HTML-escaped and JSON-escaped slashes are common in inline payloads.
+    html=html.replace(r"\/", "/").replace("&amp;", "&")
+    ids=list(dict.fromkeys(re.findall(r"(?:https?://(?:www\.)?limitlesstcg\.com)?/?decks/list/(\d+)(?=[^0-9]|$)",html)))
+    if not ids:
+        # Print safe structural diagnostics, not the multi-megabyte response.
+        paths=re.findall(r'(?:href|data-href|data-url)=["\']([^"\']+)',html,re.I)
+        print("DEBUG: decklist page bytes:",len(html),"links:",len(paths),"sample:",paths[:12],flush=True)
+        print("DEBUG: /decks/list/ occurrences:",html.count('/decks/list/'),flush=True)
+    return [f"{BASE}/decks/list/{deck_id}" for deck_id in ids]
 
 def parse_deck(soup,tid,url):
     # Card links on Limitless use /cards/SET/COLLECTOR_NUMBER.
