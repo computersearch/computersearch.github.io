@@ -1,58 +1,82 @@
 [
   {
     "id": "limitless-583",
-    "name": "Regional Championship 583",
+    "name": "Regional Puebla – Limitless",
     "date": "2026-10-24",
     "file": "limitless-583.json",
-    "source": "https://limitlesstcg.com/tournaments/583"
+    "source": "https://limitlesstcg.com/tournaments/583",
+    "day2_only": true,
+    "day2_players": 369,
+    "verified_decks": 369
   },
   {
     "id": "limitless-582",
-    "name": "Regional Championship 582",
+    "name": "Regional Nice – Limitless",
     "date": "2026-10-17",
     "file": "limitless-582.json",
-    "source": "https://limitlesstcg.com/tournaments/582"
+    "source": "https://limitlesstcg.com/tournaments/582",
+    "day2_only": true,
+    "day2_players": 429,
+    "verified_decks": 429
   },
   {
     "id": "limitless-581",
-    "name": "Regional Championship 581",
+    "name": "Regional Louisville, KY – Limitless",
     "date": "2026-10-09",
     "file": "limitless-581.json",
-    "source": "https://limitlesstcg.com/tournaments/581"
+    "source": "https://limitlesstcg.com/tournaments/581",
+    "day2_only": true,
+    "day2_players": 547,
+    "verified_decks": 547
   },
   {
     "id": "limitless-580",
-    "name": "Regional Championship 580",
+    "name": "Regional Recife – Limitless",
     "date": "2026-10-03",
     "file": "limitless-580.json",
-    "source": "https://limitlesstcg.com/tournaments/580"
+    "source": "https://limitlesstcg.com/tournaments/580",
+    "day2_only": true,
+    "day2_players": 195,
+    "verified_decks": 195
   },
   {
     "id": "limitless-579",
-    "name": "Regional Championship 579",
+    "name": "Regional Frankfurt – Limitless",
     "date": "2026-09-26",
     "file": "limitless-579.json",
-    "source": "https://limitlesstcg.com/tournaments/579"
+    "source": "https://limitlesstcg.com/tournaments/579",
+    "day2_only": true,
+    "day2_players": 508,
+    "verified_decks": 508
   },
   {
     "id": "limitless-578",
-    "name": "Regional Championship 578",
+    "name": "Regional Brisbane – Limitless",
     "date": "2026-09-26",
     "file": "limitless-578.json",
-    "source": "https://limitlesstcg.com/tournaments/578"
+    "source": "https://limitlesstcg.com/tournaments/578",
+    "day2_only": true,
+    "day2_players": 148,
+    "verified_decks": 148
   },
   {
     "id": "limitless-577",
-    "name": "Regional Championship 577",
+    "name": "Regional Baltimore, MD – Limitless",
     "date": "2026-09-18",
     "file": "limitless-577.json",
-    "source": "https://limitlesstcg.com/tournaments/577"
+    "source": "https://limitlesstcg.com/tournaments/577",
+    "day2_only": true,
+    "day2_players": 559,
+    "verified_decks": 559
   },
   {
     "id": "limitless-559",
-    "name": "Regional Championship 559",
+    "name": "Regional Indianapolis, IN – Limitless",
     "date": "2026-05-29",
     "file": "limitless-559.json",
-    "source": "https://limitlesstcg.com/tournaments/559"
+    "source": "https://limitlesstcg.com/tournaments/559",
+    "day2_only": true,
+    "day2_players": 360,
+    "verified_decks": 360
   }
 ]
