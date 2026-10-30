@@ -11,13 +11,13 @@ const deckExport = () => currentGroups.map(g=>`${g.name}: ${g.count}\n${g.cards.
 
 const app = document.querySelector('#app');
 const API='https://api.tcgdex.net/v2/en';
-const setCodes={SVI:'sv01',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
+const setCodes={SVI:'sv01',PRE:'sv08.5',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
 const cardCache=new Map();
 let activeFilter='All';
 const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 function header(){return `<header class="header"><a class="brand" href="#/" aria-label="Computer Search home"><img class="brand-logo" src="computer-search-logo.png" alt="Computer Search logo"><span class="brand-name">Computer <span>Search</span></span></a><nav><a href="#/" class="nav-link">Discover</a><a href="#/decks" class="nav-link">Decklists</a><a href="#/tournaments" class="nav-link">Tournaments</a></nav><span class="header-chip"><span class="status-dot"></span> POKÉMON TCG</span></header>`}
-function footer(){return `<footer>Made for Pokémon TCG players <span>•</span> Card data & images via <a href="https://tcgdex.dev/" target="_blank" rel="noopener">TCGdex ↗</a><br><small>Fan-made project. Not affiliated with or endorsed by The Pokémon Company.</small></footer>`}
+function footer(){return `<footer>Made for Pokémon TCG players <span>•</span> Card data & images via <a href="https://tcgdex.dev/" target="_blank" rel="noopener">TCGdex ↗</a> <span>•</span> Statistics from <a href="https://labs.limitlesstcg.com/" target="_blank" rel="noopener">Limitless Labs ↗</a><br><small>Fan-made project. Not affiliated with or endorsed by The Pokémon Company.</small></footer>`}
 function cardFrame(card,cls=''){const [qty,name,set,num]=card;return `<div class="card-art ${cls}" data-card="${esc(set)}-${esc(num)}" data-name="${esc(name)}"><div class="card-placeholder"><span class="placeholder-sigil">◈</span><strong>${esc(name)}</strong>${isBasicEnergy(name)?"":`<small>${esc(set)} · ${esc(num)}</small>`}<span class="art-status">Checking exact artwork…</span></div></div>`}
 const FEATURED_DISPLAY_NAMES={
  'slowking seek inspiration':'Slowking',
@@ -84,8 +84,8 @@ function groupMarkup(){return currentGroups.filter(g=>activeFilter==='All'||g.na
 const setDetailCache=new Map();
 // PTCG Live abbreviations are distinct from TCGdex set IDs.
 // These are candidate IDs only; every returned card must match name and collector number.
-const setAliases={SVI:['sv01'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
-const setNames={SVI:['Scarlet & Violet'],WHT:['White Flare'],BLK:['Black Bolt'],TWM:['Twilight Masquerade'],TEF:['Temporal Forces'],SCR:['Stellar Crown'],MEG:['Mega Evolution'],ASC:['Ascended Heroes'],POR:['Phantasmal Flames'],MEE:['Mega Evolution Energy'],SSP:['Surging Sparks'],JTG:['Journey Together'],DRI:['Destined Rivals'],SFA:['Shrouded Fable'],PFL:['Perfect Order'],CRI:['Crimson'],'30C':['30th Celebration']};
+const setAliases={SVI:['sv01'],PRE:['sv08.5'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
+const setNames={SVI:['Scarlet & Violet'],PRE:['Prismatic Evolutions'],WHT:['White Flare'],BLK:['Black Bolt'],TWM:['Twilight Masquerade'],TEF:['Temporal Forces'],SCR:['Stellar Crown'],MEG:['Mega Evolution'],ASC:['Ascended Heroes'],POR:['Phantasmal Flames'],MEE:['Mega Evolution Energy'],SSP:['Surging Sparks'],JTG:['Journey Together'],DRI:['Destined Rivals'],SFA:['Shrouded Fable'],PFL:['Perfect Order'],CRI:['Crimson'],'30C':['30th Celebration']};
 // Shared built-in mappings travel with this HTML to every future deck.
 // Verified discoveries are also cached locally when browser storage is available.
 const SET_MAPPING_CACHE_KEY='deckforge.tcgdex.verified-set-mappings.v1';
@@ -122,9 +122,13 @@ async function getCard(set,num,name){
  if(cardCache.has(key))return cardCache.get(key);
  const task=(async()=>{
   const aliases=[...(learnedSetAliases[set]||[]),...(setAliases[set]||[]),set.toLowerCase()];
-  const index=await getSetIndex();
-  for(const entry of (Array.isArray(index)?index:[])){
-   if((setNames[set]||[]).some(n=>norm(entry.name)===norm(n)))aliases.push(entry.id);
+  // Known PTCG Live set codes already have exact TCGdex candidates.
+  // Avoid downloading the entire set index for every card on a deck page.
+  if(!setAliases[set]?.length){
+   const index=await getSetIndex();
+   for(const entry of (Array.isArray(index)?index:[])){
+    if((setNames[set]||[]).some(n=>norm(entry.name)===norm(n)))aliases.push(entry.id);
+   }
   }
   const ids=[...new Set(aliases.filter(Boolean))];
   for(const id of ids){
@@ -401,12 +405,35 @@ const FEATURED_ARCHETYPE_TAGS={
  'mega starmie ex':['mega starmie','mega starmie ex'],
  'greninja ex':['greninja','greninja ex']
 };
+// Display names and imported Limitless labels must resolve to the same canonical archetype.
+// The aliases below also preserve the original names used by the featured registry.
+const ARCHETYPE_CANONICAL={
+ 'dragapult':'dragapult ex',
+ 'slowking':'slowking seek inspiration',
+ 'alakazam':'alakazam powerful hand',
+ 'dhelmise':'dhelmise hide n sneak',
+ 'crustle':'crustle mysterious rock inn',
+ 'hydrapple':'hydrapple ex',
+ 'mega lopunny':'mega lopunny ex',
+ 'mega excadrill':'mega excadrill ex',
+ 'mega lucario':'mega lucario ex',
+ 'mega sharpedo':'mega sharpedo ex',
+ 'cynthias garchomp':'cynthias garchomp ex',
+ 'marnies grimmsnarl':'marnies grimmsnarl ex',
+ 'rockets mewtwo':'rockets mewtwo ex',
+ 'raging bolt':'raging bolt ex',
+ 'lillies clefairy':'lillies clefairy ex',
+ 'mega starmie':'mega starmie ex',
+ 'greninja':'greninja ex',
+ 'ns zoroark':'ns zoroark ex'
+};
 function matchesFeaturedArchetype(deckName, featuredNormalized){
  const actual=normalizeArchetypeName(deckName);
  if(!actual||!featuredNormalized)return false;
- const allowed=FEATURED_ARCHETYPE_TAGS[featuredNormalized];
+ const canonical=ARCHETYPE_CANONICAL[featuredNormalized]||featuredNormalized;
+ const allowed=FEATURED_ARCHETYPE_TAGS[canonical];
  if(allowed)return allowed.some(tag=>normalizeArchetypeName(tag)===actual);
- return actual===featuredNormalized;
+ return actual===featuredNormalized||actual===canonical;
 }
 
 async function wireFeaturedArchetypePlayers(){
@@ -481,7 +508,7 @@ function render(){
  else if(eventMatch)wireTournamentEvent(eventMatch[1]);
  else if(isTournament)wireTournaments();
  else if(isImport)wireImport();else if(isLibrary)wireLibrary();
- else{wire();if(selected)wireFeaturedArchetypePlayers()}
+ else{if(selected&&!extraDecks[selected.slug]){hydrateImages();const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()})}else wire();if(selected)wireFeaturedArchetypePlayers()}
  window.scrollTo({top:0,behavior:'instant'});
 }
 window.addEventListener('hashchange',render);render();
