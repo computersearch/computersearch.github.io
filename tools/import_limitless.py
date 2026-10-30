@@ -80,7 +80,7 @@ def parse_deck(soup,tid,url):
     archetype=title.split(" by ",1)[0].strip()
     return dict(rank=rank,name=name,deck=archetype,decklist=cards,decklist_url=url)
 
-def standings(soup, limit=64):
+def standings(soup, limit=None):
     players={}
     for tr in soup.select("tr"):
         cells=tr.find_all("td",recursive=False)
@@ -88,7 +88,7 @@ def standings(soup, limit=64):
         raw=cells[0].get_text(" ",strip=True).lstrip("#").strip()
         if not raw.isdigit():continue
         rank=int(raw)
-        if rank>limit or rank<1:continue
+        if rank<1 or (limit is not None and rank>limit):continue
         name=cells[1].get_text(" ",strip=True)
         if name:players[rank]=dict(rank=rank,name=name,deck=None,decklist=None,decklist_url=None)
     return players
@@ -222,23 +222,28 @@ def collect_explicit_day2(soup, players):
             if explicit: confirmed.update(row_names)
     return confirmed
 
-def import_event(tid,delay,max_decks):
+def import_event(tid,delay):
     print(f"Checking Limitless tournament {tid}",flush=True)
     soup=get(f"/tournaments/{tid}")
     heading=soup.find("h1")
     name=heading.get_text(" ",strip=True) if heading else f"Regional {tid}"
-    is_worlds=(str(tid)=="515")
+    if str(tid)=="515":
+        raise ValueError("Worlds 515 must use tools/import_worlds.py")
+    is_worlds=False
     if "Regional" not in name and not is_worlds:
         raise ValueError("Event is neither a Regional Championship nor verified 2026 Worlds: "+name)
-    players=standings(soup,143 if is_worlds else 64)
-    # Retain the full standings snapshot for independent Day 2 eligibility checks.
-    standings_players=dict(players)
-    if len(players)<(143 if is_worlds else 64):
-        try:
-            additional=standings(get(f"/tournaments/{tid}/standings"),143 if is_worlds else 64)
-            players.update(additional)
-            standings_players.update(additional)
-        except requests.HTTPError:pass
+    # Import every standings row shown by the source, without a rank cap.
+    # Do not confuse the event's Day 2 count with a standings limit.
+    players=standings(soup)
+    print(f"Standings overview: {len(players)} players, highest rank "
+          f"{max(players, default=0)}",flush=True)
+    try:
+        additional=standings(get(f"/tournaments/{tid}/standings"))
+        players.update(additional)
+        print(f"Standings combined: {len(players)} players, highest rank "
+              f"{max(players, default=0)}",flush=True)
+    except requests.RequestException as exc:
+        print(f"Separate standings page unavailable: {exc}; using overview",flush=True)
     if len(players)<64:
         print(f"NO UPDATE: only {len(players)} placements (minimum 64); preserving existing data")
         return False
@@ -267,11 +272,11 @@ def import_event(tid,delay,max_decks):
     if is_worlds and not links and decklist_soup is not None:
         embedded=worlds_decklists(decklist_soup,players)
         print(f"Fallback: {len(embedded)} verified embedded Worlds decklists",flush=True)
-        for item in embedded[:max_decks]:
+        for item in embedded:
             players[item["rank"]].update(item)
             verified+=1
-    print(f"Found {len(links)} separate decklist links; checking up to {max_decks}",flush=True)
-    for link in links[:max(0,max_decks-verified)]:
+    print(f"Found {len(links)} separate decklist links; checking ALL discovered URLs (no cap)",flush=True)
+    for link in links:
         try:
             item=parse_deck(get(link),tid,link)
             if item is None:
@@ -337,12 +342,17 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--tournament-id",help="Main Limitless numeric tournament ID (e.g. 515 for 2026 Worlds)")
     p.add_argument("--delay",type=float,default=1.2)
-    p.add_argument("--max-decks",type=int,default=100)
+    p.add_argument("--max-decks",type=int,default=None,
+                   help="Deprecated compatibility option; ignored. All discovered decklists are checked.")
     args=p.parse_args()
+    if args.max_decks is not None:
+        print("INFO: --max-decks is deprecated and ignored; processing all discovered decklist URLs",flush=True)
+    if str(args.tournament_id)=="515":
+        p.error("Worlds 515 uses tools/import_worlds.py")
     ids=[(args.tournament_id,"manual")] if args.tournament_id else tournament_ids()[:3]
     if not ids:raise RuntimeError("No recent Regional Championships found on Limitless")
     for tid,_ in ids:
-        if import_event(tid,max(args.delay,1.0),max(1,args.max_decks)):return
+        if import_event(tid,max(args.delay,1.0)):return
     raise RuntimeError("No tournament produced a validated import. Existing JSON was preserved.")
 
 if __name__=="__main__":main()
