@@ -16,7 +16,7 @@ concurrency:
 jobs:
   import:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -27,11 +27,17 @@ jobs:
       - name: Fetch and validate LimitlessTCG tournament data
         env:
           TOURNAMENT_ID: ${{ inputs.tournament_id }}
+        shell: bash
         run: |
-          if [ -n "$TOURNAMENT_ID" ]; then
-            python tools/import_limitless.py --tournament-id "$TOURNAMENT_ID" --max-decks 120
+          if [ "$TOURNAMENT_ID" = "515" ]; then
+            echo "Importing Worlds Phase 2 with dedicated parser"
+            python tools/import_worlds.py --tournament-id 515
+          elif [ -n "$TOURNAMENT_ID" ]; then
+            echo "Importing Regional tournament $TOURNAMENT_ID"
+            python tools/import_limitless.py --tournament-id "$TOURNAMENT_ID"
           else
-            python tools/import_limitless.py --max-decks 100
+            echo "Importing latest Regional tournaments"
+            python tools/import_limitless.py
           fi
       - name: Commit verified tournament snapshots
         run: |
