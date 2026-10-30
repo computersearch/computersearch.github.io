@@ -201,12 +201,30 @@ def import_event(tid,delay,max_decks):
         print(f"NO UPDATE: only {len(players)}/64 placements; preserving existing data")
         return False
     event_text=soup.get_text(" ",strip=True)
-    soup=get(f"/tournaments/{tid}/decklists")
-    links=find_decks(soup)
+    # Discover lists from the tournament overview FIRST (same as Regionals).
+    # Some tournaments expose individual deck links on the overview or
+    # standings page, but not on the aggregate /decklists page.
+    pages=[(f"/tournaments/{tid}",soup)]
+    for path in (f"/tournaments/{tid}/standings",f"/tournaments/{tid}/decklists"):
+        try:
+            pages.append((path,get(path)))
+        except requests.RequestException as exc:
+            print(f"Discovery page unavailable {path}: {exc}",flush=True)
+    links=[]
+    seen=set()
+    for path,page in pages:
+        found=find_decks(page)
+        print(f"Discovery {path}: {len(found)} unique /decks/list/ links",flush=True)
+        for link in found:
+            if link not in seen:
+                seen.add(link)
+                links.append(link)
+    print(f"Discovery total: {len(links)} distinct individual decklists",flush=True)
+    decklist_soup=pages[-1][1] if pages[-1][0].endswith('/decklists') else None
     verified=0
-    if is_worlds:
-        embedded=worlds_decklists(soup,players)
-        print(f"Found {len(embedded)} verified embedded Worlds decklists",flush=True)
+    if is_worlds and not links and decklist_soup is not None:
+        embedded=worlds_decklists(decklist_soup,players)
+        print(f"Fallback: {len(embedded)} verified embedded Worlds decklists",flush=True)
         for item in embedded[:max_decks]:
             players[item["rank"]].update(item)
             verified+=1
@@ -214,6 +232,8 @@ def import_event(tid,delay,max_decks):
     for link in links[:max(0,max_decks-verified)]:
         try:
             item=parse_deck(get(link),tid,link)
+            if item is None:
+                print(f"SKIP unverified list: {link}",flush=True)
             if item and item["rank"] in players:
                 expected=players[item["rank"]]["name"]
                 # No rank-only merge: the names must match.
