@@ -202,6 +202,17 @@
     "verified_decks": 413
   },
   {
+    "id": "limitless-517",
+    "name": "EUIC 2026, London",
+    "date": "2026-02-13",
+    "file": "limitless-517.json",
+    "source": "https://limitlesstcg.com/tournaments/517",
+    "verified_decks": 741,
+    "event_type": "International Championships",
+    "day2_total": 741,
+    "day2_verified_count": 741
+  },
+  {
     "id": "limitless-532",
     "name": "Regional Santiago – Limitless",
     "date": "2026-02-07",
