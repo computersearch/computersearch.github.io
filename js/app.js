@@ -11,7 +11,7 @@ const deckExport = () => currentGroups.map(g=>`${g.name}: ${g.count}\n${g.cards.
 
 const app = document.querySelector('#app');
 const API='https://api.tcgdex.net/v2/en';
-const setCodes={SP:'swshp',SIT:'swsh12',BRS:'swsh9',PAR:'sv04',LOR:'swsh11',MEW:'sv03.5',PAL:'sv02',ASR:'swsh10',CRZ:'swsh12.5',PAF:'sv04.5',OBF:'sv03',SVI:'sv01',PRE:'sv08.5',PBL:'me05',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
+const setCodes={PGO:'swsh10.5',SP:'swshp',SIT:'swsh12',BRS:'swsh9',PAR:'sv04',LOR:'swsh11',MEW:'sv03.5',PAL:'sv02',ASR:'swsh10',CRZ:'swsh12.5',PAF:'sv04.5',OBF:'sv03',SVI:'sv01',PRE:'sv08.5',PBL:'me05',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
 const cardCache=new Map();
 let activeFilter='All';
 const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -146,7 +146,7 @@ function groupMarkup(){return currentGroups.filter(g=>activeFilter==='All'||g.na
 const setDetailCache=new Map();
 // PTCG Live abbreviations are distinct from TCGdex set IDs.
 // These are candidate IDs only; every returned card must match name and collector number.
-const setAliases={SP:['swshp'],SIT:['swsh12'],BRS:['swsh9'],PAR:['sv04'],LOR:['swsh11'],MEW:['sv03.5'],PAL:['sv02'],ASR:['swsh10'],CRZ:['swsh12.5'],PAF:['sv04.5'],OBF:['sv03'],SVI:['sv01'],PRE:['sv08.5'],PBL:['me05'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
+const setAliases={PGO:['swsh10.5'],SP:['swshp'],SIT:['swsh12'],BRS:['swsh9'],PAR:['sv04'],LOR:['swsh11'],MEW:['sv03.5'],PAL:['sv02'],ASR:['swsh10'],CRZ:['swsh12.5'],PAF:['sv04.5'],OBF:['sv03'],SVI:['sv01'],PRE:['sv08.5'],PBL:['me05'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
 const setNames={SP:['SWSH Black Star Promos'],SIT:['Silver Tempest'],BRS:['Brilliant Stars'],PAR:['Paradox Rift'],LOR:['Lost Origin'],MEW:['151'],PAL:['Paldea Evolved'],ASR:['Astral Radiance'],CRZ:['Crown Zenith'],PAF:['Paldean Fates'],OBF:['Obsidian Flames'],SVI:['Scarlet & Violet'],PRE:['Prismatic Evolutions'],PBL:['Pitch Black'],WHT:['White Flare'],BLK:['Black Bolt'],TWM:['Twilight Masquerade'],TEF:['Temporal Forces'],SCR:['Stellar Crown'],MEG:['Mega Evolution'],ASC:['Ascended Heroes'],POR:['Phantasmal Flames'],MEE:['Mega Evolution Energy'],SSP:['Surging Sparks'],JTG:['Journey Together'],DRI:['Destined Rivals'],SFA:['Shrouded Fable'],PFL:['Perfect Order'],CRI:['Crimson'],'30C':['30th Celebration']};
 // Shared built-in mappings travel with this HTML to every future deck.
 // Verified discoveries are also cached locally when browser storage is available.
