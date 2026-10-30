@@ -78,10 +78,40 @@ async function hydratePrices(){
   else{price.textContent='Price unavailable';price.classList.add('missing')}
  });
 }
+// One shared card-detail dialog for all tournament and archetype decklists.
+function cardRulesText(data){
+ if(!data)return '';
+ const chunks=[];
+ for(const ability of (data.abilities||[]))chunks.push(`<div class="card-rule"><strong>${esc(ability.name||'Ability')}</strong><p>${esc(ability.effect||'')}</p></div>`);
+ for(const attack of (data.attacks||[]))chunks.push(`<div class="card-rule"><strong>${esc(attack.name||'Attack')}${attack.damage?' · '+esc(attack.damage):''}</strong>${attack.effect?`<p>${esc(attack.effect)}</p>`:''}</div>`);
+ if(data.effect)chunks.push(`<div class="card-rule"><strong>Card effect</strong><p>${esc(data.effect)}</p></div>`);
+ return chunks.join('');
+}
+let tournamentDialogRequest=0;
+async function openTournamentCard(el){
+ const dlg=document.querySelector('#cardDialog'),body=document.querySelector('#dialogBody');if(!dlg||!body)return;
+ const name=el.dataset.cardName,set=el.dataset.cardSet,num=el.dataset.cardNumber;
+ const c=[Number(el.querySelector('.quantity')?.textContent?.replace(/[^0-9]/g,'')||1),name,set,num];
+ const request=++tournamentDialogRequest;
+ body.innerHTML=`<div class="modal-layout"><div class="modal-preview">${cardFrame(c,'modal-card')}</div><div><div class="eyebrow small">CARD DETAILS</div><h2>${esc(name)}</h2><p class="muted">${esc(set)} · ${esc(num)}</p><p class="muted">Loading card details…</p></div></div>`;
+ if(!dlg.open)dlg.showModal();
+ const data=await getCard(set,num,name);
+ if(!dlg.open||request!==tournamentDialogRequest)return;
+ const link=cardmarketLink(data,c);
+ const image=imageUrl(data);
+ body.innerHTML=`<div class="modal-layout"><div class="modal-preview">${image?`<img class="modal-image" src="${esc(image)}" alt="${esc(name)} card"/>`:cardFrame(c,'modal-card')}</div><div class="modal-details"><div class="eyebrow small">CARD DETAILS</div><h2>${esc(name)}</h2><p class="muted">${esc(set)} · ${esc(num)} · ${c[0]} ${c[0]===1?'copy':'copies'}</p>${data?.hp?`<p class="muted">${esc(data.hp)} HP</p>`:''}${cardRulesText(data)}<a class="text-link" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a></div></div>`;
+}
+function wireTournamentCardDialog(){
+ if(document.body.dataset.tournamentDialogWired)return;
+ document.body.dataset.tournamentDialogWired='1';
+ document.addEventListener('click',e=>{const card=e.target.closest('.tournament-card');if(card)openTournamentCard(card)});
+ document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.tournament-card')){e.preventDefault();openTournamentCard(e.target)}});
+}
+wireTournamentCardDialog();
 // Shared tournament-deck rendering: quantity overlay and Cardmarket valuation.
 let tournamentPriceGeneration=0;
 function tournamentCardMarkup(c){
- return `<div class="card-item tournament-card" data-card-set="${esc(c[2])}" data-card-number="${esc(c[3])}" data-card-name="${esc(c[1])}"><div class="tournament-art-wrap">${cardFrame(c)}<span class="quantity" aria-label="${c[0]} copies">×${c[0]}</span></div><div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])}</small><small class="cm-price">Price loading…</small></div></div>`;
+ return `<div class="card-item tournament-card" role="button" tabindex="0" aria-label="View card details" data-card-set="${esc(c[2])}" data-card-number="${esc(c[3])}" data-card-name="${esc(c[1])}"><div class="tournament-art-wrap">${cardFrame(c)}<span class="quantity" aria-label="${c[0]} copies">×${c[0]}</span></div><div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])}</small><small class="cm-price">Price loading…</small></div></div>`;
 }
 async function hydrateTournamentPrices(scope){
  const generation=++tournamentPriceGeneration;
@@ -448,7 +478,7 @@ const FEATURED_ARCHETYPE_TAGS={
  'crustle mysterious rock inn':['crustle','crustle mysterious rock inn'],
  'mega excadrill ex':['mega excadrill','mega excadrill ex'],
  'mega lucario ex':['mega lucario','mega lucario ex'],
- 'mega sharpedo ex':['mega sharpedo','mega sharpedo ex'],
+ 'mega sharpedo ex':['mega sharpedo','mega sharpedo ex','sharpedo toxtricity','mega sharpedo toxtricity','sharpedo mega toxtricity'],
  'rockets honchkrow':['rockets honchkrow'],
  'cynthias garchomp ex':['cynthias garchomp','cynthias garchomp ex'],
  'ogerpon meganium':['ogerpon meganium hydrapple','ogerpon meganium arboliva','ogerpon meganium'],
