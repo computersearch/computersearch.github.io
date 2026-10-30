@@ -385,14 +385,15 @@ async function getTournamentById(id){
 }
 function tournamentDisplayName(event){
  const raw=String(event?.name||'').trim();
- if(raw && !/^(?:Regional Championship|Tournament)\\s*#?\\d+$/i.test(raw)){
-  const clean=raw.replace(/\\s+[–—-]\\s+Limitless(?:TCG)?\\s*$/i,'').trim();
-  const regional=clean.match(/^Regional\\s+(.+)$/i);
+ // Strip source attribution from imported titles; the banner handles attribution.
+ const clean=raw.replace(/\s*[–—-]\s*Limitless(?:\s*TCG)?\s*$/i,'').trim();
+ if(clean && !/^(?:Regional Championship|Tournament)\s*#?\d+$/i.test(clean)){
+  const regional=clean.match(/^Regional\s+(.+)$/i);
   return regional ? `${regional[1]} Regional Championship` : clean;
  }
  const id=String(event?.id||'').replace(/^limitless-/,'');
  const known={'583':'Puebla Regional Championship','582':'Nice Regional Championship','581':'Louisville Regional Championship'};
- return known[id]||raw.replace(/\s*[–—-]\s*Limitless(?:\s*TCG)?\s*$/i,'').trim()||'Regional Championship';
+ return known[id]||clean||'Regional Championship';
 }
 function tournamentPage(){return `${header()}<main class="ranked-library"><div class="tournament-source-banner">Data from Limitless</div><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional or World Championship to view top players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
 function tournamentSeason(dateString){
