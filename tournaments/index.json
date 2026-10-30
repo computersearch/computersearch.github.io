@@ -75,10 +75,10 @@
     "date": "2026-08-28",
     "file": "limitless-515.json",
     "source": "https://limitlesstcg.com/tournaments/515",
-    "verified_decks": 120,
+    "verified_decks": 128,
     "event_type": "World Championships",
     "day2_total": 143,
-    "day2_verified_count": 0
+    "day2_verified_count": 143
   },
   {
     "id": "limitless-559",

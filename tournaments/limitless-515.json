@@ -4,6 +4,9 @@
   "date": "2026-08-28",
   "source": "https://limitlesstcg.com/tournaments/515",
   "provider": "LimitlessTCG",
+  "event_type": "World Championships",
+  "day2_total": 143,
+  "day2_verified_count": 143,
   "standings": [
     {
       "rank": 1,
@@ -156,7 +159,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28752",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 2,
@@ -315,7 +319,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28753",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 3,
@@ -468,7 +473,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28754",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 4,
@@ -633,7 +639,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28755",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 5,
@@ -798,7 +805,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28756",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 6,
@@ -806,7 +814,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 7,
@@ -965,7 +974,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28757",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 8,
@@ -1148,7 +1158,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28758",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 9,
@@ -1319,7 +1330,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28759",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 10,
@@ -1478,7 +1490,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28760",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 11,
@@ -1655,7 +1668,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28761",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 12,
@@ -1832,7 +1846,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28762",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 13,
@@ -1997,7 +2012,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28763",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 14,
@@ -2156,7 +2172,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28764",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 15,
@@ -2333,7 +2350,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28266",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 16,
@@ -2510,7 +2528,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28765",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 17,
@@ -2681,7 +2700,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28766",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 18,
@@ -2846,7 +2866,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28767",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 19,
@@ -2854,7 +2875,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 20,
@@ -3019,7 +3041,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28768",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 21,
@@ -3027,7 +3050,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 22,
@@ -3180,7 +3204,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28769",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 23,
@@ -3345,7 +3370,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28770",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 24,
@@ -3540,7 +3566,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28771",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 25,
@@ -3711,7 +3738,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28772",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 26,
@@ -3882,7 +3910,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28773",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 27,
@@ -4041,7 +4070,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28774",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 28,
@@ -4200,7 +4230,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28775",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 29,
@@ -4371,7 +4402,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28776",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 30,
@@ -4548,7 +4580,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28777",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 31,
@@ -4701,7 +4734,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28778",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 32,
@@ -4854,7 +4888,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28779",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 33,
@@ -5019,7 +5054,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28780",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 34,
@@ -5190,7 +5226,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28781",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 35,
@@ -5361,7 +5398,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28782",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 36,
@@ -5520,7 +5558,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28783",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 37,
@@ -5649,7 +5688,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28784",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 38,
@@ -5657,7 +5697,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 39,
@@ -5774,7 +5815,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28785",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 40,
@@ -5782,7 +5824,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 41,
@@ -5917,7 +5960,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28786",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 42,
@@ -6088,7 +6132,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28787",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 43,
@@ -6253,7 +6298,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28788",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 44,
@@ -6424,7 +6470,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28789",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 45,
@@ -6595,7 +6642,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28790",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 46,
@@ -6778,7 +6826,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28791",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 47,
@@ -6949,7 +6998,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28792",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 48,
@@ -7126,7 +7176,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28793",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 49,
@@ -7303,7 +7354,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28794",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 50,
@@ -7432,7 +7484,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28795",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 51,
@@ -7585,7 +7638,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28796",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 52,
@@ -7593,7 +7647,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 53,
@@ -7716,7 +7771,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28797",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 54,
@@ -7881,7 +7937,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28798",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 55,
@@ -8040,7 +8097,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28885",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 56,
@@ -8193,7 +8251,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28799",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 57,
@@ -8376,7 +8435,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28800",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 58,
@@ -8541,7 +8601,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28801",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 59,
@@ -8712,7 +8773,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28802",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 60,
@@ -8720,7 +8782,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 61,
@@ -8873,7 +8936,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28803",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 62,
@@ -9038,7 +9102,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28804",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 63,
@@ -9203,7 +9268,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28805",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 64,
@@ -9211,7 +9277,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 65,
@@ -9382,7 +9449,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28806",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 66,
@@ -9541,7 +9609,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28807",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 67,
@@ -9706,7 +9775,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28808",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 68,
@@ -9865,7 +9935,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28809",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 69,
@@ -10024,7 +10095,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28810",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 70,
@@ -10201,7 +10273,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28811",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 71,
@@ -10360,7 +10433,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28812",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 72,
@@ -10519,7 +10593,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28813",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 73,
@@ -10696,7 +10771,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28814",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 74,
@@ -10855,7 +10931,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28815",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 75,
@@ -10863,7 +10940,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 76,
@@ -11022,7 +11100,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28816",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 77,
@@ -11181,7 +11260,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28817",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 78,
@@ -11352,7 +11432,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28818",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 79,
@@ -11535,7 +11616,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28819",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 80,
@@ -11706,7 +11788,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28820",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 81,
@@ -11859,7 +11942,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28821",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 82,
@@ -12024,7 +12108,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28822",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 83,
@@ -12177,7 +12262,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28823",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 84,
@@ -12336,7 +12422,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28824",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 85,
@@ -12344,7 +12431,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 86,
@@ -12509,7 +12597,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28825",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 87,
@@ -12517,7 +12606,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 88,
@@ -12700,7 +12790,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28826",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 89,
@@ -12871,7 +12962,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28827",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 90,
@@ -13048,7 +13140,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28828",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 91,
@@ -13219,7 +13312,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28829",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 92,
@@ -13396,7 +13490,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28830",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 93,
@@ -13543,7 +13638,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28254",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 94,
@@ -13714,7 +13810,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28252",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 95,
@@ -13879,7 +13976,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28831",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 96,
@@ -14056,7 +14154,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28832",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 97,
@@ -14191,7 +14290,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28833",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 98,
@@ -14199,7 +14299,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 99,
@@ -14376,7 +14477,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28834",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 100,
@@ -14541,7 +14643,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28835",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 101,
@@ -14712,7 +14815,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28836",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 102,
@@ -14720,7 +14824,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 103,
@@ -14867,7 +14972,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28837",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 104,
@@ -15020,7 +15126,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28838",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 105,
@@ -15203,7 +15310,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28839",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 106,
@@ -15374,7 +15482,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28840",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 107,
@@ -15521,7 +15630,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28841",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 108,
@@ -15698,7 +15808,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28842",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 109,
@@ -15851,7 +15962,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28250",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 110,
@@ -16004,7 +16116,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28843",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 111,
@@ -16175,7 +16288,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28886",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 112,
@@ -16183,7 +16297,8 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 113,
@@ -16390,7 +16505,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28750",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 114,
@@ -16567,7 +16683,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28844",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 115,
@@ -16726,7 +16843,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28845",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 116,
@@ -16909,7 +17027,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28846",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 117,
@@ -17068,7 +17187,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28847",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 118,
@@ -17227,7 +17347,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28848",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 119,
@@ -17344,7 +17465,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28849",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 120,
@@ -17503,7 +17625,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28850",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 121,
@@ -17662,7 +17785,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28851",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 122,
@@ -17791,7 +17915,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28852",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 123,
@@ -17962,7 +18087,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28853",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 124,
@@ -18127,7 +18253,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28854",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 125,
@@ -18298,7 +18425,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28855",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 126,
@@ -18475,7 +18603,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28856",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 127,
@@ -18658,7 +18787,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28857",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 128,
@@ -18835,7 +18965,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28858",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 129,
@@ -19006,7 +19137,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28859",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 130,
@@ -19171,7 +19303,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28860",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 131,
@@ -19342,7 +19475,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28861",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 132,
@@ -19513,7 +19647,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28862",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 133,
@@ -19690,7 +19825,8 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28863",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 134,
@@ -19837,71 +19973,1312 @@
         }
       ],
       "decklist_url": "https://limitlesstcg.com/decks/list/28864",
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 135,
       "name": "Grant Manley",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Lucario Hariyama",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Riolu",
+          "set": "MEG",
+          "number": "76"
+        },
+        {
+          "quantity": 3,
+          "name": "Mega Lucario ex",
+          "set": "MEG",
+          "number": "77"
+        },
+        {
+          "quantity": 2,
+          "name": "Makuhita",
+          "set": "MEG",
+          "number": "72"
+        },
+        {
+          "quantity": 2,
+          "name": "Hariyama",
+          "set": "MEG",
+          "number": "73"
+        },
+        {
+          "quantity": 2,
+          "name": "Solrock",
+          "set": "MEG",
+          "number": "75"
+        },
+        {
+          "quantity": 2,
+          "name": "Lunatone",
+          "set": "MEG",
+          "number": "74"
+        },
+        {
+          "quantity": 1,
+          "name": "Genesect",
+          "set": "SFA",
+          "number": "40"
+        },
+        {
+          "quantity": 1,
+          "name": "Shaymin",
+          "set": "DRI",
+          "number": "10"
+        },
+        {
+          "quantity": 1,
+          "name": "Meowth ex",
+          "set": "POR",
+          "number": "62"
+        },
+        {
+          "quantity": 4,
+          "name": "Lillie's Determination",
+          "set": "MEG",
+          "number": "119"
+        },
+        {
+          "quantity": 3,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 4,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 4,
+          "name": "Poké Pad",
+          "set": "POR",
+          "number": "81"
+        },
+        {
+          "quantity": 4,
+          "name": "Fighting Gong",
+          "set": "MEG",
+          "number": "116"
+        },
+        {
+          "quantity": 4,
+          "name": "Premium Power Pro",
+          "set": "MEG",
+          "number": "124"
+        },
+        {
+          "quantity": 2,
+          "name": "Switch",
+          "set": "MEG",
+          "number": "130"
+        },
+        {
+          "quantity": 1,
+          "name": "Secret Box",
+          "set": "TWM",
+          "number": "163"
+        },
+        {
+          "quantity": 3,
+          "name": "Air Balloon",
+          "set": "ASC",
+          "number": "181"
+        },
+        {
+          "quantity": 2,
+          "name": "Gravity Mountain",
+          "set": "SSP",
+          "number": "177"
+        },
+        {
+          "quantity": 11,
+          "name": "Fighting Energy",
+          "set": "MEE",
+          "number": "14"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28865",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 136,
       "name": "Fuka Ohashi",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Dragapult Blaziken",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Dreepy",
+          "set": "TWM",
+          "number": "128"
+        },
+        {
+          "quantity": 4,
+          "name": "Drakloak",
+          "set": "TWM",
+          "number": "129"
+        },
+        {
+          "quantity": 2,
+          "name": "Dragapult ex",
+          "set": "TWM",
+          "number": "130"
+        },
+        {
+          "quantity": 2,
+          "name": "Torchic",
+          "set": "DRI",
+          "number": "40"
+        },
+        {
+          "quantity": 1,
+          "name": "Combusken",
+          "set": "DRI",
+          "number": "41"
+        },
+        {
+          "quantity": 2,
+          "name": "Blaziken ex",
+          "set": "JTG",
+          "number": "24"
+        },
+        {
+          "quantity": 2,
+          "name": "Munkidori",
+          "set": "TWM",
+          "number": "95"
+        },
+        {
+          "quantity": 1,
+          "name": "Budew",
+          "set": "ASC",
+          "number": "16"
+        },
+        {
+          "quantity": 1,
+          "name": "Psyduck",
+          "set": "ASC",
+          "number": "39"
+        },
+        {
+          "quantity": 1,
+          "name": "Fezandipiti ex",
+          "set": "ASC",
+          "number": "142"
+        },
+        {
+          "quantity": 1,
+          "name": "Meowth ex",
+          "set": "POR",
+          "number": "62"
+        },
+        {
+          "quantity": 4,
+          "name": "Lillie's Determination",
+          "set": "MEG",
+          "number": "119"
+        },
+        {
+          "quantity": 3,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 2,
+          "name": "Dawn",
+          "set": "PFL",
+          "number": "87"
+        },
+        {
+          "quantity": 2,
+          "name": "Crispin",
+          "set": "SCR",
+          "number": "133"
+        },
+        {
+          "quantity": 4,
+          "name": "Buddy-Buddy Poffin",
+          "set": "TEF",
+          "number": "144"
+        },
+        {
+          "quantity": 4,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 3,
+          "name": "Poké Pad",
+          "set": "POR",
+          "number": "81"
+        },
+        {
+          "quantity": 2,
+          "name": "Night Stretcher",
+          "set": "ASC",
+          "number": "196"
+        },
+        {
+          "quantity": 2,
+          "name": "Rare Candy",
+          "set": "MEG",
+          "number": "125"
+        },
+        {
+          "quantity": 1,
+          "name": "Special Red Card",
+          "set": "CRI",
+          "number": "82"
+        },
+        {
+          "quantity": 1,
+          "name": "Hero's Cape",
+          "set": "TEF",
+          "number": "152"
+        },
+        {
+          "quantity": 2,
+          "name": "Area Zero Underdepths",
+          "set": "SCR",
+          "number": "131"
+        },
+        {
+          "quantity": 1,
+          "name": "Team Rocket's Watchtower",
+          "set": "DRI",
+          "number": "180"
+        },
+        {
+          "quantity": 3,
+          "name": "Fire Energy",
+          "set": "MEE",
+          "number": "10"
+        },
+        {
+          "quantity": 3,
+          "name": "Psychic Energy",
+          "set": "MEE",
+          "number": "13"
+        },
+        {
+          "quantity": 2,
+          "name": "Darkness Energy",
+          "set": "MEE",
+          "number": "15"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28866",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 137,
       "name": "Riley McKay",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Dragapult",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Dreepy",
+          "set": "TWM",
+          "number": "128"
+        },
+        {
+          "quantity": 4,
+          "name": "Drakloak",
+          "set": "TWM",
+          "number": "129"
+        },
+        {
+          "quantity": 2,
+          "name": "Dragapult ex",
+          "set": "TWM",
+          "number": "130"
+        },
+        {
+          "quantity": 1,
+          "name": "Rellor",
+          "set": "TEF",
+          "number": "23"
+        },
+        {
+          "quantity": 1,
+          "name": "Rabsca",
+          "set": "TEF",
+          "number": "24"
+        },
+        {
+          "quantity": 1,
+          "name": "Munkidori",
+          "set": "TWM",
+          "number": "95"
+        },
+        {
+          "quantity": 1,
+          "name": "Meowth ex",
+          "set": "POR",
+          "number": "62"
+        },
+        {
+          "quantity": 1,
+          "name": "Moltres",
+          "set": "PFL",
+          "number": "14"
+        },
+        {
+          "quantity": 1,
+          "name": "Patrat",
+          "set": "CRI",
+          "number": "70"
+        },
+        {
+          "quantity": 1,
+          "name": "Budew",
+          "set": "ASC",
+          "number": "16"
+        },
+        {
+          "quantity": 1,
+          "name": "Fezandipiti ex",
+          "set": "ASC",
+          "number": "142"
+        },
+        {
+          "quantity": 4,
+          "name": "Lillie's Determination",
+          "set": "MEG",
+          "number": "119"
+        },
+        {
+          "quantity": 3,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 2,
+          "name": "Crispin",
+          "set": "SCR",
+          "number": "133"
+        },
+        {
+          "quantity": 2,
+          "name": "Dawn",
+          "set": "PFL",
+          "number": "87"
+        },
+        {
+          "quantity": 1,
+          "name": "Xerosic's Machinations",
+          "set": "SFA",
+          "number": "64"
+        },
+        {
+          "quantity": 1,
+          "name": "Rosa's Encouragement",
+          "set": "POR",
+          "number": "84"
+        },
+        {
+          "quantity": 4,
+          "name": "Poké Pad",
+          "set": "POR",
+          "number": "81"
+        },
+        {
+          "quantity": 4,
+          "name": "Buddy-Buddy Poffin",
+          "set": "TEF",
+          "number": "144"
+        },
+        {
+          "quantity": 3,
+          "name": "Crushing Hammer",
+          "set": "POR",
+          "number": "71"
+        },
+        {
+          "quantity": 3,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 3,
+          "name": "Night Stretcher",
+          "set": "ASC",
+          "number": "196"
+        },
+        {
+          "quantity": 1,
+          "name": "Unfair Stamp",
+          "set": "TWM",
+          "number": "165"
+        },
+        {
+          "quantity": 1,
+          "name": "Special Red Card",
+          "set": "CRI",
+          "number": "82"
+        },
+        {
+          "quantity": 1,
+          "name": "Team Rocket's Watchtower",
+          "set": "DRI",
+          "number": "180"
+        },
+        {
+          "quantity": 1,
+          "name": "Jamming Tower",
+          "set": "TWM",
+          "number": "153"
+        },
+        {
+          "quantity": 3,
+          "name": "Fire Energy",
+          "set": "MEE",
+          "number": "10"
+        },
+        {
+          "quantity": 3,
+          "name": "Psychic Energy",
+          "set": "MEE",
+          "number": "13"
+        },
+        {
+          "quantity": 2,
+          "name": "Darkness Energy",
+          "set": "MEE",
+          "number": "15"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28867",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 138,
       "name": "Seunghyeok Lee",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Basic Box",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Mega Kangaskhan ex",
+          "set": "MEG",
+          "number": "104"
+        },
+        {
+          "quantity": 4,
+          "name": "Meowth ex",
+          "set": "POR",
+          "number": "62"
+        },
+        {
+          "quantity": 2,
+          "name": "Teal Mask Ogerpon ex",
+          "set": "TWM",
+          "number": "25"
+        },
+        {
+          "quantity": 2,
+          "name": "Fezandipiti ex",
+          "set": "ASC",
+          "number": "142"
+        },
+        {
+          "quantity": 2,
+          "name": "Latias ex",
+          "set": "SSP",
+          "number": "76"
+        },
+        {
+          "quantity": 2,
+          "name": "Lillie's Clefairy ex",
+          "set": "JTG",
+          "number": "56"
+        },
+        {
+          "quantity": 1,
+          "name": "Wellspring Mask Ogerpon ex",
+          "set": "TWM",
+          "number": "64"
+        },
+        {
+          "quantity": 1,
+          "name": "Iron Crown ex",
+          "set": "TEF",
+          "number": "81"
+        },
+        {
+          "quantity": 1,
+          "name": "Raging Bolt ex",
+          "set": "TEF",
+          "number": "123"
+        },
+        {
+          "quantity": 1,
+          "name": "Iron Leaves ex",
+          "set": "TEF",
+          "number": "25"
+        },
+        {
+          "quantity": 1,
+          "name": "Chien-Pao",
+          "set": "SSP",
+          "number": "56"
+        },
+        {
+          "quantity": 1,
+          "name": "Passimian",
+          "set": "SSP",
+          "number": "111"
+        },
+        {
+          "quantity": 4,
+          "name": "Crispin",
+          "set": "SCR",
+          "number": "133"
+        },
+        {
+          "quantity": 2,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 2,
+          "name": "Cyrano",
+          "set": "SSP",
+          "number": "170"
+        },
+        {
+          "quantity": 1,
+          "name": "Ciphermaniac's Codebreaking",
+          "set": "TEF",
+          "number": "145"
+        },
+        {
+          "quantity": 4,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 4,
+          "name": "Energy Switch",
+          "set": "MEG",
+          "number": "115"
+        },
+        {
+          "quantity": 2,
+          "name": "Night Stretcher",
+          "set": "ASC",
+          "number": "196"
+        },
+        {
+          "quantity": 1,
+          "name": "Glass Trumpet",
+          "set": "SCR",
+          "number": "135"
+        },
+        {
+          "quantity": 1,
+          "name": "Unfair Stamp",
+          "set": "TWM",
+          "number": "165"
+        },
+        {
+          "quantity": 3,
+          "name": "Area Zero Underdepths",
+          "set": "SCR",
+          "number": "131"
+        },
+        {
+          "quantity": 7,
+          "name": "Grass Energy",
+          "set": "MEE",
+          "number": "9"
+        },
+        {
+          "quantity": 2,
+          "name": "Psychic Energy",
+          "set": "MEE",
+          "number": "13"
+        },
+        {
+          "quantity": 2,
+          "name": "Lightning Energy",
+          "set": "MEE",
+          "number": "12"
+        },
+        {
+          "quantity": 2,
+          "name": "Fighting Energy",
+          "set": "MEE",
+          "number": "14"
+        },
+        {
+          "quantity": 1,
+          "name": "Water Energy",
+          "set": "MEE",
+          "number": "11"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28868",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 139,
       "name": "Gaston Kitela",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Raging Bolt Ogerpon",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Mega Kangaskhan ex",
+          "set": "MEG",
+          "number": "104"
+        },
+        {
+          "quantity": 3,
+          "name": "Teal Mask Ogerpon ex",
+          "set": "TWM",
+          "number": "25"
+        },
+        {
+          "quantity": 3,
+          "name": "Meowth ex",
+          "set": "POR",
+          "number": "62"
+        },
+        {
+          "quantity": 2,
+          "name": "Raging Bolt ex",
+          "set": "TEF",
+          "number": "123"
+        },
+        {
+          "quantity": 2,
+          "name": "Latias ex",
+          "set": "SSP",
+          "number": "76"
+        },
+        {
+          "quantity": 1,
+          "name": "Wellspring Mask Ogerpon ex",
+          "set": "TWM",
+          "number": "64"
+        },
+        {
+          "quantity": 1,
+          "name": "Lillie's Clefairy ex",
+          "set": "JTG",
+          "number": "56"
+        },
+        {
+          "quantity": 1,
+          "name": "Chien-Pao",
+          "set": "SSP",
+          "number": "56"
+        },
+        {
+          "quantity": 1,
+          "name": "Fezandipiti ex",
+          "set": "ASC",
+          "number": "142"
+        },
+        {
+          "quantity": 1,
+          "name": "Iron Crown ex",
+          "set": "TEF",
+          "number": "81"
+        },
+        {
+          "quantity": 1,
+          "name": "Iron Leaves ex",
+          "set": "TEF",
+          "number": "25"
+        },
+        {
+          "quantity": 4,
+          "name": "Crispin",
+          "set": "SCR",
+          "number": "133"
+        },
+        {
+          "quantity": 2,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 2,
+          "name": "Cyrano",
+          "set": "SSP",
+          "number": "170"
+        },
+        {
+          "quantity": 1,
+          "name": "Ciphermaniac's Codebreaking",
+          "set": "TEF",
+          "number": "145"
+        },
+        {
+          "quantity": 4,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 4,
+          "name": "Energy Switch",
+          "set": "MEG",
+          "number": "115"
+        },
+        {
+          "quantity": 2,
+          "name": "Glass Trumpet",
+          "set": "SCR",
+          "number": "135"
+        },
+        {
+          "quantity": 2,
+          "name": "Night Stretcher",
+          "set": "ASC",
+          "number": "196"
+        },
+        {
+          "quantity": 1,
+          "name": "Unfair Stamp",
+          "set": "TWM",
+          "number": "165"
+        },
+        {
+          "quantity": 4,
+          "name": "Area Zero Underdepths",
+          "set": "SCR",
+          "number": "131"
+        },
+        {
+          "quantity": 7,
+          "name": "Grass Energy",
+          "set": "MEE",
+          "number": "9"
+        },
+        {
+          "quantity": 2,
+          "name": "Psychic Energy",
+          "set": "MEE",
+          "number": "13"
+        },
+        {
+          "quantity": 2,
+          "name": "Fighting Energy",
+          "set": "MEE",
+          "number": "14"
+        },
+        {
+          "quantity": 2,
+          "name": "Lightning Energy",
+          "set": "MEE",
+          "number": "12"
+        },
+        {
+          "quantity": 1,
+          "name": "Water Energy",
+          "set": "MEE",
+          "number": "11"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28869",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 140,
       "name": "Anthony Ribeiro",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Lopunny Dusknoir",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Duskull",
+          "set": "PRE",
+          "number": "35"
+        },
+        {
+          "quantity": 2,
+          "name": "Dusclops",
+          "set": "PRE",
+          "number": "36"
+        },
+        {
+          "quantity": 3,
+          "name": "Dusknoir",
+          "set": "PRE",
+          "number": "37"
+        },
+        {
+          "quantity": 2,
+          "name": "Bronzor",
+          "set": "TEF",
+          "number": "68"
+        },
+        {
+          "quantity": 2,
+          "name": "Bronzong",
+          "set": "TEF",
+          "number": "69"
+        },
+        {
+          "quantity": 2,
+          "name": "Buneary",
+          "set": "PFL",
+          "number": "83"
+        },
+        {
+          "quantity": 2,
+          "name": "Mega Lopunny ex",
+          "set": "PFL",
+          "number": "84"
+        },
+        {
+          "quantity": 2,
+          "name": "Mega Kangaskhan ex",
+          "set": "MEG",
+          "number": "104"
+        },
+        {
+          "quantity": 2,
+          "name": "Latias ex",
+          "set": "SSP",
+          "number": "76"
+        },
+        {
+          "quantity": 1,
+          "name": "Budew",
+          "set": "ASC",
+          "number": "16"
+        },
+        {
+          "quantity": 1,
+          "name": "Flutter Mane",
+          "set": "TEF",
+          "number": "78"
+        },
+        {
+          "quantity": 1,
+          "name": "Meowth ex",
+          "set": "POR",
+          "number": "62"
+        },
+        {
+          "quantity": 4,
+          "name": "Lillie's Determination",
+          "set": "MEG",
+          "number": "119"
+        },
+        {
+          "quantity": 4,
+          "name": "Hilda",
+          "set": "WHT",
+          "number": "84"
+        },
+        {
+          "quantity": 2,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 2,
+          "name": "Ciphermaniac's Codebreaking",
+          "set": "TEF",
+          "number": "145"
+        },
+        {
+          "quantity": 1,
+          "name": "Salvatore",
+          "set": "TEF",
+          "number": "160"
+        },
+        {
+          "quantity": 4,
+          "name": "Poké Pad",
+          "set": "POR",
+          "number": "81"
+        },
+        {
+          "quantity": 4,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 4,
+          "name": "Rare Candy",
+          "set": "MEG",
+          "number": "125"
+        },
+        {
+          "quantity": 3,
+          "name": "Switch",
+          "set": "MEG",
+          "number": "130"
+        },
+        {
+          "quantity": 2,
+          "name": "Night Stretcher",
+          "set": "ASC",
+          "number": "196"
+        },
+        {
+          "quantity": 1,
+          "name": "Special Red Card",
+          "set": "CRI",
+          "number": "82"
+        },
+        {
+          "quantity": 4,
+          "name": "Telepathic Psychic Energy",
+          "set": "POR",
+          "number": "88"
+        },
+        {
+          "quantity": 1,
+          "name": "Enriching Energy",
+          "set": "SSP",
+          "number": "191"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28870",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 141,
       "name": "Yihao Chen",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Crustle",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Cinderace",
+          "set": "MEG",
+          "number": "28"
+        },
+        {
+          "quantity": 4,
+          "name": "Mega Kangaskhan ex",
+          "set": "MEG",
+          "number": "104"
+        },
+        {
+          "quantity": 3,
+          "name": "Dwebble",
+          "set": "DRI",
+          "number": "11"
+        },
+        {
+          "quantity": 3,
+          "name": "Crustle",
+          "set": "DRI",
+          "number": "12"
+        },
+        {
+          "quantity": 4,
+          "name": "Lillie's Determination",
+          "set": "MEG",
+          "number": "119"
+        },
+        {
+          "quantity": 4,
+          "name": "Team Rocket's Petrel",
+          "set": "DRI",
+          "number": "176"
+        },
+        {
+          "quantity": 4,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 2,
+          "name": "Eri",
+          "set": "TEF",
+          "number": "146"
+        },
+        {
+          "quantity": 1,
+          "name": "Hilda",
+          "set": "WHT",
+          "number": "84"
+        },
+        {
+          "quantity": 4,
+          "name": "Jumbo Ice Cream",
+          "set": "PFL",
+          "number": "91"
+        },
+        {
+          "quantity": 3,
+          "name": "Pokégear 3.0",
+          "set": "SVI",
+          "number": "186"
+        },
+        {
+          "quantity": 2,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 2,
+          "name": "Switch",
+          "set": "MEG",
+          "number": "130"
+        },
+        {
+          "quantity": 1,
+          "name": "Buddy-Buddy Poffin",
+          "set": "TEF",
+          "number": "144"
+        },
+        {
+          "quantity": 1,
+          "name": "Special Red Card",
+          "set": "CRI",
+          "number": "82"
+        },
+        {
+          "quantity": 1,
+          "name": "Hero's Cape",
+          "set": "TEF",
+          "number": "152"
+        },
+        {
+          "quantity": 1,
+          "name": "Handheld Fan",
+          "set": "TWM",
+          "number": "150"
+        },
+        {
+          "quantity": 1,
+          "name": "Lumiose City",
+          "set": "POR",
+          "number": "77"
+        },
+        {
+          "quantity": 1,
+          "name": "Festival Grounds",
+          "set": "TWM",
+          "number": "149"
+        },
+        {
+          "quantity": 1,
+          "name": "Team Rocket's Factory",
+          "set": "DRI",
+          "number": "173"
+        },
+        {
+          "quantity": 4,
+          "name": "Grass Energy",
+          "set": "MEE",
+          "number": "9"
+        },
+        {
+          "quantity": 4,
+          "name": "Mist Energy",
+          "set": "TEF",
+          "number": "161"
+        },
+        {
+          "quantity": 4,
+          "name": "Spiky Energy",
+          "set": "JTG",
+          "number": "159"
+        },
+        {
+          "quantity": 1,
+          "name": "Growing Grass Energy",
+          "set": "POR",
+          "number": "86"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28871",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 142,
       "name": "Seungrim Kim",
-      "deck": null,
-      "decklist": null,
-      "decklist_url": null,
-      "day2": false
+      "deck": "Dragapult",
+      "decklist": [
+        {
+          "quantity": 4,
+          "name": "Dreepy",
+          "set": "TWM",
+          "number": "128"
+        },
+        {
+          "quantity": 4,
+          "name": "Drakloak",
+          "set": "TWM",
+          "number": "129"
+        },
+        {
+          "quantity": 3,
+          "name": "Dragapult ex",
+          "set": "TWM",
+          "number": "130"
+        },
+        {
+          "quantity": 2,
+          "name": "Budew",
+          "set": "ASC",
+          "number": "16"
+        },
+        {
+          "quantity": 2,
+          "name": "Munkidori",
+          "set": "TWM",
+          "number": "95"
+        },
+        {
+          "quantity": 1,
+          "name": "Fezandipiti ex",
+          "set": "ASC",
+          "number": "142"
+        },
+        {
+          "quantity": 1,
+          "name": "Meowth ex",
+          "set": "POR",
+          "number": "62"
+        },
+        {
+          "quantity": 1,
+          "name": "Moltres",
+          "set": "PFL",
+          "number": "14"
+        },
+        {
+          "quantity": 1,
+          "name": "Patrat",
+          "set": "CRI",
+          "number": "70"
+        },
+        {
+          "quantity": 4,
+          "name": "Lillie's Determination",
+          "set": "MEG",
+          "number": "119"
+        },
+        {
+          "quantity": 3,
+          "name": "Boss's Orders",
+          "set": "MEG",
+          "number": "114"
+        },
+        {
+          "quantity": 2,
+          "name": "Crispin",
+          "set": "SCR",
+          "number": "133"
+        },
+        {
+          "quantity": 1,
+          "name": "Rosa's Encouragement",
+          "set": "POR",
+          "number": "84"
+        },
+        {
+          "quantity": 4,
+          "name": "Ultra Ball",
+          "set": "MEG",
+          "number": "131"
+        },
+        {
+          "quantity": 4,
+          "name": "Poké Pad",
+          "set": "POR",
+          "number": "81"
+        },
+        {
+          "quantity": 4,
+          "name": "Buddy-Buddy Poffin",
+          "set": "TEF",
+          "number": "144"
+        },
+        {
+          "quantity": 3,
+          "name": "Night Stretcher",
+          "set": "ASC",
+          "number": "196"
+        },
+        {
+          "quantity": 3,
+          "name": "Crushing Hammer",
+          "set": "POR",
+          "number": "71"
+        },
+        {
+          "quantity": 1,
+          "name": "Unfair Stamp",
+          "set": "TWM",
+          "number": "165"
+        },
+        {
+          "quantity": 1,
+          "name": "Special Red Card",
+          "set": "CRI",
+          "number": "82"
+        },
+        {
+          "quantity": 1,
+          "name": "Jamming Tower",
+          "set": "TWM",
+          "number": "153"
+        },
+        {
+          "quantity": 1,
+          "name": "Risky Ruins",
+          "set": "MEG",
+          "number": "127"
+        },
+        {
+          "quantity": 1,
+          "name": "Team Rocket's Watchtower",
+          "set": "DRI",
+          "number": "180"
+        },
+        {
+          "quantity": 3,
+          "name": "Fire Energy",
+          "set": "MEE",
+          "number": "10"
+        },
+        {
+          "quantity": 3,
+          "name": "Psychic Energy",
+          "set": "MEE",
+          "number": "13"
+        },
+        {
+          "quantity": 2,
+          "name": "Darkness Energy",
+          "set": "MEE",
+          "number": "15"
+        }
+      ],
+      "decklist_url": "https://limitlesstcg.com/decks/list/28872",
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     },
     {
       "rank": 143,
@@ -19909,11 +21286,9 @@
       "deck": null,
       "decklist": null,
       "decklist_url": null,
-      "day2": false
+      "day2": true,
+      "day2_source": "https://limitlesstcg.com/tournaments/515"
     }
   ],
-  "event_type": "World Championships",
-  "day2_total": 143,
-  "day2_verified_count": 0,
-  "note": "Only publicly published, validated 60-card lists are displayed."
+  "note": "Day 2 status comes from the Worlds Phase 2 standings roster. Only validated 60-card decklists are attached."
 }
