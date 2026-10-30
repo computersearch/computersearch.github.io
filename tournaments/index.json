@@ -81,6 +81,17 @@
     "day2_verified_count": 143
   },
   {
+    "id": "limitless-518",
+    "name": "NAIC 2026, New Orleans",
+    "date": "2026-06-10",
+    "file": "limitless-518.json",
+    "source": "https://limitlesstcg.com/tournaments/518",
+    "verified_decks": 675,
+    "event_type": "International Championships",
+    "day2_total": 675,
+    "day2_verified_count": 675
+  },
+  {
     "id": "limitless-559",
     "name": "Regional Indianapolis, IN – Limitless",
     "date": "2026-05-29",
