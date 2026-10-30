@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tournament_id:
-        description: 'Tournament ID (515 = 2026 World Championships; blank = latest Regionals)'
+        description: 'Tournament ID (auto-detect Worlds or Regional; blank = latest Regionals)'
         required: false
         type: string
   schedule:
@@ -29,12 +29,14 @@ jobs:
           TOURNAMENT_ID: ${{ inputs.tournament_id }}
         shell: bash
         run: |
-          if [ "$TOURNAMENT_ID" = "515" ]; then
-            echo "Importing Worlds Phase 2 with dedicated parser"
-            python tools/import_worlds.py --tournament-id 515
-          elif [ -n "$TOURNAMENT_ID" ]; then
-            echo "Importing Regional tournament $TOURNAMENT_ID"
-            python tools/import_limitless.py --tournament-id "$TOURNAMENT_ID"
+          if [ -n "$TOURNAMENT_ID" ]; then
+            EVENT_TYPE=$(python tools/detect_tournament_type.py --tournament-id "$TOURNAMENT_ID")
+            echo "Detected tournament type: $EVENT_TYPE"
+            if [ "$EVENT_TYPE" = "worlds" ]; then
+              python tools/import_worlds.py --tournament-id "$TOURNAMENT_ID"
+            else
+              python tools/import_limitless.py --tournament-id "$TOURNAMENT_ID"
+            fi
           else
             echo "Importing latest Regional tournaments"
             python tools/import_limitless.py
