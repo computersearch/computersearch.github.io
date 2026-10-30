@@ -12,11 +12,24 @@ def detect(tid):
                           headers={"User-Agent":"ComputerSearch/1.0"})
     response.raise_for_status()
     soup=BeautifulSoup(response.text,"html.parser")
-    h=soup.select_one("h1")
-    title=h.get_text(" ",strip=True) if h else ""
-    if re.search(r"(?:World Championships?\s+20\d{2}|20\d{2}\s+World Championships?)",title,re.I):return "worlds"
-    if re.search(r"Regional(?: Championships?)?",title,re.I):return "regional"
-    raise ValueError(f"Unknown event type: {title!r}; refusing to guess")
+    # Limitless tournament pages do not necessarily have an h1. Their
+    # browser title and tournament heading are reliable alternatives.
+    candidates=[]
+    for node in [soup.select_one("h1"),soup.select_one("title"),
+                 soup.select_one('meta[property="og:title"]')]:
+        if node:
+            value=node.get("content", "") if node.name=="meta" else node.get_text(" ",strip=True)
+            if value: candidates.append(value)
+    # As a last resort inspect the first portion of the page's visible text.
+    candidates.append(soup.get_text(" ",strip=True)[:1200])
+    for title in candidates:
+        if re.search(r"\b(?:World Championships?\s+20\d{2}|20\d{2}\s+World Championships?)\b",title,re.I):
+            return "worlds"
+        if re.search(r"\b(?:International Championships?|EUIC|NAIC|LAIC|OCIC)\b",title,re.I):
+            return "international"
+        if re.search(r"\bRegional(?: Championships?)?\b",title,re.I):
+            return "regional"
+    raise ValueError(f"Unknown event type for {tid}; inspected titles: {candidates[:3]!r}")
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser()

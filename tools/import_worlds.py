@@ -14,6 +14,7 @@ ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"tournaments"
 TID="515"
 WORLDS={}
+EVENT_TYPE="worlds"
 session=requests.Session()
 session.headers.update({"User-Agent":"ComputerSearch/1.0 (noncommercial tournament archive; respectful rate limiting)"})
 
@@ -27,11 +28,16 @@ def get(path):
 def tournament_metadata(soup):
     heading=(soup.select_one("h1") or soup.title)
     title=heading.get_text(" ",strip=True) if heading else ""
-    match=re.search(r"(?:World Championships?\s+(20\d{2})|(20\d{2})\s+World Championships?)",title,re.I)
+    if EVENT_TYPE=="international":
+        match=re.search(r"\b(20\d{2})\b",title)
+        if not re.search(r"International Championships?|\b(?:EUIC|NAIC|LAIC|OCIC)\b",title,re.I):
+            raise ValueError(f"Not an International Championship: {title!r}")
+    else:
+        match=re.search(r"(?:World Championships?\s+(20\d{2})|(20\d{2})\s+World Championships?)",title,re.I)
     if not match: raise ValueError(f"Not a World Championship: {title!r}")
-    year=int(match.group(1) or match.group(2))
+    year=int(next(g for g in match.groups() if g))
     text=soup.get_text(" ",strip=True)
-    if not re.search(r"(all players in phase 2|phase 2 of the tournament)",text,re.I):
+    if EVENT_TYPE=="worlds" and not re.search(r"(all players in phase 2|phase 2 of the tournament)",text,re.I):
         raise ValueError("Source does not confirm Phase 2; refusing import")
     date=None
     for el in soup.select("time[datetime]"):
@@ -44,7 +50,12 @@ def tournament_metadata(soup):
         if m: date=datetime.strptime(f"{m[1]} {m[2]} {m[3]}","%d %B %Y").strftime("%Y-%m-%d")
     if not date or not date.startswith(str(year)):
         raise ValueError("Worlds date not found or inconsistent with year")
-    return dict(year=year,date=date)
+    if EVENT_TYPE=="international":
+        # The supplied IC source is a Day 2-only roster, not the general entrant list.
+        # Preserve the actual event title for its regional IC identity.
+        clean=re.sub(r"\s*[–—-]\s*Limitless(?:TCG)?\s*$","",title,flags=re.I).strip()
+        return dict(year=year,date=date,name=clean,event_type="International Championships")
+    return dict(year=year,date=date,name=f"{year} World Championships",event_type="World Championships")
 
 
 def find_decks(soup):
@@ -246,6 +257,7 @@ def player_worlds_links(profile_soup):
 
 
 def import_worlds(delay):
+    global EVENT_TYPE
     path=f"/tournaments/{TID}"
     print(f"Worlds Phase 2 source: {BASE}{path}",flush=True)
     soup=get(path)
@@ -372,11 +384,11 @@ def import_worlds(delay):
     # The source is the confirmed Worlds roster: only its members are saved.
     # Preserve those standings even when no decklists are published/recognized.
     OUT.mkdir(parents=True,exist_ok=True)
-    result=dict(id=f'limitless-{TID}',name=f'{WORLDS[TID]["year"]} World Championships',date=WORLDS[TID]['date'],
-        source=f'{BASE}{path}',provider='LimitlessTCG',event_type='World Championships',
+    result=dict(id=f'limitless-{TID}',name=WORLDS[TID]["name"],date=WORLDS[TID]['date'],
+        source=f'{BASE}{path}',provider='LimitlessTCG',event_type=WORLDS[TID]['event_type'],
         day2_total=len(players),day2_verified_count=len(players),
         standings=[players[i] for i in sorted(players)],
-        note='Day 2 status comes from the Worlds Phase 2 standings roster. Only validated 60-card decklists are attached.')
+        note='Day 2 status comes from the event-specific Day 2 standings roster. Only validated 60-card decklists are attached.')
     filename=f'limitless-{TID}.json'
     (OUT/filename).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     indexfile=OUT/'index.json'
@@ -393,12 +405,15 @@ def import_worlds(delay):
 def main():
     p=argparse.ArgumentParser()
     p.add_argument('--tournament-id',required=True,help='Any Worlds tournament ID')
+    p.add_argument('--event-type',choices=['worlds','international'],default='worlds')
     p.add_argument('--delay',type=float,default=1.2)
     p.add_argument('--max-decks',type=int,default=None,help='Ignored; all discovered URLs processed')
     args=p.parse_args()
     global TID
     TID=str(args.tournament_id)
     if args.max_decks is not None:print('INFO: --max-decks ignored; all URLs processed',flush=True)
+    global EVENT_TYPE
+    EVENT_TYPE=args.event_type
     import_worlds(max(args.delay,1.0))
 
 if __name__=='__main__':main()

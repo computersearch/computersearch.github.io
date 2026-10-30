@@ -227,11 +227,9 @@ def import_event(tid,delay):
     soup=get(f"/tournaments/{tid}")
     heading=soup.find("h1")
     name=heading.get_text(" ",strip=True) if heading else f"Regional {tid}"
-    if str(tid)=="515":
-        raise ValueError("Worlds 515 must use tools/import_worlds.py")
-    is_worlds=False
-    if "Regional" not in name and not is_worlds:
-        raise ValueError("Event is neither a Regional Championship nor verified 2026 Worlds: "+name)
+    is_international=bool(re.search(r"\b(?:International Championships?|EUIC|NAIC|LAIC|OCIC)\b",name,re.I))
+    if "Regional" not in name and not is_international:
+        raise ValueError("Event is neither a Regional nor an International Championship: "+name)
     # Import every standings row shown by the source, without a rank cap.
     # Do not confuse the event's Day 2 count with a standings limit.
     players=standings(soup)
@@ -318,13 +316,9 @@ def import_event(tid,delay):
     # The original tournament page has a visible date, but do not invent it.
     match=re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d\d)",event_text)
     date=datetime.strptime(" ".join(match.groups()),"%d %B %Y").date().isoformat() if match else ""
-    if is_worlds:
-        # Confirmed 2026 Masters event start date; avoid accidentally using a different date from page copy.
-        date="2026-08-28"
-        name="2026 World Championships"
     result=dict(id="limitless-"+tid,name=name,date=date,source=f"{BASE}/tournaments/{tid}",
         provider="LimitlessTCG",standings=[players[i] for i in sorted(players)],
-        event_type="World Championships" if is_worlds else "Regional Championships",
+        event_type="International Championships" if is_international else "Regional Championships",
         day2_total=None,
         day2_verified_count=len(players),
         note="Only publicly published, validated 60-card lists are displayed.")
@@ -338,7 +332,7 @@ def import_event(tid,delay):
     index=[x for x in index if x.get("id")!=entry["id"]]+[entry]
     index.sort(key=lambda x:x.get("date",""),reverse=True)
     indexfile.write_text(json.dumps(index,ensure_ascii=False,indent=2)+"\n")
-    print(f"SUCCESS: {name}: {len(players)} placements imported, {verified} verified 60-card lists; Worlds Day 2 total: 143" if is_worlds else f"SUCCESS: {name}: {len(players)} placements, {verified} verified 60-card lists")
+    print(f"SUCCESS: {name}: {len(players)} placements, {verified} verified 60-card lists")
     return True
 
 def main():
