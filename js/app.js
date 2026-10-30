@@ -508,7 +508,7 @@ function render(){
  else if(eventMatch)wireTournamentEvent(eventMatch[1]);
  else if(isTournament)wireTournaments();
  else if(isImport)wireImport();else if(isLibrary)wireLibrary();
- else{if(selected&&!extraDecks[selected.slug]){hydrateImages();const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()})}else wire();if(selected)wireFeaturedArchetypePlayers()}
+ else if(selected){const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});hydrateImages();wireFeaturedArchetypePlayers()}else wire()
  window.scrollTo({top:0,behavior:'instant'});
 }
 window.addEventListener('hashchange',render);render();
