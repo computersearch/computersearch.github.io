@@ -369,9 +369,19 @@ async function getTournamentIndex(){
  tournamentIndexCache=data;
  return data;
 }
+function tournamentSlug(event){
+ const date=String(event?.date||'').match(/^\d{4}-\d{2}-\d{2}/)?.[0]||'undated';
+ const name=tournamentDisplayName(event).normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+  .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ if(String(event?.id||'')==='limitless-515' || /world championships?/i.test(String(event?.name||''))){
+  return `${date.slice(0,4)}-world-championships`;
+ }
+ return `${date}-${name||'tournament'}`;
+}
+function tournamentUrl(event){return '#/tournament/'+encodeURIComponent(tournamentSlug(event))}
 async function getTournamentById(id){
  const events=await getTournamentIndex();
- const entry=events.find(e=>String(e.id)===String(id));
+ const entry=events.find(e=>String(e.id)===String(id)||tournamentSlug(e)===String(id));
  if(!entry)throw Error('Tournament not found');
  const file=String(entry.file||'');
  if(!/^[a-zA-Z0-9_.-]+\.json$/.test(file))throw Error('Invalid tournament file');
@@ -406,7 +416,7 @@ function tournamentSeason(dateString){
  return {key:String(start),label:`${start}–${start+1}`};
 }
 function tournamentArchiveRow(e){
- return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="#/tournament/${encodeURIComponent(e.id)}"><span><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span style="white-space:nowrap">View results ↗</span></a>`;
+ return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="${tournamentUrl(e)}"><span><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span style="white-space:nowrap">View results ↗</span></a>`;
 }
 async function wireTournaments(){
  const node=document.getElementById('tournamentResults');
@@ -444,11 +454,11 @@ async function wireTournamentEvent(id){
   document.title=tournamentDisplayName(d)+' — Computer Search';
   if(!rows.length){node.textContent='Day 2 participation has not been verified for this tournament yet. Re-run the updated importer.';return}
   node.innerHTML=`<h2>${esc(tournamentDisplayName(d))}</h2><div class="tournament-source-banner">Data from Limitless</div><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} confirmed Day 2 players · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
-   rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="#/tournament/${encodeURIComponent(id)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
+   rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="${tournamentUrl(d)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
    `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">LimitlessTCG ↗</a></p>`;
  }catch(e){if(node.isConnected)node.textContent='Tournament standings could not load: '+e.message}
 }
-function tournamentDeckPage(id){return `${header()}<main class="deck-page"><div class="tournament-source-banner">Data from Limitless</div><a href="#/tournament/${encodeURIComponent(id)}" class="back">← &nbsp; Back to tournament standings</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
+function tournamentDeckPage(id){return `${header()}<main class="deck-page"><div class="tournament-source-banner">Data from Limitless</div><a href="#/tournaments" class="back">← &nbsp; Back to tournament standings</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
 async function wireTournamentDeck(id,requested){
  const node=document.getElementById('tournamentDeck');
  try{
@@ -572,7 +582,7 @@ async function wireFeaturedArchetypePlayers(){
     const {player,event,entry}=latest;
     const cards=player.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
     const exportText=cards.map(([qty,name,set,number])=>`${qty} ${name} ${set} ${number}`).join('\n');
-    const url=`#/tournament/${encodeURIComponent(entry.id)}/deck/${encodeURIComponent(player.rank)}`;
+    const url=`${tournamentUrl(entry)}/deck/${encodeURIComponent(player.rank)}`;
     latestNode.innerHTML=`<div class="deck-toolbar" style="align-items:center;gap:16px;flex-wrap:wrap"><div><h3>${esc(player.name)} · #${esc(player.rank)}</h3><p class="rank-note">${esc(tournamentDisplayName(event))} · ${esc(event.date||entry.date||'')} · ${esc(player.deck||'')} · 60 cards</p></div><button class="primary-btn copy-btn" id="copyRecentPlayerDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div class="card-grid">${cards.map(tournamentCardMarkup).join('')}</div><p class="rank-note"><a href="${url}">Open this player's tournament decklist ↗</a></p>`;
     latestNode.querySelector('#copyRecentPlayerDeck')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
     hydrateImages();
@@ -582,7 +592,7 @@ async function wireFeaturedArchetypePlayers(){
   const featured=matches.slice(0,12);
   if(!matches.length){node.innerHTML=`<p class="rank-note">${failedEvents?'Some tournament data could not be loaded. Please refresh and try again.':'No matching Day 2 players found in imported championships since July 2026.'}</p>`;return}
   node.innerHTML=`<p class="rank-note">Showing ${featured.length} top finish${featured.length===1?'':'es'} from ${matches.length} matching Day 2 appearance${matches.length===1?'':'s'} since July 2026 · best placement first.</p><div class="rank-rows">${featured.map(({player,event,entry})=>{
-   const link=tournamentHasList(player)?`#/tournament/${encodeURIComponent(entry.id)}/deck/${encodeURIComponent(player.rank)}`:`#/tournament/${encodeURIComponent(entry.id)}`;
+   const link=tournamentHasList(player)?`${tournamentUrl(entry)}/deck/${encodeURIComponent(player.rank)}`:tournamentUrl(entry);
    return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:16px;text-decoration:none" href="${link}"><span><strong class="rank-title">${esc(player.name)}</strong><small style="display:block;margin-top:5px">${esc(tournamentDisplayName(event))} · ${esc(event.date||entry.date||'')}</small></span><span style="white-space:nowrap">#${esc(player.rank)} ${tournamentHasList(player)?'· View deck ↗':'· Standings ↗'}</span></a>`;
   }).join('')}</div>`;
  }catch(err){if(node.isConnected)node.textContent='Could not load tournament player history: '+err.message}
