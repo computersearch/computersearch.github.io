@@ -416,7 +416,7 @@ function tournamentSeason(dateString){
  return {key:String(start),label:`${start}–${start+1}`};
 }
 function tournamentArchiveRow(e){
- return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="${tournamentUrl(e)}"><span><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span><span style="white-space:nowrap">View results ↗</span></a>`;
+ return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="${tournamentUrl(e)}"><span style="display:flex;align-items:center;gap:14px;min-width:0">${/regional/i.test(String(e.event_type||e.name||''))?'<img src="https://limitless3.nyc3.cdn.digitaloceanspaces.com/web/tournaments/regional.png" alt="Regional Championship" loading="lazy" width="52" height="52" style="width:52px;height:52px;object-fit:contain;flex-shrink:0">':/world/i.test(String(e.event_type||e.name||''))?'<img src="https://limitless3.nyc3.cdn.digitaloceanspaces.com/web/tournaments/worlds.png" alt="World Championships" loading="lazy" width="52" height="52" style="width:52px;height:52px;object-fit:contain;flex-shrink:0">':''}<span style="min-width:0"><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span></span><span style="white-space:nowrap">View results ↗</span></a>`;
 }
 async function wireTournaments(){
  const node=document.getElementById('tournamentResults');
