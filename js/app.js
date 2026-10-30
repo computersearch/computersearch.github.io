@@ -85,7 +85,7 @@ function cardRulesText(data){
  if(data.hp||data.stage||data.evolveFrom||data.types?.length){
   sections.push(`<div class="detail-stats">${data.hp?`<span><b>HP ${esc(data.hp)}</b></span>`:''}${data.types?.length?`<span>${esc(data.types.join(' / '))}</span>`:''}${data.stage?`<span>${esc(data.stage)}${data.evolveFrom?' · Evolves from '+esc(data.evolveFrom):''}</span>`:''}</div>`);
  }
- for(const a of data.abilities||[])sections.push(`<section class="detail-rule"><span class="detail-label">ABILITY</span><h3>${esc(a.name||'Ability')}</h3>${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
+ for(const a of data.abilities||[])sections.push(`<section class="detail-rule"><h3 class="detail-ability-title">Ability - ${esc(a.name||'Unknown')}</h3>${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
  for(const a of data.attacks||[])sections.push(`<section class="detail-rule"><span class="detail-label">ATTACK</span><div class="detail-attack"><h3>${esc(a.name||'Attack')}</h3>${a.damage?`<b>${esc(a.damage)}</b>`:''}</div>${a.cost?.length?`<small>Energy: ${esc(a.cost.join(' · '))}</small>`:''}${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
  if(data.effect)sections.push(`<section class="detail-rule"><span class="detail-label">CARD EFFECT</span><p>${esc(data.effect)}</p></section>`);
  if(data.weaknesses?.length||data.resistances?.length||data.retreat){sections.push(`<div class="detail-attributes"><div><small>Weakness</small><b>${esc((data.weaknesses||[]).map(x=>x.type+' '+(x.value||'')).join(', ')||'—')}</b></div><div><small>Resistance</small><b>${esc((data.resistances||[]).map(x=>x.type+' '+(x.value||'')).join(', ')||'—')}</b></div><div><small>Retreat</small><b>${esc(String(data.retreat??'—'))}</b></div></div>`)}
