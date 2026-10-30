@@ -11,7 +11,7 @@ const deckExport = () => currentGroups.map(g=>`${g.name}: ${g.count}\n${g.cards.
 
 const app = document.querySelector('#app');
 const API='https://api.tcgdex.net/v2/en';
-const setCodes={SVI:'sv01',PRE:'sv08.5',PBL:'me05',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
+const setCodes={ASR:'swsh10',CRZ:'swsh12.5',PAF:'sv04.5',OBF:'sv03',SVI:'sv01',PRE:'sv08.5',PBL:'me05',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
 const cardCache=new Map();
 let activeFilter='All';
 const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -146,11 +146,11 @@ function groupMarkup(){return currentGroups.filter(g=>activeFilter==='All'||g.na
 const setDetailCache=new Map();
 // PTCG Live abbreviations are distinct from TCGdex set IDs.
 // These are candidate IDs only; every returned card must match name and collector number.
-const setAliases={SVI:['sv01'],PRE:['sv08.5'],PBL:['me05'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
-const setNames={SVI:['Scarlet & Violet'],PRE:['Prismatic Evolutions'],PBL:['Pitch Black'],WHT:['White Flare'],BLK:['Black Bolt'],TWM:['Twilight Masquerade'],TEF:['Temporal Forces'],SCR:['Stellar Crown'],MEG:['Mega Evolution'],ASC:['Ascended Heroes'],POR:['Phantasmal Flames'],MEE:['Mega Evolution Energy'],SSP:['Surging Sparks'],JTG:['Journey Together'],DRI:['Destined Rivals'],SFA:['Shrouded Fable'],PFL:['Perfect Order'],CRI:['Crimson'],'30C':['30th Celebration']};
+const setAliases={ASR:['swsh10'],CRZ:['swsh12.5'],PAF:['sv04.5'],OBF:['sv03'],SVI:['sv01'],PRE:['sv08.5'],PBL:['me05'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
+const setNames={ASR:['Astral Radiance'],CRZ:['Crown Zenith'],PAF:['Paldean Fates'],OBF:['Obsidian Flames'],SVI:['Scarlet & Violet'],PRE:['Prismatic Evolutions'],PBL:['Pitch Black'],WHT:['White Flare'],BLK:['Black Bolt'],TWM:['Twilight Masquerade'],TEF:['Temporal Forces'],SCR:['Stellar Crown'],MEG:['Mega Evolution'],ASC:['Ascended Heroes'],POR:['Phantasmal Flames'],MEE:['Mega Evolution Energy'],SSP:['Surging Sparks'],JTG:['Journey Together'],DRI:['Destined Rivals'],SFA:['Shrouded Fable'],PFL:['Perfect Order'],CRI:['Crimson'],'30C':['30th Celebration']};
 // Shared built-in mappings travel with this HTML to every future deck.
 // Verified discoveries are also cached locally when browser storage is available.
-const SET_MAPPING_CACHE_KEY='deckforge.tcgdex.verified-set-mappings.v1';
+const SET_MAPPING_CACHE_KEY='deckforge.tcgdex.verified-set-mappings.v2';
 let learnedSetAliases={};
 try{const saved=JSON.parse(localStorage.getItem(SET_MAPPING_CACHE_KEY)||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))for(const [code,ids] of Object.entries(saved)){if(/^[A-Z0-9]{2,8}$/.test(code)&&Array.isArray(ids))learnedSetAliases[code]=ids.filter(id=>typeof id==='string'&&/^[a-z0-9.\-]+$/i.test(id)).slice(0,5)}}catch(e){}
 function rememberVerifiedSet(code,id){
@@ -427,7 +427,7 @@ function tournamentSeason(dateString){
  return {key:String(start),label:`${start}–${start+1}`};
 }
 function tournamentArchiveRow(e){
- return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="${tournamentUrl(e)}"><span style="display:flex;align-items:center;gap:14px;min-width:0">${/regional/i.test(String(e.event_type||e.name||''))?'<img src="https://limitless3.nyc3.cdn.digitaloceanspaces.com/web/tournaments/regional.png" alt="Regional Championship" loading="lazy" width="52" height="52" style="width:52px;height:52px;object-fit:contain;flex-shrink:0">':/world/i.test(String(e.event_type||e.name||''))?'<img src="https://limitless3.nyc3.cdn.digitaloceanspaces.com/web/tournaments/worlds.png" alt="World Championships" loading="lazy" width="52" height="52" style="width:52px;height:52px;object-fit:contain;flex-shrink:0">':''}<span style="min-width:0"><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span></span><span style="white-space:nowrap">View results ↗</span></a>`;
+ return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:18px;text-decoration:none" href="${tournamentUrl(e)}"><span style="display:flex;align-items:center;gap:14px;min-width:0">${/regional/i.test(String(e.event_type||e.name||''))?'<img src="https://limitless3.nyc3.cdn.digitaloceanspaces.com/web/tournaments/regional.png" alt="Regional Championship" loading="lazy" width="52" height="52" style="width:52px;height:52px;object-fit:contain;flex-shrink:0">':/(?:international|\b(?:EUIC|NAIC|LAIC|OCIC)\b)/i.test(String(e.event_type||'')+' '+String(e.name||''))?'<img src="https://limitless3.nyc3.cdn.digitaloceanspaces.com/web/tournaments/international.png" alt="International Championship" loading="lazy" width="52" height="52" style="width:52px;height:52px;object-fit:contain;flex-shrink:0">':/world/i.test(String(e.event_type||e.name||''))?'<img src="https://limitless3.nyc3.cdn.digitaloceanspaces.com/web/tournaments/worlds.png" alt="World Championships" loading="lazy" width="52" height="52" style="width:52px;height:52px;object-fit:contain;flex-shrink:0">':''}<span style="min-width:0"><strong class="rank-title">${esc(tournamentDisplayName(e))}</strong><small style="display:block;margin-top:6px">${esc(e.date||'Date unavailable')}</small></span></span><span style="white-space:nowrap">View results ↗</span></a>`;
 }
 async function wireTournaments(){
  const node=document.getElementById('tournamentResults');
