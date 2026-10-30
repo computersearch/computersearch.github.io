@@ -70,6 +70,14 @@
     "verified_decks": 559
   },
   {
+    "id": "limitless-515",
+    "name": "Regional 515",
+    "date": "2026-08-28",
+    "file": "limitless-515.json",
+    "source": "https://limitlesstcg.com/tournaments/515",
+    "verified_decks": 56
+  },
+  {
     "id": "limitless-559",
     "name": "Regional Indianapolis, IN – Limitless",
     "date": "2026-05-29",
