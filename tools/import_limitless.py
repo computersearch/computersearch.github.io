@@ -94,85 +94,95 @@ def standings(soup):
     return players
 
 def worlds_decklists(soup, players, tid="515"):
-    """Parse Worlds' expanded /decklists page, which has no /decks/list links.
-
-    Each published list is an inline section beginning with a placement and
-    player name, followed by an archetype and linked card rows. We match both
-    name AND rank against the official standings and require exactly 60 cards.
-    """
+    """Read inline Worlds lists. Quantities can be siblings of card anchors."""
     from bs4 import NavigableString, Tag
     from unicodedata import normalize
 
-    def norm(value):
-        return re.sub(r"[^a-z0-9]+", "", normalize("NFKD", value).casefold().encode("ascii", "ignore").decode())
+    def clean(x):
+        return re.sub(r"\s+", " ", str(x or "")).strip()
 
-    def clean(value):
-        return re.sub(r"\s+", " ", str(value or "")).strip()
+    def norm(x):
+        return re.sub(r"[^a-z0-9]", "", normalize("NFKD", str(x)).casefold().encode("ascii", "ignore").decode())
 
-    # Traverse text and anchors in their real DOM order. The Worlds page's
-    # headings may be plain text inside a div, rather than h2/h3 elements.
-    nodes=list(soup.descendants)
-    order={id(node):i for i,node in enumerate(nodes)}
-    name_by_rank={rank:norm(p["name"]) for rank,p in players.items()}
-    heading_re=re.compile(r"^(\d{1,3})(?:st|nd|rd|th)\s+(.+)$",re.I)
+    # Build an ordered stream of visible text nodes. Unlike heading-only
+    # searches, this also handles <span>1st</span><span>Andrew Hedrick</span>.
+    strings=[n for n in soup.descendants if isinstance(n,NavigableString) and clean(n)
+             and n.parent and n.parent.name not in ("script", "style", "noscript")]
+    expected={rank:norm(p["name"]) for rank,p in players.items()}
+    ordinal=re.compile(r"^(\d{1,3})(?:st|nd|rd|th)\s*(.*)$",re.I)
     headings=[]
-    for i,node in enumerate(nodes):
-        if not isinstance(node,NavigableString):continue
-        value=clean(node)
-        m=heading_re.fullmatch(value)
+    for i,n in enumerate(strings):
+        value=clean(n)
+        m=ordinal.fullmatch(value)
         if not m:continue
         rank=int(m[1])
-        if rank in name_by_rank and norm(m[2])==name_by_rank[rank]:
+        if rank not in expected:continue
+        suffix=m[2]
+        if norm(suffix)==expected[rank]:
             headings.append((i,rank))
-    # Some page variants separate the ordinal and the player name into two
-    # text nodes. Support those without relaxing the name/placement check.
-    if not headings:
-        strings=[(i,clean(n)) for i,n in enumerate(nodes) if isinstance(n,NavigableString) and clean(n)]
-        for k,(i,value) in enumerate(strings[:-1]):
-            m=re.fullmatch(r"(\d{1,3})(?:st|nd|rd|th)",value,re.I)
-            if m and int(m[1]) in name_by_rank and norm(strings[k+1][1])==name_by_rank[int(m[1])]:
-                headings.append((i,int(m[1])))
+        elif not suffix and i+1<len(strings) and norm(clean(strings[i+1]))==expected[rank]:
+            headings.append((i,rank))
     headings=sorted(set(headings))
-    print(f"Worlds inline player headings matching standings: {len(headings)}",flush=True)
+    print(f"Worlds: {len(headings)} player headings recognized",flush=True)
+
     card_re=re.compile(r"/cards/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)(?:[/?#]|$)")
-    card_links=[]
+    # Associate each card anchor with the nearest text-node position.
+    # A card's quantity is often a sibling text node, NOT part of the anchor.
+    positions={id(n):i for i,n in enumerate(strings)}
+    all_cards=[]
     for a in soup.select('a[href]'):
         m=card_re.search(a.get('href',''))
-        if m:card_links.append((order.get(id(a),-1),a,m))
+        if not m:continue
+        own=[n for n in a.descendants if isinstance(n,NavigableString) and clean(n)]
+        if not own:continue
+        pos=positions.get(id(own[0]))
+        if pos is None:continue
+        all_cards.append((pos,a,m))
+    print(f"Worlds: {len(all_cards)} card anchors found",flush=True)
+
     results=[]
-    for pos,(start,rank) in enumerate(headings):
-        end=headings[pos+1][0] if pos+1<len(headings) else len(nodes)
-        # Only the first named archetype before the Pokémon category heading
-        # is accepted; no guesses from card names.
-        before=[]
-        for node in nodes[start+1:end]:
-            if not isinstance(node,NavigableString):continue
-            value=clean(node)
+    for h,(start,rank) in enumerate(headings):
+        end=headings[h+1][0] if h+1<len(headings) else len(strings)
+        section=[clean(n) for n in strings[start+1:end]]
+        # The first meaningful text after player heading is the archetype;
+        # skip split-name fragments and prices.
+        archetype=""
+        for value in section[:18]:
+            if norm(value)==expected[rank] or re.fullmatch(r"\d+(?:st|nd|rd|th)",value,re.I):continue
+            if re.fullmatch(r"(?:USD|EUR|[€$]?[\d,.]+[€$]?)",value,re.I):continue
             if re.fullmatch(r"Pok[eé]mon\s*\(\d+\)",value,re.I):break
-            if value:before.append(value)
-        archetype=''
-        for value in before:
-            if value in ('USD','EUR') or re.fullmatch(r"[€$]?\s*\d+(?:[.,]\d+)?\s*[€$]?",value):continue
-            if re.fullmatch(r"Pok[eé]mon|Trainer|Energy",value,re.I):continue
-            # Ignore currency-only and site navigation text.
-            if value.lower() in ('copy to clipboard','open all','close all'):continue
+            if value.lower() in ("copy to clipboard", "open all", "close all"):continue
             archetype=value
             break
         cards=[]
-        for i,a,m in card_links:
-            if i<=start or i>=end:continue
+        for pos,a,m in all_cards:
+            if not start<pos<end:continue
             label=clean(a.get_text(' ',strip=True))
-            found=re.fullmatch(r"(\d{1,2})\s+(.+)",label)
-            if not found:continue
-            qty=int(found[1])
-            if not 1<=qty<=60:continue
-            cards.append(dict(quantity=qty,name=found[2],set=m[1],number=m[2]))
-        total=sum(card['quantity'] for card in cards)
+            quantity=None
+            name=label
+            match=re.match(r"^(\d{1,2})\s+(.+)$",label)
+            if match:
+                quantity=int(match[1]);name=match[2]
+            else:
+                # e.g. <div class=card><span>4</span><a href=/cards/...>Dreepy</a></div>
+                for node in (a.parent, a.parent.parent if a.parent else None):
+                    if node is None:continue
+                    value=clean(node.get_text(' ',strip=True))
+                    match=re.match(r"^(\d{1,2})\s+"+re.escape(label)+r"(?:\s|$)",value,re.I)
+                    if match:
+                        quantity=int(match[1]);break
+                if quantity is None and pos>0:
+                    prev=clean(strings[pos-1])
+                    match=re.fullmatch(r"(\d{1,2})",prev)
+                    if match:quantity=int(match[1])
+            if quantity is None or not 1<=quantity<=60:continue
+            cards.append(dict(quantity=quantity,name=name,set=m[1],number=m[2]))
+        total=sum(x['quantity'] for x in cards)
         if total==60 and archetype:
             results.append(dict(rank=rank,name=players[rank]['name'],deck=archetype,
                 decklist=cards,decklist_url=f"{BASE}/tournaments/{tid}/decklists"))
-        elif cards:
-            print(f"SKIP Worlds #{rank} ({players[rank]['name']}): {total} cards; archetype={archetype!r}")
+        else:
+            print(f"Worlds #{rank}: {len(cards)} card rows / {total} copies, archetype={archetype!r}",flush=True)
     return results
 
 def import_event(tid,delay,max_decks):
@@ -217,6 +227,8 @@ def import_event(tid,delay,max_decks):
     if is_worlds:
         # Every top-64 Masters player reached the final standings phase.
         for player in players.values():player["day2"]=True
+    if is_worlds and verified==0:
+        print("DIAGNOSTIC: Worlds HTML structure was not recognized. Please share the Worlds heading/card-anchor counts above.",flush=True)
     if verified==0:
         print("NO UPDATE: no verified 60-card lists matched player standings; preserving existing data")
         return False
