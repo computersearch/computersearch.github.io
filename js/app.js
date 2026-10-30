@@ -78,6 +78,31 @@ async function hydratePrices(){
   else{price.textContent='Price unavailable';price.classList.add('missing')}
  });
 }
+// Shared tournament-deck rendering: quantity overlay and Cardmarket valuation.
+let tournamentPriceGeneration=0;
+function tournamentCardMarkup(c){
+ return `<div class="card-item tournament-card" data-card-set="${esc(c[2])}" data-card-number="${esc(c[3])}" data-card-name="${esc(c[1])}"><div class="tournament-art-wrap">${cardFrame(c)}<span class="quantity" aria-label="${c[0]} copies">×${c[0]}</span></div><div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])}</small><small class="cm-price">Price loading…</small></div></div>`;
+}
+async function hydrateTournamentPrices(scope){
+ const generation=++tournamentPriceGeneration;
+ const root=document.querySelector(scope);
+ if(!root)return;
+ const cards=Array.from(root.querySelectorAll('.tournament-card'));
+ if(!cards.length)return;
+ let summary=root.querySelector('.cm-summary');
+ if(!summary){summary=document.createElement('div');summary.className='cm-summary tournament-cm-summary';const grid=root.querySelector('.card-grid');grid?.parentElement.insertBefore(summary,grid)}
+ summary.innerHTML='<div><b>Cardmarket deck value</b><small>Loading available EUR prices from TCGdex…</small></div><span class="cm-price-loading">Calculating…</span>';
+ const results=await Promise.all(cards.map(async el=>{
+  const qty=Number(el.querySelector('.quantity')?.textContent.replace(/[^0-9]/g,''))||0;
+  try{return {el,qty,price:cmData(await getCard(el.dataset.cardSet,el.dataset.cardNumber,el.dataset.cardName))}}catch{return {el,qty,price:null}}
+ }));
+ if(generation!==tournamentPriceGeneration||!root.isConnected||!summary.isConnected)return;
+ const known=results.filter(r=>r.price),pricedCopies=known.reduce((n,r)=>n+r.qty,0);
+ const total=known.reduce((n,r)=>n+r.qty*r.price.price,0);
+ const missing=results.reduce((n,r)=>n+(r.price?0:r.qty),0);
+ summary.innerHTML=`<div><b>Cardmarket deck value</b><small>${missing?`${missing} cards have unavailable pricing · partial total`:'All 60 cards priced'}</small><small>Trend price when available; otherwise low or average. Excludes shipping.</small></div><div><strong>${known.length?cmMoney.format(total):'Unavailable'}</strong><small>${pricedCopies} copies priced · EUR</small><a href="https://www.cardmarket.com/en/Pokemon" target="_blank" rel="noopener noreferrer">Cardmarket ↗</a></div>`;
+ for(const r of results){const label=r.el.querySelector('.cm-price');if(!label)continue;label.textContent=r.price?cmMoney.format(r.price.price)+' / card':'Price unavailable';label.classList.toggle('missing',!r.price)}
+}
 function groupMarkup(){return currentGroups.filter(g=>activeFilter==='All'||g.name===activeFilter).map(g=>`<section class="card-group"><div class="group-heading"><h3>${esc(g.name)} <span>${g.count} CARDS</span></h3><div class="group-rule"></div></div><div class="card-grid">${g.cards.map(c=>`<button class="card-item" data-open="${esc(c[2])}-${esc(c[3])}" aria-label="View ${esc(c[1])}">${cardFrame(c)}<span class="quantity">×${c[0]}</span><span class="card-name">${esc(c[1])}</span>${isBasicEnergy(c[1])?"":`<span class="card-set">${esc(c[2])} · ${esc(c[3])}</span>`}</button>`).join('')}</div></section>`).join('')}
 // Card art resolver: exact collector number and name, never a different printing.
 // TCGdex uses its own set IDs, which can differ from PTCG Live abbreviations.
@@ -374,9 +399,9 @@ async function wireTournamentDeck(id,requested){
   const cards=player.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
   const exportText=cards.map(([q,n,set,num])=>`${q} ${n} ${set} ${num}`).join('\n');
   document.title=player.name+' — Computer Search';
-  node.innerHTML=`<section class="deck-heading"><div><div class="eyebrow small">${esc(tournamentDisplayName(event))} / #${esc(player.rank)}</div><h1>${esc(player.name)}<em>.</em></h1><p>${esc(player.deck||'Published tournament decklist')} · 60 cards</p></div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Player <i>decklist.</i></h2></div><button class="primary-btn copy-btn" id="copyTournamentDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div id="groupContainer"><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div></div><p class="rank-note">Card artwork is matched by set and number using TCGdex.</p></section>`;
+  node.innerHTML=`<section class="deck-heading"><div><div class="eyebrow small">${esc(tournamentDisplayName(event))} / #${esc(player.rank)}</div><h1>${esc(player.name)}<em>.</em></h1><p>${esc(player.deck||'Published tournament decklist')} · 60 cards</p></div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Player <i>decklist.</i></h2></div><button class="primary-btn copy-btn" id="copyTournamentDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div id="groupContainer"><div class="card-grid">${cards.map(tournamentCardMarkup).join('')}</div></div><p class="rank-note">Card artwork is matched by set and number using TCGdex.</p></section>`;
   document.getElementById('copyTournamentDeck')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
-  hydrateImages();wireCardButtons();
+  hydrateImages();hydrateTournamentPrices('#tournamentDeck');wireCardButtons();
   const dlg=document.getElementById('cardDialog');
   dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());
   dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
@@ -487,9 +512,10 @@ async function wireFeaturedArchetypePlayers(){
     const cards=player.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
     const exportText=cards.map(([qty,name,set,number])=>`${qty} ${name} ${set} ${number}`).join('\n');
     const url=`#/tournament/${encodeURIComponent(entry.id)}/deck/${encodeURIComponent(player.rank)}`;
-    latestNode.innerHTML=`<div class="deck-toolbar" style="align-items:center;gap:16px;flex-wrap:wrap"><div><h3>${esc(player.name)} · #${esc(player.rank)}</h3><p class="rank-note">${esc(tournamentDisplayName(event))} · ${esc(event.date||entry.date||'')} · ${esc(player.deck||'')} · 60 cards</p></div><button class="primary-btn copy-btn" id="copyRecentPlayerDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div><p class="rank-note"><a href="${url}">Open this player's tournament decklist ↗</a></p>`;
+    latestNode.innerHTML=`<div class="deck-toolbar" style="align-items:center;gap:16px;flex-wrap:wrap"><div><h3>${esc(player.name)} · #${esc(player.rank)}</h3><p class="rank-note">${esc(tournamentDisplayName(event))} · ${esc(event.date||entry.date||'')} · ${esc(player.deck||'')} · 60 cards</p></div><button class="primary-btn copy-btn" id="copyRecentPlayerDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div class="card-grid">${cards.map(tournamentCardMarkup).join('')}</div><p class="rank-note"><a href="${url}">Open this player's tournament decklist ↗</a></p>`;
     latestNode.querySelector('#copyRecentPlayerDeck')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
     hydrateImages();
+    hydrateTournamentPrices('#featuredRecentPlayerDeck');
    }
   }
   const featured=matches.slice(0,12);
