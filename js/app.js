@@ -80,12 +80,21 @@ async function hydratePrices(){
 }
 // One shared card-detail dialog for all tournament and archetype decklists.
 function cardRulesText(data){
- if(!data)return '';
- const chunks=[];
- for(const ability of (data.abilities||[]))chunks.push(`<div class="card-rule"><strong>${esc(ability.name||'Ability')}</strong><p>${esc(ability.effect||'')}</p></div>`);
- for(const attack of (data.attacks||[]))chunks.push(`<div class="card-rule"><strong>${esc(attack.name||'Attack')}${attack.damage?' · '+esc(attack.damage):''}</strong>${attack.effect?`<p>${esc(attack.effect)}</p>`:''}</div>`);
- if(data.effect)chunks.push(`<div class="card-rule"><strong>Card effect</strong><p>${esc(data.effect)}</p></div>`);
- return chunks.join('');
+ if(!data)return '<p class="muted">Detailed card text is unavailable.</p>';
+ const sections=[];
+ if(data.hp||data.stage||data.evolveFrom||data.types?.length){
+  sections.push(`<div class="detail-stats">${data.hp?`<span><b>HP ${esc(data.hp)}</b></span>`:''}${data.types?.length?`<span>${esc(data.types.join(' / '))}</span>`:''}${data.stage?`<span>${esc(data.stage)}${data.evolveFrom?' · Evolves from '+esc(data.evolveFrom):''}</span>`:''}</div>`);
+ }
+ for(const a of data.abilities||[])sections.push(`<section class="detail-rule"><span class="detail-label">ABILITY</span><h3>${esc(a.name||'Ability')}</h3>${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
+ for(const a of data.attacks||[])sections.push(`<section class="detail-rule"><span class="detail-label">ATTACK</span><div class="detail-attack"><h3>${esc(a.name||'Attack')}</h3>${a.damage?`<b>${esc(a.damage)}</b>`:''}</div>${a.cost?.length?`<small>Energy: ${esc(a.cost.join(' · '))}</small>`:''}${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
+ if(data.effect)sections.push(`<section class="detail-rule"><span class="detail-label">CARD EFFECT</span><p>${esc(data.effect)}</p></section>`);
+ if(data.weaknesses?.length||data.resistances?.length||data.retreat){sections.push(`<div class="detail-attributes"><div><small>Weakness</small><b>${esc((data.weaknesses||[]).map(x=>x.type+' '+(x.value||'')).join(', ')||'—')}</b></div><div><small>Resistance</small><b>${esc((data.resistances||[]).map(x=>x.type+' '+(x.value||'')).join(', ')||'—')}</b></div><div><small>Retreat</small><b>${esc(String(data.retreat??'—'))}</b></div></div>`)}
+ if(data.rules?.length)sections.push(`<section class="detail-rule"><span class="detail-label">RULES</span><p>${esc(data.rules.join('\n'))}</p></section>`);
+ return sections.join('')||'<p class="muted">No additional rules text available.</p>';
+}
+function styledCardDialog(c,data){
+ const [qty,name,set,num]=c, image=imageUrl(data),link=cardmarketLink(data,c),price=cmData(data);
+ return `<div class="modal-layout detail-modal-layout"><div class="modal-preview">${image?`<img class="modal-image" src="${esc(image)}" alt="${esc(name)} card"/>`:cardFrame(c,'modal-card')}</div><div class="modal-details"><h2>${esc(name)}</h2><p class="detail-subtitle">${esc(set)} ${esc(num)}${data?.set?.name?' · '+esc(data.set.name):''} · ×${qty}</p><div class="detail-scroll">${cardRulesText(data)}</div><div class="detail-market"><div><strong>Cardmarket</strong><div class="detail-price">${price?cmMoney.format(price.price):'Price unavailable'}${price?'<small> / card</small>':''}</div></div><a class="detail-market-btn" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">View on Cardmarket ↗</a></div></div></div>`;
 }
 let tournamentDialogRequest=0;
 async function openTournamentCard(el){
@@ -93,13 +102,11 @@ async function openTournamentCard(el){
  const name=el.dataset.cardName,set=el.dataset.cardSet,num=el.dataset.cardNumber;
  const c=[Number(el.querySelector('.quantity')?.textContent?.replace(/[^0-9]/g,'')||1),name,set,num];
  const request=++tournamentDialogRequest;
- body.innerHTML=`<div class="modal-layout"><div class="modal-preview">${cardFrame(c,'modal-card')}</div><div><div class="eyebrow small">CARD DETAILS</div><h2>${esc(name)}</h2><p class="muted">${esc(set)} · ${esc(num)}</p><p class="muted">Loading card details…</p></div></div>`;
+ body.innerHTML=styledCardDialog(c,null);
  if(!dlg.open)dlg.showModal();
  const data=await getCard(set,num,name);
  if(!dlg.open||request!==tournamentDialogRequest)return;
- const link=cardmarketLink(data,c);
- const image=imageUrl(data);
- body.innerHTML=`<div class="modal-layout"><div class="modal-preview">${image?`<img class="modal-image" src="${esc(image)}" alt="${esc(name)} card"/>`:cardFrame(c,'modal-card')}</div><div class="modal-details"><div class="eyebrow small">CARD DETAILS</div><h2>${esc(name)}</h2><p class="muted">${esc(set)} · ${esc(num)} · ${c[0]} ${c[0]===1?'copy':'copies'}</p>${data?.hp?`<p class="muted">${esc(data.hp)} HP</p>`:''}${cardRulesText(data)}<a class="text-link" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a></div></div>`;
+ body.innerHTML=styledCardDialog(c,data);
 }
 function wireTournamentCardDialog(){
  if(document.body.dataset.tournamentDialogWired)return;
@@ -300,7 +307,7 @@ function cardmarketLink(data,c){
  const term=isBasicEnergy(c[1])?c[1]:`${c[1]} ${c[2]} ${c[3]}`;
  return {url:'https://www.cardmarket.com/en/Pokemon/Products/Search?searchString='+encodeURIComponent(term),label:'Find card on Cardmarket ↗'};
 }
-function wireCardButtons(){document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',async()=>{const [set,num]=b.dataset.open.split('-');const c=currentGroups.flatMap(g=>g.cards).find(x=>x[2]===set&&x[3]===num);const dlg=document.querySelector('#cardDialog');const body=document.querySelector('#dialogBody');body.innerHTML=`<div class="modal-layout">${cardFrame(c,'modal-card')}<div><div class="eyebrow small">CARD DETAILS</div><h2>${esc(c[1])}</h2><p>${c[0]} copies in deck</p>${isBasicEnergy(c[1])?"":`<p class="muted">${esc(set)} · ${esc(num)}</p>`}<p class="muted">Loading TCGdex card details…</p></div></div>`;dlg.showModal();const data=await getCard(set,num,c[1]);if(!dlg.open)return;body.innerHTML=`<div class="modal-layout">${imageUrl(data)?`<img class="modal-image" src="${esc(imageUrl(data))}" alt="${esc(c[1])} card"/>`:cardFrame(c,'modal-card')}<div><div class="eyebrow small">CARD DETAILS</div><h2>${esc(c[1])}</h2><p>${c[0]} ${c[0]===1?'copy':'copies'} in deck</p>${isBasicEnergy(c[1])?"":`<p class="muted">${esc(set)} · ${esc(num)}</p>`}${data?`<p class="muted">${esc(data.set?.name||'Pokémon TCG')} ${data.hp?`· ${esc(data.hp)} HP`:''}</p>`:'<p class="muted">Card artwork could not be loaded right now.</p>'}<a class="text-link" href="${esc(cardmarketLink(data,c).url)}" target="_blank" rel="noopener noreferrer">${cardmarketLink(data,c).label}</a></div></div>`}))}
+function wireCardButtons(){document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',async()=>{const [set,num]=b.dataset.open.split('-');const c=currentGroups.flatMap(g=>g.cards).find(x=>x[2]===set&&x[3]===num);if(!c)return;const dlg=document.querySelector('#cardDialog'),body=document.querySelector('#dialogBody');body.innerHTML=styledCardDialog(c,null);if(!dlg.open)dlg.showModal();const data=await getCard(set,num,c[1]);if(!dlg.open)return;body.innerHTML=styledCardDialog(c,data)}))}
 
 const rankedDecks=[
 ['Dragapult',4937,'36.64%'],['Basic Box',1192,'8.85%'],['Slowking',1021,'7.58%'],["N’s Zoroark",1014,'7.52%'],['Alakazam',852,'6.32%'],['Festival Lead',773,'5.74%'],['Dhelmise',558,'4.14%'],['Hydrapple',497,'3.69%'],['Mega Lopunny',393,'2.92%'],['Crustle',326,'2.42%'],['Mega Excadrill',304,'2.26%'],['Mega Lucario',283,'2.10%'],['Mega Sharpedo',201,'1.49%'],["Rocket’s Honchkrow",195,'1.45%'],["Cynthia’s Garchomp",145,'1.08%'],['Ogerpon Meganium',112,'0.83%'],["Marnie’s Grimmsnarl",95,'0.70%'],['Mew Box Memory Helix',83,'0.62%'],["Rocket’s Mewtwo",56,'0.42%'],['Raging Bolt',47,'0.35%'],["Hop’s Trevenant",47,'0.35%'],["Lillie’s Clefairy",39,'0.29%'],['Mega Absol Box',39,'0.29%'],['Mega Starmie',33,'0.24%'],['Greninja',28,'0.21%']];
