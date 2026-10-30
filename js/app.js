@@ -183,7 +183,30 @@ async function getCard(set,num,name){
   }catch(e){}
   return null;
  })();
- cardCache.set(key,task);return task;
+ // Do not permanently cache failed lookups: transient API errors should be retryable.
+ cardCache.set(key,task);
+ task.then(card=>{if(!card&&cardCache.get(key)===task)cardCache.delete(key)},()=>{if(cardCache.get(key)===task)cardCache.delete(key)});
+ return task;
+}
+// Retry only cards whose exact artwork lookup failed. Three retries after the
+// initial attempt, with a short backoff; successful cards are never refetched.
+const ARTWORK_RETRIES=3;
+const artworkWait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function getCardWithRetries(set,num,name,node){
+ for(let attempt=0;attempt<=ARTWORK_RETRIES;attempt++){
+  if(!node.isConnected)return null;
+  if(attempt){
+   const status=node.querySelector('.art-status');
+   if(status)status.textContent=`Retrying artwork (${attempt}/${ARTWORK_RETRIES})…`;
+   await artworkWait(450*attempt);
+  }
+  let card=null;
+  try{card=await getCard(set,num,name)}catch(e){}
+  if(card?.image)return card;
+  // A missing or failed lookup must not be shared as a permanent cache result.
+  cardCache.delete(`${set}-${num}-${name}`);
+ }
+ return null;
 }
 function imageUrl(card){return card?.image?(card.staticEnergy?card.image:`${card.image}/high.jpg`):null}
 function hydrateImages(){
@@ -191,7 +214,7 @@ function hydrateImages(){
   if(node.dataset.loading)return;
   node.dataset.loading='1';
   const [set,num]=node.dataset.card.split('-');const name=node.dataset.name;
-  getCard(set,num,name).then(card=>{
+  getCardWithRetries(set,num,name,node).then(card=>{
    if(!node.isConnected)return;
    if(!card?.image){node.classList.add('unavailable');node.title=isBasicEnergy(name)?`${name} image not available in TCGdex`:`Exact ${name} ${set} ${num} image not available in TCGdex`;return}
    const formats=card.staticEnergy?['']:['/high.jpg','/low.jpg','/high.png','/low.png'];let i=0;
