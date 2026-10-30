@@ -381,7 +381,7 @@ function tournamentSlug(event){
 function tournamentUrl(event){return '#/tournament/'+encodeURIComponent(tournamentSlug(event))}
 async function getTournamentById(id){
  const events=await getTournamentIndex();
- const entry=events.find(e=>String(e.id)===String(id)||tournamentSlug(e)===String(id));
+ const entry=events.find(e=>String(e.id)===String(id)||tournamentSlug(e)===String(id)||legacyTournamentSlug(e)===String(id));
  if(!entry)throw Error('Tournament not found');
  const file=String(entry.file||'');
  if(!/^[a-zA-Z0-9_.-]+\.json$/.test(file))throw Error('Invalid tournament file');
@@ -393,17 +393,28 @@ async function getTournamentById(id){
  tournamentCacheByFile.set(file,event);
  return event;
 }
+function stripRegionalState(name){
+ return String(name).replace(/,\s*[A-Z]{2}(?=\s+Regional Championships?\s*$)/i,'');
+}
+function legacyTournamentSlug(event){
+ const date=String(event?.date||'').match(/^\d{4}-\d{2}-\d{2}/)?.[0]||'undated';
+ const raw=String(event?.name||'').replace(/\s*[–—-]\s*Limitless(?:\s*TCG)?\s*$/i,'').trim();
+ const regional=raw.match(/^Regional\s+(.+)$/i);
+ const title=regional?`${regional[1]} Regional Championship`:raw;
+ const name=title.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ return `${date}-${name||'tournament'}`;
+}
 function tournamentDisplayName(event){
  const raw=String(event?.name||'').trim();
  // Strip source attribution from imported titles; the banner handles attribution.
  const clean=raw.replace(/\s*[–—-]\s*Limitless(?:\s*TCG)?\s*$/i,'').trim();
  if(clean && !/^(?:Regional Championship|Tournament)\s*#?\d+$/i.test(clean)){
   const regional=clean.match(/^Regional\s+(.+)$/i);
-  return regional ? `${regional[1]} Regional Championship` : clean;
+  return stripRegionalState(regional ? `${regional[1]} Regional Championship` : clean);
  }
  const id=String(event?.id||'').replace(/^limitless-/,'');
  const known={'583':'Puebla Regional Championship','582':'Nice Regional Championship','581':'Louisville Regional Championship'};
- return known[id]||clean||'Regional Championship';
+ return stripRegionalState(known[id]||clean||'Regional Championship');
 }
 function tournamentPage(){return `${header()}<main class="ranked-library"><div class="tournament-source-banner">Data from Limitless</div><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional or World Championship to view top players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
 function tournamentSeason(dateString){
