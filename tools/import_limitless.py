@@ -93,6 +93,88 @@ def standings(soup):
         if name:players[rank]=dict(rank=rank,name=name,deck=None,decklist=None,decklist_url=None)
     return players
 
+def worlds_decklists(soup, players, tid="515"):
+    """Parse Worlds' expanded /decklists page, which has no /decks/list links.
+
+    Each published list is an inline section beginning with a placement and
+    player name, followed by an archetype and linked card rows. We match both
+    name AND rank against the official standings and require exactly 60 cards.
+    """
+    from bs4 import NavigableString, Tag
+    from unicodedata import normalize
+
+    def norm(value):
+        return re.sub(r"[^a-z0-9]+", "", normalize("NFKD", value).casefold().encode("ascii", "ignore").decode())
+
+    def clean(value):
+        return re.sub(r"\s+", " ", str(value or "")).strip()
+
+    # Traverse text and anchors in their real DOM order. The Worlds page's
+    # headings may be plain text inside a div, rather than h2/h3 elements.
+    nodes=list(soup.descendants)
+    order={id(node):i for i,node in enumerate(nodes)}
+    name_by_rank={rank:norm(p["name"]) for rank,p in players.items()}
+    heading_re=re.compile(r"^(\d{1,3})(?:st|nd|rd|th)\s+(.+)$",re.I)
+    headings=[]
+    for i,node in enumerate(nodes):
+        if not isinstance(node,NavigableString):continue
+        value=clean(node)
+        m=heading_re.fullmatch(value)
+        if not m:continue
+        rank=int(m[1])
+        if rank in name_by_rank and norm(m[2])==name_by_rank[rank]:
+            headings.append((i,rank))
+    # Some page variants separate the ordinal and the player name into two
+    # text nodes. Support those without relaxing the name/placement check.
+    if not headings:
+        strings=[(i,clean(n)) for i,n in enumerate(nodes) if isinstance(n,NavigableString) and clean(n)]
+        for k,(i,value) in enumerate(strings[:-1]):
+            m=re.fullmatch(r"(\d{1,3})(?:st|nd|rd|th)",value,re.I)
+            if m and int(m[1]) in name_by_rank and norm(strings[k+1][1])==name_by_rank[int(m[1])]:
+                headings.append((i,int(m[1])))
+    headings=sorted(set(headings))
+    print(f"Worlds inline player headings matching standings: {len(headings)}",flush=True)
+    card_re=re.compile(r"/cards/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)(?:[/?#]|$)")
+    card_links=[]
+    for a in soup.select('a[href]'):
+        m=card_re.search(a.get('href',''))
+        if m:card_links.append((order.get(id(a),-1),a,m))
+    results=[]
+    for pos,(start,rank) in enumerate(headings):
+        end=headings[pos+1][0] if pos+1<len(headings) else len(nodes)
+        # Only the first named archetype before the Pokémon category heading
+        # is accepted; no guesses from card names.
+        before=[]
+        for node in nodes[start+1:end]:
+            if not isinstance(node,NavigableString):continue
+            value=clean(node)
+            if re.fullmatch(r"Pok[eé]mon\s*\(\d+\)",value,re.I):break
+            if value:before.append(value)
+        archetype=''
+        for value in before:
+            if value in ('USD','EUR') or re.fullmatch(r"[€$]?\s*\d+(?:[.,]\d+)?\s*[€$]?",value):continue
+            if re.fullmatch(r"Pok[eé]mon|Trainer|Energy",value,re.I):continue
+            # Ignore currency-only and site navigation text.
+            if value.lower() in ('copy to clipboard','open all','close all'):continue
+            archetype=value
+            break
+        cards=[]
+        for i,a,m in card_links:
+            if i<=start or i>=end:continue
+            label=clean(a.get_text(' ',strip=True))
+            found=re.fullmatch(r"(\d{1,2})\s+(.+)",label)
+            if not found:continue
+            qty=int(found[1])
+            if not 1<=qty<=60:continue
+            cards.append(dict(quantity=qty,name=found[2],set=m[1],number=m[2]))
+        total=sum(card['quantity'] for card in cards)
+        if total==60 and archetype:
+            results.append(dict(rank=rank,name=players[rank]['name'],deck=archetype,
+                decklist=cards,decklist_url=f"{BASE}/tournaments/{tid}/decklists"))
+        elif cards:
+            print(f"SKIP Worlds #{rank} ({players[rank]['name']}): {total} cards; archetype={archetype!r}")
+    return results
+
 def import_event(tid,delay,max_decks):
     print(f"Checking Limitless tournament {tid}",flush=True)
     soup=get(f"/tournaments/{tid}")
@@ -111,9 +193,15 @@ def import_event(tid,delay,max_decks):
     event_text=soup.get_text(" ",strip=True)
     soup=get(f"/tournaments/{tid}/decklists")
     links=find_decks(soup)
-    print(f"Found {len(links)} decklist links; checking up to {max_decks}",flush=True)
     verified=0
-    for link in links[:max_decks]:
+    if is_worlds:
+        embedded=worlds_decklists(soup,players)
+        print(f"Found {len(embedded)} verified embedded Worlds decklists",flush=True)
+        for item in embedded[:max_decks]:
+            players[item["rank"]].update(item)
+            verified+=1
+    print(f"Found {len(links)} separate decklist links; checking up to {max_decks}",flush=True)
+    for link in links[:max(0,max_decks-verified)]:
         try:
             item=parse_deck(get(link),tid,link)
             if item and item["rank"] in players:
