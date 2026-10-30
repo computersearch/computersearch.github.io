@@ -19,12 +19,25 @@ const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 function header(){return `<header class="header"><a class="brand" href="#/" aria-label="Computer Search home"><img class="brand-logo" src="computer-search-logo.png" alt="Computer Search logo"><span class="brand-name">Computer <span>Search</span></span></a><nav><a href="#/" class="nav-link">Discover</a><a href="#/decks" class="nav-link">Decklists</a><a href="#/tournaments" class="nav-link">Tournaments</a></nav><span class="header-chip"><span class="status-dot"></span> POKÉMON TCG</span></header>`}
 function footer(){return `<footer>Made for Pokémon TCG players <span>•</span> Card data & images via <a href="https://tcgdex.dev/" target="_blank" rel="noopener">TCGdex ↗</a><br><small>Fan-made project. Not affiliated with or endorsed by The Pokémon Company.</small></footer>`}
 function cardFrame(card,cls=''){const [qty,name,set,num]=card;return `<div class="card-art ${cls}" data-card="${esc(set)}-${esc(num)}" data-name="${esc(name)}"><div class="card-placeholder"><span class="placeholder-sigil">◈</span><strong>${esc(name)}</strong>${isBasicEnergy(name)?"":`<small>${esc(set)} · ${esc(num)}</small>`}<span class="art-status">Checking exact artwork…</span></div></div>`}
+const FEATURED_DISPLAY_NAMES={
+ 'slowking seek inspiration':'Slowking',
+ 'alakazam powerful hand':'Alakazam',
+ 'dhelmise hide n sneak':'Dhelmise',
+ 'crustle mysterious rock inn':'Crustle'
+};
+function featuredDisplayName(name){
+ const key=String(name||'').toLowerCase().normalize('NFKD').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+ return String(FEATURED_DISPLAY_NAMES[key]||name).replace(/\s+ex\b/gi,'').replace(/\s+/g,' ').trim();
+}
 const featuredDecks=DeckforgeDecks.all();
-function featureCard(d){return `<a class="featured-card" href="#/deck/${d.slug}" aria-label="View ${esc(d.name)}"><div class="featured-visual ${d.slug}">${d.card?cardFrame(d.card,'featured-image'):`<div class="featured-monogram">${d.rank===2?'✦':'♛'}</div>`}<span class="featured-rank">#${d.rank} RANKED</span></div><div class="featured-info"><div class="eyebrow small">${d.points.toLocaleString()} POINTS · ${d.share} SHARE</div><h3>${esc(d.name)}</h3><p>${esc(d.description)}</p><span class="view-link">Explore deck <span>↗</span></span></div></a>`}
+function featureCard(d){return `<a class="featured-card" href="#/deck/${d.slug}" aria-label="View ${esc(featuredDisplayName(d.name))}"><div class="featured-visual ${d.slug}">${d.card?cardFrame(d.card,'featured-image'):`<div class="featured-monogram">${d.rank===2?'✦':'♛'}</div>`}<span class="featured-rank">#${d.rank} RANKED</span></div><div class="featured-info"><div class="eyebrow small">${d.points.toLocaleString()} POINTS · ${d.share} SHARE</div><h3>${esc(featuredDisplayName(d.name))}</h3><p>${esc(d.description)}</p><span class="view-link">Explore deck <span>↗</span></span></div></a>`}
 function home(){return `${header()}<main><section class="home-hero"><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE DECK ARCHIVE <span class="edition">/ TOP 3</span></div><h1>Build your<br><em>next legend.</em></h1><p>Discover the top competitive decks, explore their strategies, and get ready for your next match.</p><a class="primary-btn" href="#/decks">Explore rankings <span>↗</span></a><div class="hero-meta"><span>✦ LIMITLESS POINTS</span><span>✦ LIVE CARD DATA</span></div></div><div class="hero-visual"><div class="visual-glow"></div><div class="orb orb-one"></div><div class="orb orb-two"></div>${cardFrame([3,'Dragapult ex','TWM','130'],'hero-card')}<div class="float-label">TOP RANKED <b>01 / 03</b></div></div></section><section class="featured"><div class="section-top"><div><div class="eyebrow small">COMPETITIVE META · LIMITLESS TCG</div><h2>Featured <i>decks.</i></h2></div><span class="section-count">TOP 03 BY TOURNAMENT POINTS</span></div><div class="featured-grid">${featuredDecks.filter(d=>d.rank<=3).map(featureCard).join('')}</div><p class="featured-source">Ranking snapshot: October 28, 2026 · TEF–30C format · <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Source: Limitless TCG ↗</a></p></section></main>${footer()}`}
 function featuredOverview(d){return deck(d)}
 
-function deck(d=featuredDecks[0]){const deckGroups=currentGroups;const count=deckGroups.reduce((a,g)=>a+g.count,0);return `${header()}<main class="deck-page"><a href="#/decks" class="back">← &nbsp; Back to rankings</a><section class="deck-heading"><div><div class="eyebrow small">FEATURED DECK <span class="edition">/ 00${d.rank}</span></div><h1>${esc(d.name)}<em>.</em></h1><p>${esc(d.description)} Browse cards and copy this 60-card list for Pokémon TCG Live.</p><div class="deck-badges"><span>✦ ${count} CARDS</span>${deckGroups.map(g=>`<span>${g.count} ${esc(g.name.toUpperCase())}</span>`).join('')}</div></div><div class="deck-cover">${cardFrame(d.card,'deck-hero-card')}</div></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">THE COMPLETE BUILD</div><h2>Deck <i>breakdown.</i></h2></div><button class="primary-btn copy-btn" id="copyDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div class="filter-row" role="group" aria-label="Filter cards">${['All','Pokémon','Trainer','Energy'].map(x=>`<button class="filter ${x===activeFilter?'selected':''}" data-filter="${esc(x)}">${esc(x)} ${x==='All'?count:deckGroups.find(g=>g.name===x).count}</button>`).join('')}</div><div id="importValidation" style="margin:14px 0;color:#c3ff72;font-size:12px" role="status"></div><div id="groupContainer">${groupMarkup()}</div></section><section class="deck-list" style="margin-top:32px"><div class="deck-toolbar"><div><div class="eyebrow small">REGIONAL CHAMPIONSHIP RESULTS</div><h2>Players using <i>this archetype.</i></h2></div></div><p class="rank-subtitle">Top-finishing Day 2 players from Regional Championships since July 2026, ranked by placement. Open a published decklist to compare builds.</p><div id="featuredArchetypePlayers" data-archetype="${esc(d.name)}"><p>Loading tournament players…</p></div></section></section></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
+function deck(d=featuredDecks[0]){
+ const name=featuredDisplayName(d.name);
+ return `${header()}<main class="deck-page"><a href="#/decks" class="back">← &nbsp; Back to rankings</a><section class="deck-heading"><div><div class="eyebrow small">ARCHETYPE <span class="edition">/ #${d.rank}</span></div><h1>${esc(name)}<em>.</em></h1><p>Verified Regional Championship builds from Day 2 players since July 2026. The featured build is from the highest-placing player, with the newest event breaking ties.</p><div class="deck-badges"><span>✦ ${Number(d.points||0).toLocaleString()} TOURNAMENT POINTS</span><span>${esc(d.share||'')} META SHARE</span></div></div>${d.card?`<div class="deck-cover">${cardFrame(d.card,'deck-hero-card')}</div>`:''}</section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">BEST REGIONAL FINISH</div><h2>Top player's <i>60-card decklist.</i></h2></div></div><div id="featuredRecentPlayerDeck"><p>Loading verified tournament decklist…</p></div></section><section class="deck-list" style="margin-top:32px"><div class="deck-toolbar"><div><div class="eyebrow small">REGIONAL CHAMPIONSHIP RESULTS</div><h2>Players using <i>this archetype.</i></h2></div></div><p class="rank-subtitle">Top 12 Day 2 finishes since July 2026, sorted by placement.</p><div id="featuredArchetypePlayers" data-archetype="${esc(d.name)}"><p>Loading tournament players…</p></div></section></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`;
+}
 
 const cmMoney=new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'});
 function cmData(card){
@@ -208,10 +221,15 @@ function cardmarketLink(data,c){
 function wireCardButtons(){document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',async()=>{const [set,num]=b.dataset.open.split('-');const c=currentGroups.flatMap(g=>g.cards).find(x=>x[2]===set&&x[3]===num);const dlg=document.querySelector('#cardDialog');const body=document.querySelector('#dialogBody');body.innerHTML=`<div class="modal-layout">${cardFrame(c,'modal-card')}<div><div class="eyebrow small">CARD DETAILS</div><h2>${esc(c[1])}</h2><p>${c[0]} copies in deck</p>${isBasicEnergy(c[1])?"":`<p class="muted">${esc(set)} · ${esc(num)}</p>`}<p class="muted">Loading TCGdex card details…</p></div></div>`;dlg.showModal();const data=await getCard(set,num,c[1]);if(!dlg.open)return;body.innerHTML=`<div class="modal-layout">${imageUrl(data)?`<img class="modal-image" src="${esc(imageUrl(data))}" alt="${esc(c[1])} card"/>`:cardFrame(c,'modal-card')}<div><div class="eyebrow small">CARD DETAILS</div><h2>${esc(c[1])}</h2><p>${c[0]} ${c[0]===1?'copy':'copies'} in deck</p>${isBasicEnergy(c[1])?"":`<p class="muted">${esc(set)} · ${esc(num)}</p>`}${data?`<p class="muted">${esc(data.set?.name||'Pokémon TCG')} ${data.hp?`· ${esc(data.hp)} HP`:''}</p>`:'<p class="muted">Card artwork could not be loaded right now.</p>'}<a class="text-link" href="${esc(cardmarketLink(data,c).url)}" target="_blank" rel="noopener noreferrer">${cardmarketLink(data,c).label}</a></div></div>`}))}
 
 const rankedDecks=[
-['Dragapult ex',4937,'36.64%'],['Basic Box',1192,'8.85%'],['Slowking Seek Inspiration',1021,'7.58%'],["N’s Zoroark ex",1014,'7.52%'],['Alakazam Powerful Hand',852,'6.32%'],['Festival Lead',773,'5.74%'],["Dhelmise Hide n’ Sneak",558,'4.14%'],['Hydrapple ex',497,'3.69%'],['Mega Lopunny ex',393,'2.92%'],['Crustle Mysterious Rock Inn',326,'2.42%'],['Mega Excadrill ex',304,'2.26%'],['Mega Lucario ex',283,'2.10%'],['Mega Sharpedo ex',201,'1.49%'],["Rocket’s Honchkrow",195,'1.45%'],["Cynthia’s Garchomp ex",145,'1.08%'],['Ogerpon Meganium',112,'0.83%'],["Marnie’s Grimmsnarl ex",95,'0.70%'],['Mew Box Memory Helix',83,'0.62%'],["Rocket’s Mewtwo ex",56,'0.42%'],['Raging Bolt ex',47,'0.35%'],["Hop’s Trevenant",47,'0.35%'],["Lillie’s Clefairy ex",39,'0.29%'],['Mega Absol Box',39,'0.29%'],['Mega Starmie ex',33,'0.24%'],['Greninja ex',28,'0.21%']];
-for(const d of DeckforgeDecks.all()) if(!rankedDecks.some(row=>row[0]===d.name)) rankedDecks.push([d.name,d.points,d.share]);
-function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore the competitive metagame, ranked by tournament points. Rankings snapshot: October 28, 2026 · Limitless TEF–30C format.</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Points and metagame share sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Other deck archetypes link to Limitless for their tournament lists. Complete decklists for the top three archetypes and Crustle are available here.</p></main>${footer()}`}
-function wireLibrary(){const input=document.getElementById('rankSearch');const rows=document.getElementById('rankRows');const update=()=>{const q=input.value.trim().toLowerCase();rows.innerHTML=rankedDecks.map((d,i)=>({...d,rank:i+1})).filter(d=>d[0].toLowerCase().includes(q)).map(d=>`<a class="rank-row" href="${(d.rank<=3||d.rank===10)?'#/deck/'+featuredDecks.find(x=>x.rank===d.rank).slug:'https://limitlesstcg.com/decks'}" ${(d.rank<=3||d.rank===10)?'':'target="_blank" rel="noopener"'}><span class="rank-number">#${d.rank}</span><span class="rank-title">${d[0]}${(d.rank<=3||d.rank===10)?'<small>Complete 60-card list · Copy for TCG Live</small>':'<small>View archetype on Limitless ↗</small>'}</span><span class="rank-share">${d[2]} share</span><span class="rank-points">${d[1].toLocaleString()} <small>PTS</small></span><span class="rank-arrow">↗</span></a>`).join('')||'<p>No matching decks found.</p>'};input.addEventListener('input',update);update()}
+['Dragapult',4937,'36.64%'],['Basic Box',1192,'8.85%'],['Slowking',1021,'7.58%'],["N’s Zoroark",1014,'7.52%'],['Alakazam',852,'6.32%'],['Festival Lead',773,'5.74%'],['Dhelmise',558,'4.14%'],['Hydrapple',497,'3.69%'],['Mega Lopunny',393,'2.92%'],['Crustle',326,'2.42%'],['Mega Excadrill',304,'2.26%'],['Mega Lucario',283,'2.10%'],['Mega Sharpedo',201,'1.49%'],["Rocket’s Honchkrow",195,'1.45%'],["Cynthia’s Garchomp",145,'1.08%'],['Ogerpon Meganium',112,'0.83%'],["Marnie’s Grimmsnarl",95,'0.70%'],['Mew Box Memory Helix',83,'0.62%'],["Rocket’s Mewtwo",56,'0.42%'],['Raging Bolt',47,'0.35%'],["Hop’s Trevenant",47,'0.35%'],["Lillie’s Clefairy",39,'0.29%'],['Mega Absol Box',39,'0.29%'],['Mega Starmie',33,'0.24%'],['Greninja',28,'0.21%']];
+for(const d of DeckforgeDecks.all()) if(!rankedDecks.some(row=>row[0]===featuredDisplayName(d.name))) rankedDecks.push([featuredDisplayName(d.name),d.points,d.share]);
+const archetypePages=rankedDecks.map(([name,points,share],i)=>{
+ const existing=featuredDecks.find(d=>normalizeArchetypeName(featuredDisplayName(d.name))===normalizeArchetypeName(name));
+ return existing||{name,points,share,rank:i+1,slug:'archetype-'+slug(name),description:'Regional Championship archetype',card:null};
+});
+function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore all 25 archetypes and the best-finishing verified Day 2 player builds since July 2026. Ranking snapshot: October 28, 2026.</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Ranking points sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Decklists come from imported Regional results; archetypes without a verified 60-card list show an availability message.</p></main>${footer()}`}
+function wireLibrary(){const input=document.getElementById('rankSearch');const rows=document.getElementById('rankRows');const update=()=>{const q=input.value.trim().toLowerCase();rows.innerHTML=rankedDecks.map((d,i)=>({name:d[0],points:d[1],share:d[2],rank:i+1,page:archetypePages[i]})).filter(d=>d.name.toLowerCase().includes(q)).map(d=>`<a class="rank-row" href="#/deck/${esc(d.page.slug)}"><span class="rank-number">#${d.rank}</span><span class="rank-title">${esc(d.name)}<small>View top-finishing player's decklist ↗</small></span><span class="rank-share">${esc(d.share)} share</span><span class="rank-points">${d.points.toLocaleString()} <small>PTS</small></span><span class="rank-arrow">↗</span></a>`).join('')||'<p>No matching decks found.</p>'};input.addEventListener('input',update);update()}
+
 let importedDeck=null;
 function parseDeckText(raw){
  const result=[];let group=null;const errors=[];
@@ -354,15 +372,43 @@ async function wireTournamentDeck(id,requested){
 function normalizeArchetypeName(name){
  return String(name||'').toLowerCase().normalize('NFKD').replace(/[’']/g,'').replace(/\b(pok[eé]mon|deck|box)\b/g,'').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
 }
+// Limitless uses short archetype labels; Computer Search often uses card/attack names.
+// Keep mappings explicit to avoid accidentally mixing unrelated decks.
+const FEATURED_ARCHETYPE_TAGS={
+ 'dragapult ex':['dragapult','dragapult ex','dragapult dusknoir','dragapult dudunsparce','dragapult blaziken','dragapult pidgeot'],
+ 'slowking seek inspiration':['slowking','slowking seek inspiration'],
+ 'basic box':['basic box'],
+ 'ns zoroark ex':['ns zoroark','ns zoroark ex'],
+ 'alakazam powerful hand':['alakazam','alakazam dudunsparce','alakazam dusknoir','alakazam powerful hand'],
+ 'festival lead':['festival lead','seaking festival lead'],
+ 'dhelmise hide n sneak':['dhelmise','dhelmise hide n sneak'],
+ 'hydrapple ex':['hydrapple','hydrapple ex','ogerpon meganium hydrapple'],
+ 'mega lopunny ex':['mega lopunny','lopunny dusknoir','lopunny dudunsparce'],
+ 'crustle mysterious rock inn':['crustle','crustle mysterious rock inn'],
+ 'mega excadrill ex':['mega excadrill','mega excadrill ex'],
+ 'mega lucario ex':['mega lucario','mega lucario ex'],
+ 'mega sharpedo ex':['mega sharpedo','mega sharpedo ex'],
+ 'rockets honchkrow':['rockets honchkrow'],
+ 'cynthias garchomp ex':['cynthias garchomp','cynthias garchomp ex'],
+ 'ogerpon meganium':['ogerpon meganium hydrapple','ogerpon meganium arboliva','ogerpon meganium'],
+ 'marnies grimmsnarl ex':['marnies grimmsnarl','grimmsnarl froslass','grimmsnarl'],
+ 'mew box memory helix':['mew box','mew box memory helix'],
+ 'rockets mewtwo ex':['rockets mewtwo','rockets mewtwo ex'],
+ 'raging bolt ex':['raging bolt','raging bolt ex','raging bolt ogerpon'],
+ 'hops trevenant':['hops trevenant'],
+ 'lillies clefairy ex':['lillies clefairy','lillies clefairy ex'],
+ 'mega absol box':['mega absol','mega absol box'],
+ 'mega starmie ex':['mega starmie','mega starmie ex'],
+ 'greninja ex':['greninja','greninja ex']
+};
 function matchesFeaturedArchetype(deckName, featuredNormalized){
  const actual=normalizeArchetypeName(deckName);
  if(!actual||!featuredNormalized)return false;
- if(actual===featuredNormalized)return true;
- // Tournament archetypes often include a secondary attacker or engine:
- // e.g. "Dragapult ex / Dusknoir" or "Dragapult ex (Pidgeot)".
- // Require a complete leading archetype phrase to avoid substring false matches.
- return actual.startsWith(featuredNormalized+' ');
+ const allowed=FEATURED_ARCHETYPE_TAGS[featuredNormalized];
+ if(allowed)return allowed.some(tag=>normalizeArchetypeName(tag)===actual);
+ return actual===featuredNormalized;
 }
+
 async function wireFeaturedArchetypePlayers(){
  const node=document.getElementById('featuredArchetypePlayers');
  if(!node)return;
@@ -391,6 +437,25 @@ async function wireFeaturedArchetypePlayers(){
   await Promise.all(Array.from({length:Math.min(4,events.length)},()=>worker()));
   if(!node.isConnected||node.dataset.archetype==null)return;
   matches.sort((a,b)=>Number(a.player.rank)-Number(b.player.rank)||String(b.event.date||b.entry.date||'').localeCompare(String(a.event.date||a.entry.date||'')));
+  // Most recent event first; within that event, choose the highest finisher with a complete list.
+  const latest=matches.filter(({player})=>tournamentHasList(player)).sort((a,b)=>
+   Number(a.player.rank)-Number(b.player.rank) ||
+   String(b.event.date||b.entry.date||'').localeCompare(String(a.event.date||a.entry.date||''))
+  )[0];
+  const latestNode=document.getElementById('featuredRecentPlayerDeck');
+  if(latestNode){
+   if(!latest){
+    latestNode.innerHTML='<p class="rank-note">No verified 60-card Day 2 decklist found for this archetype in imported Regionals since July 2026.</p>';
+   }else{
+    const {player,event,entry}=latest;
+    const cards=player.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
+    const exportText=cards.map(([qty,name,set,number])=>`${qty} ${name} ${set} ${number}`).join('\n');
+    const url=`#/tournament/${encodeURIComponent(entry.id)}/deck/${encodeURIComponent(player.rank)}`;
+    latestNode.innerHTML=`<div class="deck-toolbar" style="align-items:center;gap:16px;flex-wrap:wrap"><div><h3>${esc(player.name)} · #${esc(player.rank)}</h3><p class="rank-note">${esc(tournamentDisplayName(event))} · ${esc(event.date||entry.date||'')} · ${esc(player.deck||'')} · 60 cards</p></div><button class="primary-btn copy-btn" id="copyRecentPlayerDeck">Copy for Pokémon TCG Live <span>⧉</span></button></div><div class="card-grid">${cards.map(c=>`<div class="card-item">${cardFrame(c)}<div class="card-info"><strong>${esc(c[1])}</strong><small>${esc(c[2])} ${esc(c[3])} · ${c[0]} copies</small></div></div>`).join('')}</div><p class="rank-note"><a href="${url}">Open this player's tournament decklist ↗</a></p>`;
+    latestNode.querySelector('#copyRecentPlayerDeck')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
+    hydrateImages();
+   }
+  }
   const featured=matches.slice(0,12);
   if(!matches.length){node.innerHTML=`<p class="rank-note">${failedEvents?'Some tournament data could not be loaded. Please refresh and try again.':'No matching Day 2 players found in imported Regionals since July 2026.'}</p>`;return}
   node.innerHTML=`<p class="rank-note">Showing ${featured.length} top finish${featured.length===1?'':'es'} from ${matches.length} matching Day 2 appearance${matches.length===1?'':'s'} since July 2026 · best placement first.</p><div class="rank-rows">${featured.map(({player,event,entry})=>{
@@ -408,15 +473,15 @@ function render(){
  const deckMatch=hash.match(/^#\/tournament\/([^/]+)\/deck\/(\d+)$/);
  const isImport=hash==='#/import';const isImported=hash==='#/deck/imported'&&!!importedDeck;
  const isDeck=hash.startsWith('#/deck/');
- const selected=featuredDecks.find(d=>hash==='#/deck/'+d.slug);
+ const selected=archetypePages.find(d=>hash==='#/deck/'+d.slug);
  currentGroups=isImported?importedDeck:selected&&extraDecks[selected.slug]?extraDecks[selected.slug]:groups;
  app.innerHTML=deckMatch?tournamentDeckPage(deckMatch[1]):eventMatch?tournamentEventPage(eventMatch[1]):isTournament?tournamentPage():isImport?importPage():isLibrary?library():isImported?importedDeckPage():isDeck&&selected?deck(selected):home();
- document.title=isImport?'Import deck — Computer Search':isImported?'Imported deck — Computer Search':isLibrary?'Deck Rankings — Computer Search':isTournament?'Tournaments — Computer Search':selected?selected.name+' — Computer Search':'Computer Search — Pokémon TCG Decks';
+ document.title=isImport?'Import deck — Computer Search':isImported?'Imported deck — Computer Search':isLibrary?'Deck Rankings — Computer Search':isTournament?'Tournaments — Computer Search':selected?featuredDisplayName(selected.name)+' — Computer Search':'Computer Search — Pokémon TCG Decks';
  if(deckMatch)wireTournamentDeck(deckMatch[1],deckMatch[2]);
  else if(eventMatch)wireTournamentEvent(eventMatch[1]);
  else if(isTournament)wireTournaments();
  else if(isImport)wireImport();else if(isLibrary)wireLibrary();
- else{wire();if(isDeck)importValidation();if(selected)wireFeaturedArchetypePlayers()}
+ else{wire();if(selected)wireFeaturedArchetypePlayers()}
  window.scrollTo({top:0,behavior:'instant'});
 }
 window.addEventListener('hashchange',render);render();
