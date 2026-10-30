@@ -75,12 +75,12 @@ def parse_deck(soup,tid,url):
                     name=x.get_text(" ",strip=True)
                     break
             if name:break
-    if not rank or not 1<=rank<=64 or not name:return None
+    if not rank or not 1<=rank<=(143 if str(tid)=="515" else 64) or not name:return None
     title=soup.title.get_text(" ",strip=True) if soup.title else ""
     archetype=title.split(" by ",1)[0].strip()
     return dict(rank=rank,name=name,deck=archetype,decklist=cards,decklist_url=url)
 
-def standings(soup):
+def standings(soup, limit=64):
     players={}
     for tr in soup.select("tr"):
         cells=tr.find_all("td",recursive=False)
@@ -88,7 +88,7 @@ def standings(soup):
         raw=cells[0].get_text(" ",strip=True).lstrip("#").strip()
         if not raw.isdigit():continue
         rank=int(raw)
-        if rank>64 or rank<1:continue
+        if rank>limit or rank<1:continue
         name=cells[1].get_text(" ",strip=True)
         if name:players[rank]=dict(rank=rank,name=name,deck=None,decklist=None,decklist_url=None)
     return players
@@ -185,20 +185,62 @@ def worlds_decklists(soup, players, tid="515"):
             print(f"Worlds #{rank}: {len(cards)} card rows / {total} copies, archetype={archetype!r}",flush=True)
     return results
 
+def collect_explicit_day2(soup, players):
+    """Find explicit Day 2 indicators in player-specific standings rows.
+
+    Deliberately conservative: generic page headers and rank thresholds are not
+    accepted as proof. Only a dedicated Day 2 column or row attribute qualifies.
+    """
+    import unicodedata
+    def norm(value):
+        value = unicodedata.normalize("NFKD", str(value or "")).casefold()
+        return re.sub(r"[^a-z0-9]", "", value)
+    names = {norm(p.get("name")): rank for rank, p in players.items() if p.get("name")}
+    confirmed = set()
+    for table in soup.select("table"):
+        headers = [re.sub(r"\s+", " ", th.get_text(" ", strip=True)).strip().casefold()
+                   for th in table.select("thead th")]
+        day2_columns = [i for i, h in enumerate(headers) if re.fullmatch(r"day\s*2|day\s*two|d2", h)]
+        for tr in table.select("tr"):
+            cells = tr.find_all(["td", "th"], recursive=False)
+            if not cells: continue
+            row_names = {names[norm(a.get_text(" ", strip=True))]
+                         for a in tr.select('a[href*="/players/"]')
+                         if norm(a.get_text(" ", strip=True)) in names}
+            if not row_names:
+                row_names = {rank for name, rank in names.items()
+                             if any(norm(c.get_text(" ", strip=True)) == name for c in cells)}
+            if not row_names: continue
+            explicit = (tr.get("data-day2", "").lower() in ("true", "1", "yes") or
+                        tr.get("data-day-2", "").lower() in ("true", "1", "yes"))
+            for i in day2_columns:
+                if i >= len(cells): continue
+                cell = cells[i]
+                value = cell.get_text(" ", strip=True).casefold()
+                explicit = explicit or value in ("yes", "true", "1", "✓", "✔", "qualified", "day 2", "day2")
+                explicit = explicit or cell.get("data-day2", "").lower() in ("true", "1", "yes")
+            if explicit: confirmed.update(row_names)
+    return confirmed
+
 def import_event(tid,delay,max_decks):
     print(f"Checking Limitless tournament {tid}",flush=True)
     soup=get(f"/tournaments/{tid}")
     heading=soup.find("h1")
     name=heading.get_text(" ",strip=True) if heading else f"Regional {tid}"
-    is_worlds=(str(tid)=="515" and "World" in name)
+    is_worlds=(str(tid)=="515")
     if "Regional" not in name and not is_worlds:
         raise ValueError("Event is neither a Regional Championship nor verified 2026 Worlds: "+name)
-    players=standings(soup)
-    if len(players)<64:
-        try:players=standings(get(f"/tournaments/{tid}/standings"))
+    players=standings(soup,143 if is_worlds else 64)
+    # Retain the full standings snapshot for independent Day 2 eligibility checks.
+    standings_players=dict(players)
+    if len(players)<(143 if is_worlds else 64):
+        try:
+            additional=standings(get(f"/tournaments/{tid}/standings"),143 if is_worlds else 64)
+            players.update(additional)
+            standings_players.update(additional)
         except requests.HTTPError:pass
     if len(players)<64:
-        print(f"NO UPDATE: only {len(players)}/64 placements; preserving existing data")
+        print(f"NO UPDATE: only {len(players)} placements (minimum 64); preserving existing data")
         return False
     event_text=soup.get_text(" ",strip=True)
     # Discover lists from the tournament overview FIRST (same as Regionals).
@@ -245,8 +287,21 @@ def import_event(tid,delay,max_decks):
             print(f"SKIP {link}: {exc}")
         time.sleep(delay)
     if is_worlds:
-        # Every top-64 Masters player reached the final standings phase.
-        for player in players.values():player["day2"]=True
+        # A finishing rank is NOT evidence of Day 2 qualification.
+        # Only explicit player-level Day 2 markers from the source qualify.
+        # Keep unconfirmed players false; do not guess based on top 143.
+        explicit_day2 = collect_explicit_day2(soup, players)
+        for path, page in pages:
+            if path != f"/tournaments/{tid}":
+                explicit_day2.update(collect_explicit_day2(page, players))
+        for rank, player in players.items():
+            player["day2"] = rank in explicit_day2
+        confirmed = sum(bool(player["day2"]) for player in players.values())
+        print(f"Worlds Day 2: {confirmed} players explicitly verified; "
+              f"event-reported total 143; {143-confirmed} not verified from source rows", flush=True)
+        if not confirmed:
+            print("WARNING: Source pages contain no explicit player-level Day 2 markers. "
+                  "All day2 flags remain false. Do not infer qualification from rank.", flush=True)
     if is_worlds and verified==0:
         print("DIAGNOSTIC: Worlds HTML structure was not recognized. Please share the Worlds heading/card-anchor counts above.",flush=True)
     if verified==0:
@@ -260,18 +315,22 @@ def import_event(tid,delay,max_decks):
         date="2026-08-28"
         name="2026 World Championships"
     result=dict(id="limitless-"+tid,name=name,date=date,source=f"{BASE}/tournaments/{tid}",
-        provider="LimitlessTCG",standings=[players[i] for i in range(1,65)],
+        provider="LimitlessTCG",standings=[players[i] for i in sorted(players)],
+        event_type="World Championships" if is_worlds else "Regional Championships",
+        day2_total=143 if is_worlds else None,
+        day2_verified_count=sum(bool(p.get("day2")) for p in players.values()) if is_worlds else None,
         note="Only publicly published, validated 60-card lists are displayed.")
     OUT.mkdir(exist_ok=True)
     filename=f"limitless-{tid}.json"
     (OUT/filename).write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
     indexfile=OUT/"index.json"
     index=json.loads(indexfile.read_text()) if indexfile.exists() else []
-    entry=dict(id=result["id"],name=name,date=date,file=filename,source=result["source"],verified_decks=verified)
+    entry=dict(id=result["id"],name=name,date=date,file=filename,source=result["source"],verified_decks=verified,
+        event_type=result["event_type"],**({"day2_total":143,"day2_verified_count":result["day2_verified_count"]} if is_worlds else {}))
     index=[x for x in index if x.get("id")!=entry["id"]]+[entry]
     index.sort(key=lambda x:x.get("date",""),reverse=True)
     indexfile.write_text(json.dumps(index,ensure_ascii=False,indent=2)+"\n")
-    print(f"SUCCESS: {name}: 64 placements, {verified} verified 60-card lists")
+    print(f"SUCCESS: {name}: {len(players)} placements imported, {verified} verified 60-card lists; Worlds Day 2 total: 143" if is_worlds else f"SUCCESS: {name}: {len(players)} placements, {verified} verified 60-card lists")
     return True
 
 def main():
