@@ -36,7 +36,7 @@ function featuredOverview(d){return deck(d)}
 
 function deck(d=featuredDecks[0]){
  const name=featuredDisplayName(d.name);
- return `${header()}<main class="deck-page"><a href="#/decks" class="back">← &nbsp; Back to rankings</a><section class="deck-heading"><div><div class="eyebrow small">ARCHETYPE <span class="edition">/ #${d.rank}</span></div><h1>${esc(name)}<em>.</em></h1><p>Verified Regional Championship builds from Day 2 players since July 2026. The featured build is from the highest-placing player, with the newest event breaking ties.</p><div class="deck-badges"><span>✦ ${Number(d.points||0).toLocaleString()} TOURNAMENT POINTS</span><span>${esc(d.share||'')} META SHARE</span></div></div>${d.card?`<div class="deck-cover">${cardFrame(d.card,'deck-hero-card')}</div>`:''}</section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">BEST REGIONAL FINISH</div><h2>Top player's <i>60-card decklist.</i></h2></div></div><div id="featuredRecentPlayerDeck"><p>Loading verified tournament decklist…</p></div></section><section class="deck-list" style="margin-top:32px"><div class="deck-toolbar"><div><div class="eyebrow small">REGIONAL CHAMPIONSHIP RESULTS</div><h2>Players using <i>this archetype.</i></h2></div></div><p class="rank-subtitle">Top 12 Day 2 finishes since July 2026, sorted by placement.</p><div id="featuredArchetypePlayers" data-archetype="${esc(d.name)}"><p>Loading tournament players…</p></div></section></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`;
+ return `${header()}<main class="deck-page"><a href="#/decks" class="back">← &nbsp; Back to rankings</a><section class="deck-heading"><div><div class="eyebrow small">ARCHETYPE <span class="edition">/ #${d.rank}</span></div><h1>${esc(name)}<em>.</em></h1><p>Verified Regional and World Championship builds from top players since July 2026. The featured build is from the highest-placing player, with the newest event breaking ties.</p><div class="deck-badges"><span>✦ ${Number(d.points||0).toLocaleString()} TOURNAMENT POINTS</span><span>${esc(d.share||'')} META SHARE</span></div></div>${d.card?`<div class="deck-cover">${cardFrame(d.card,'deck-hero-card')}</div>`:''}</section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">BEST CHAMPIONSHIP FINISH</div><h2>Top player's <i>60-card decklist.</i></h2></div></div><div id="featuredRecentPlayerDeck"><p>Loading verified tournament decklist…</p></div></section><section class="deck-list" style="margin-top:32px"><div class="deck-toolbar"><div><div class="eyebrow small">CHAMPIONSHIP RESULTS</div><h2>Players using <i>this archetype.</i></h2></div></div><p class="rank-subtitle">Top 12 Day 2 finishes since July 2026, sorted by placement.</p><div id="featuredArchetypePlayers" data-archetype="${esc(d.name)}"><p>Loading tournament players…</p></div></section></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`;
 }
 
 const cmMoney=new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'});
@@ -85,7 +85,7 @@ function cardRulesText(data){
  if(data.hp||data.stage||data.evolveFrom||data.types?.length){
   sections.push(`<div class="detail-stats">${data.hp?`<span><b>HP ${esc(data.hp)}</b></span>`:''}${data.types?.length?`<span>${esc(data.types.join(' / '))}</span>`:''}${data.stage?`<span>${esc(data.stage)}${data.evolveFrom?' · Evolves from '+esc(data.evolveFrom):''}</span>`:''}</div>`);
  }
- for(const a of data.abilities||[])sections.push(`<section class="detail-rule"><h3 class="detail-ability-title">Ability - ${esc(a.name||'Unknown')}</h3>${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
+ for(const a of data.abilities||[])sections.push(`<section class="detail-rule"><h3 class="detail-ability-title"><span class="detail-ability-prefix">Ability - </span>${esc(a.name||'Unknown')}</h3>${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
  for(const a of data.attacks||[])sections.push(`<section class="detail-rule"><span class="detail-label">ATTACK</span><div class="detail-attack"><h3>${esc(a.name||'Attack')}</h3>${a.damage?`<b>${esc(a.damage)}</b>`:''}</div>${a.cost?.length?`<small>Energy: ${esc(a.cost.join(' · '))}</small>`:''}${a.effect?`<p>${esc(a.effect)}</p>`:''}</section>`);
  if(data.effect)sections.push(`<section class="detail-rule"><span class="detail-label">CARD EFFECT</span><p>${esc(data.effect)}</p></section>`);
  if(data.weaknesses?.length||data.resistances?.length||data.retreat){sections.push(`<div class="detail-attributes"><div><small>Weakness</small><b>${esc((data.weaknesses||[]).map(x=>x.type+' '+(x.value||'')).join(', ')||'—')}</b></div><div><small>Resistance</small><b>${esc((data.resistances||[]).map(x=>x.type+' '+(x.value||'')).join(', ')||'—')}</b></div><div><small>Retreat</small><b>${esc(String(data.retreat??'—'))}</b></div></div>`)}
@@ -325,7 +325,7 @@ const LEGACY_ARCHETYPE_SLUGS={
  'alakazam-powerful-hand':'alakazam',
  'dhelmise-hide-n-sneak':'dhelmise'
 };
-function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore all 25 archetypes and the best-finishing verified Day 2 player builds since July 2026. Ranking snapshot: October 28, 2026.</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Ranking points sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Decklists come from imported Regional results; archetypes without a verified 60-card list show an availability message.</p></main>${footer()}`}
+function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore all 25 archetypes and the best-finishing verified Day 2 player builds since July 2026. Ranking snapshot: October 28, 2026.</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Ranking points sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Decklists come from imported championship results; archetypes without a verified 60-card list show an availability message.</p></main>${footer()}`}
 function wireLibrary(){const input=document.getElementById('rankSearch');const rows=document.getElementById('rankRows');const update=()=>{const q=input.value.trim().toLowerCase();rows.innerHTML=rankedDecks.map((d,i)=>({name:d[0],points:d[1],share:d[2],rank:i+1,page:archetypePages[i]})).filter(d=>d.name.toLowerCase().includes(q)).map(d=>`<a class="rank-row" href="#/deck/${esc(d.page.slug)}"><span class="rank-number">#${d.rank}</span><span class="rank-title">${esc(d.name)}<small>View top-finishing player's decklist ↗</small></span><span class="rank-share">${esc(d.share)} share</span><span class="rank-points">${d.points.toLocaleString()} <small>PTS</small></span><span class="rank-arrow">↗</span></a>`).join('')||'<p>No matching decks found.</p>'};input.addEventListener('input',update);update()}
 
 let importedDeck=null;
@@ -392,9 +392,9 @@ function tournamentDisplayName(event){
  }
  const id=String(event?.id||'').replace(/^limitless-/,'');
  const known={'583':'Puebla Regional Championship','582':'Nice Regional Championship','581':'Louisville Regional Championship'};
- return known[id]||raw||'Regional Championship';
+ return known[id]||raw.replace(/\s*[–—-]\s*Limitless(?:\s*TCG)?\s*$/i,'').trim()||'Regional Championship';
 }
-function tournamentPage(){return `${header()}<main class="ranked-library"><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional Championship to view confirmed Day 2 players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
+function tournamentPage(){return `${header()}<main class="ranked-library"><div class="tournament-source-banner">Data from Limitless</div><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional or World Championship to view top players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
 function tournamentSeason(dateString){
  const match=String(dateString||'').match(/^(\d{4})-(\d{2})-(\d{2})/);
  if(!match)return null;
@@ -424,7 +424,7 @@ async function wireTournaments(){
   node.innerHTML=keys.map((key,index)=>{
    const group=groups.get(key);
    group.events.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.id).localeCompare(String(a.id)));
-   return `<details name="computer-search-seasons" class="season-group" ${index===0?'open':''}><summary class="season-heading"><span><strong>${esc(group.label)} Season</strong><small>${group.events.length} Regional Championship${group.events.length===1?'':'s'}</small></span><span class="season-chevron" aria-hidden="true">⌄</span></summary><div class="season-events">${group.events.map(tournamentArchiveRow).join('')}</div></details>`;
+   return `<details name="computer-search-seasons" class="season-group" ${index===0?'open':''}><summary class="season-heading"><span><strong>${esc(group.label)} Season</strong><small>${group.events.length} tournament${group.events.length===1?'':'s'}</small></span><span class="season-chevron" aria-hidden="true">⌄</span></summary><div class="season-events">${group.events.map(tournamentArchiveRow).join('')}</div></details>`;
   }).join('');
   // Keep one season expanded even on browsers without native named-details grouping.
   const sections=[...node.querySelectorAll('details.season-group')];
@@ -433,7 +433,7 @@ async function wireTournaments(){
   }));
  }catch(e){if(node.isConnected)node.textContent='Tournament index could not load: '+e.message}
 }
-function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
+function tournamentEventPage(id){return `${header()}<main class="ranked-library"><div class="tournament-source-banner">Data from Limitless</div><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
 async function wireTournamentEvent(id){
  const node=document.getElementById('eventResults');
  try{
@@ -447,7 +447,7 @@ async function wireTournamentEvent(id){
    `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">LimitlessTCG ↗</a></p>`;
  }catch(e){if(node.isConnected)node.textContent='Tournament standings could not load: '+e.message}
 }
-function tournamentDeckPage(id){return `${header()}<main class="deck-page"><a href="#/tournament/${encodeURIComponent(id)}" class="back">← &nbsp; Back to tournament standings</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
+function tournamentDeckPage(id){return `${header()}<main class="deck-page"><div class="tournament-source-banner">Data from Limitless</div><a href="#/tournament/${encodeURIComponent(id)}" class="back">← &nbsp; Back to tournament standings</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
 async function wireTournamentDeck(id,requested){
  const node=document.getElementById('tournamentDeck');
  try{
@@ -566,7 +566,7 @@ async function wireFeaturedArchetypePlayers(){
   const latestNode=document.getElementById('featuredRecentPlayerDeck');
   if(latestNode){
    if(!latest){
-    latestNode.innerHTML='<p class="rank-note">No verified 60-card Day 2 decklist found for this archetype in imported Regionals since July 2026.</p>';
+    latestNode.innerHTML='<p class="rank-note">No verified 60-card Day 2 decklist found for this archetype in imported championships since July 2026.</p>';
    }else{
     const {player,event,entry}=latest;
     const cards=player.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
@@ -579,7 +579,7 @@ async function wireFeaturedArchetypePlayers(){
    }
   }
   const featured=matches.slice(0,12);
-  if(!matches.length){node.innerHTML=`<p class="rank-note">${failedEvents?'Some tournament data could not be loaded. Please refresh and try again.':'No matching Day 2 players found in imported Regionals since July 2026.'}</p>`;return}
+  if(!matches.length){node.innerHTML=`<p class="rank-note">${failedEvents?'Some tournament data could not be loaded. Please refresh and try again.':'No matching Day 2 players found in imported championships since July 2026.'}</p>`;return}
   node.innerHTML=`<p class="rank-note">Showing ${featured.length} top finish${featured.length===1?'':'es'} from ${matches.length} matching Day 2 appearance${matches.length===1?'':'s'} since July 2026 · best placement first.</p><div class="rank-rows">${featured.map(({player,event,entry})=>{
    const link=tournamentHasList(player)?`#/tournament/${encodeURIComponent(entry.id)}/deck/${encodeURIComponent(player.rank)}`:`#/tournament/${encodeURIComponent(entry.id)}`;
    return `<a class="rank-row" style="display:flex;justify-content:space-between;align-items:center;gap:16px;text-decoration:none" href="${link}"><span><strong class="rank-title">${esc(player.name)}</strong><small style="display:block;margin-top:5px">${esc(tournamentDisplayName(event))} · ${esc(event.date||entry.date||'')}</small></span><span style="white-space:nowrap">#${esc(player.rank)} ${tournamentHasList(player)?'· View deck ↗':'· Standings ↗'}</span></a>`;
