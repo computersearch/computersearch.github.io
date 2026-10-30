@@ -453,12 +453,12 @@ async function wireTournamentEvent(id){
   const rows=(d.standings||[]).filter(p=>p.day2===true||p.madePhase2===true);
   document.title=tournamentDisplayName(d)+' — Computer Search';
   if(!rows.length){node.textContent='Day 2 participation has not been verified for this tournament yet. Re-run the updated importer.';return}
-  node.innerHTML=`<h2>${esc(tournamentDisplayName(d))}</h2><div class="tournament-source-banner">Data from Limitless</div><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} confirmed Day 2 players · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
+  node.innerHTML=`<h2>${esc(tournamentDisplayName(d))}</h2><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} confirmed Day 2 players · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
    rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="${tournamentUrl(d)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
    `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">LimitlessTCG ↗</a></p>`;
  }catch(e){if(node.isConnected)node.textContent='Tournament standings could not load: '+e.message}
 }
-function tournamentDeckPage(id){return `${header()}<main class="deck-page"><div class="tournament-source-banner">Data from Limitless</div><a href="#/tournaments" class="back">← &nbsp; Back to tournament standings</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
+function tournamentDeckPage(id){return `${header()}<main class="deck-page"><a href="#/tournaments" class="back">← &nbsp; Back to tournament standings</a><div id="tournamentDeck"><p>Loading published decklist…</p></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
 async function wireTournamentDeck(id,requested){
  const node=document.getElementById('tournamentDeck');
  try{
