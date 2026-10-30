@@ -350,8 +350,6 @@ def main():
     args=p.parse_args()
     if args.max_decks is not None:
         print("INFO: --max-decks is deprecated and ignored; processing all discovered decklist URLs",flush=True)
-    if str(args.tournament_id)=="515":
-        p.error("Worlds 515 uses tools/import_worlds.py")
     ids=[(args.tournament_id,"manual")] if args.tournament_id else tournament_ids()[:3]
     if not ids:raise RuntimeError("No recent Regional Championships found on Limitless")
     for tid,_ in ids:

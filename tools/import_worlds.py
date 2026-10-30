@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Dedicated 2026 Worlds Masters importer (Limitless tournament 515).
+"""Dedicated Worlds Masters importer (Limitless tournaments 500 and 515).
 All standings rows are Day 2; inspect every player for an event-specific
 decklist, and never infer that 128 list links means only 128 players.
 """
 import argparse, json, re, time, unicodedata
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin
 import requests
@@ -12,6 +13,7 @@ BASE="https://limitlesstcg.com"
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"tournaments"
 TID="515"
+WORLDS={}
 session=requests.Session()
 session.headers.update({"User-Agent":"ComputerSearch/1.0 (noncommercial tournament archive; respectful rate limiting)"})
 
@@ -20,6 +22,29 @@ def get(path):
     r=session.get(urljoin(BASE,path),timeout=45)
     r.raise_for_status()
     return BeautifulSoup(r.text,"html.parser")
+
+
+def tournament_metadata(soup):
+    heading=(soup.select_one("h1") or soup.title)
+    title=heading.get_text(" ",strip=True) if heading else ""
+    match=re.search(r"World Championships?\\s+(20\\d{2})",title,re.I)
+    if not match: raise ValueError(f"Not a World Championship: {title!r}")
+    year=int(match.group(1))
+    text=soup.get_text(" ",strip=True)
+    if not re.search(r"(all players in phase 2|phase 2 of the tournament)",text,re.I):
+        raise ValueError("Source does not confirm Phase 2; refusing import")
+    date=None
+    for el in soup.select("time[datetime]"):
+        candidate=el.get("datetime","")[:10]
+        if re.fullmatch(r"20\\d{2}-\\d{2}-\\d{2}",candidate):
+            date=candidate
+            break
+    if date is None:
+        m=re.search(r"(\\d{1,2})(?:st|nd|rd|th)?\\s+(January|February|March|April|May|June|July|August|September|October|November|December)\\s+(20\\d{2})",text,re.I)
+        if m: date=datetime.strptime(f"{m[1]} {m[2]} {m[3]}","%d %B %Y").strftime("%Y-%m-%d")
+    if not date or not date.startswith(str(year)):
+        raise ValueError("Worlds date not found or inconsistent with year")
+    return dict(year=year,date=date)
 
 
 def find_decks(soup):
@@ -51,7 +76,7 @@ def parse_deck_cards(soup, url):
 
 def parse_deck_identity(soup):
     for a in soup.select('a[href]'):
-        if not re.search(r"/tournaments/515(?:[/?#]|$)",a.get('href','')):continue
+        if not re.search(rf"/tournaments/{TID}(?:[/?#]|$)",a.get('href','')):continue
         parent=a.parent
         if parent is None:continue
         nearby=parent.get_text(' ',strip=True)
@@ -94,7 +119,7 @@ def standings(soup, limit=None):
     return players
 
 
-def worlds_decklists(soup, players, tid="515"):
+def worlds_decklists(soup, players, tid=None):
     """Read inline Worlds lists. Quantities can be siblings of card anchors."""
     from bs4 import NavigableString, Tag
     from unicodedata import normalize
@@ -208,14 +233,14 @@ def roster_player_profiles(soup, players):
 
 
 def player_worlds_links(profile_soup):
-    """Find list URLs in sections explicitly associated with tournament 515."""
+    """Find list URLs in sections explicitly associated with the selected Worlds."""
     found=set()
     for a in profile_soup.select('a[href]'):
         href=a.get('href','')
         if not re.search(r'/decks/list/\d+(?:[/?#]|$)',href):continue
         for ancestor in list(a.parents)[:5]:
             if ancestor.name in ('body','html'):break
-            if ancestor.select_one('a[href*="/tournaments/515"]') or re.search(r'(?:World Championships|Worlds).*2026|2026.*(?:World Championships|Worlds)',ancestor.get_text(' ',strip=True),re.I):
+            if ancestor.select_one(f'a[href*="/tournaments/{TID}"]') or re.search(rf'(?:World Championships|Worlds).*{WORLDS[TID]["year"]}|{WORLDS[TID]["year"]}.*(?:World Championships|Worlds)',ancestor.get_text(' ',strip=True),re.I):
                 found.add(urljoin(BASE,href));break
     return found
 
@@ -224,10 +249,12 @@ def import_worlds(delay):
     path=f"/tournaments/{TID}"
     print(f"Worlds Phase 2 source: {BASE}{path}",flush=True)
     soup=get(path)
+    WORLDS[TID]=tournament_metadata(soup)
+    print(f"Detected Worlds {WORLDS[TID]['year']} on {WORLDS[TID]['date']}",flush=True)
     players=standings(soup)
     print(f"Phase 2 standings: {len(players)} players; highest placement {max(players,default=0)}",flush=True)
-    if len(players) != 143:
-        raise RuntimeError(f"Expected all 143 Worlds standings players; got {len(players)}. Refusing incomplete snapshot.")
+    if len(players)<8 or sorted(players)!=list(range(1,max(players)+1)):
+        raise RuntimeError("Incomplete or non-contiguous Worlds Phase 2 standings; refusing snapshot.")
     # This specific source is the Masters Phase 2 standings, not general
     # tournament standings. Membership in its rows is the Day 2 evidence.
     # Never infer qualification from a rank threshold or from a decklist link.
@@ -345,18 +372,18 @@ def import_worlds(delay):
     # The source is the confirmed Worlds roster: only its members are saved.
     # Preserve those standings even when no decklists are published/recognized.
     OUT.mkdir(parents=True,exist_ok=True)
-    result=dict(id='limitless-515',name='2026 World Championships',date='2026-08-28',
+    result=dict(id=f'limitless-{TID}',name=f'{WORLDS[TID]["year"]} World Championships',date=WORLDS[TID]['date'],
         source=f'{BASE}{path}',provider='LimitlessTCG',event_type='World Championships',
-        day2_total=143,day2_verified_count=len(players),
+        day2_total=len(players),day2_verified_count=len(players),
         standings=[players[i] for i in sorted(players)],
         note='Day 2 status comes from the Worlds Phase 2 standings roster. Only validated 60-card decklists are attached.')
-    filename='limitless-515.json'
+    filename=f'limitless-{TID}.json'
     (OUT/filename).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     indexfile=OUT/'index.json'
     index=json.loads(indexfile.read_text()) if indexfile.exists() else []
     entry=dict(id=result['id'],name=result['name'],date=result['date'],file=filename,
         source=result['source'],verified_decks=verified,event_type=result['event_type'],
-        day2_total=143,day2_verified_count=len(players))
+        day2_total=len(players),day2_verified_count=len(players))
     index=[e for e in index if e.get('id')!=entry['id']]+[entry]
     index.sort(key=lambda e:e.get('date',''),reverse=True)
     indexfile.write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n')
@@ -365,11 +392,12 @@ def import_worlds(delay):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('--tournament-id',default='515',help='Must be 515 (Worlds Phase 2 source)')
+    p.add_argument('--tournament-id',required=True,help='Any Worlds tournament ID')
     p.add_argument('--delay',type=float,default=1.2)
     p.add_argument('--max-decks',type=int,default=None,help='Ignored; all discovered URLs processed')
     args=p.parse_args()
-    if str(args.tournament_id)!='515':p.error('This parser only supports Worlds tournament 515')
+    global TID
+    TID=str(args.tournament_id)
     if args.max_decks is not None:print('INFO: --max-decks ignored; all URLs processed',flush=True)
     import_worlds(max(args.delay,1.0))
 
