@@ -16,7 +16,7 @@ const cardCache=new Map();
 let activeFilter='All';
 const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-function header(){return `<header class="header"><a class="brand" href="#/" aria-label="Computer Search home"><img class="brand-logo" src="computer-search-logo.png" alt="Computer Search logo"><span class="brand-name">Computer <span>Search</span></span></a><nav><a href="#/" class="nav-link">Discover</a><a href="#/decks" class="nav-link">Decklists</a><a href="#/tournaments" class="nav-link">Tournaments</a></nav><span class="header-chip"><span class="status-dot"></span> POKÉMON TCG</span></header>`}
+function header(){return `<header class="header"><a class="brand" href="#/" aria-label="Computer Search home"><img class="brand-logo" src="computer-search-logo.png" alt="Computer Search logo"><span class="brand-name">Computer <span>Search</span></span></a><nav><a href="#/" class="nav-link">Discover</a><a href="#/decks" class="nav-link">Decklists</a><a href="#/tournaments" class="nav-link">Tournaments</a><a href="#/players" class="nav-link">Players</a></nav><span class="header-chip"><span class="status-dot"></span> POKÉMON TCG</span></header>`}
 function footer(){return `<footer>Made for Pokémon TCG players <span>•</span> Card data & images via <a href="https://tcgdex.dev/" target="_blank" rel="noopener">TCGdex ↗</a> <span>•</span> Statistics from <a href="https://labs.limitlesstcg.com/" target="_blank" rel="noopener">Limitless Labs ↗</a><br><small>Fan-made project. Not affiliated with or endorsed by The Pokémon Company.</small></footer>`}
 function cardFrame(card,cls=''){const [qty,name,set,num]=card;return `<div class="card-art ${cls}" data-card="${esc(set)}-${esc(num)}" data-name="${esc(name)}"><div class="card-placeholder"><span class="placeholder-sigil">◈</span><strong>${esc(name)}</strong>${isBasicEnergy(name)?"":`<small>${esc(set)} · ${esc(num)}</small>`}<span class="art-status">Checking exact artwork…</span></div></div>`}
 const FEATURED_DISPLAY_NAMES={
@@ -455,7 +455,69 @@ async function wireTournaments(){
   }));
  }catch(e){if(node.isConnected)node.textContent='Tournament index could not load: '+e.message}
 }
-function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
+// Player search reads the tournament index at runtime, including future imports.
+function playerKey(name){return String(name||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function playerCountry(p){return String(p.country||p.country_code||p.countryCode||p.nation||'').trim()}
+function playerFlag(country){const c=String(country||'').toUpperCase();const codes={US:'US',USA:'US',GB:'GB',UK:'GB',CA:'CA',CAN:'CA',MX:'MX',MEX:'MX',JP:'JP',JPN:'JP',DE:'DE',GER:'DE',FR:'FR',ES:'ES',IT:'IT',BR:'BR',AU:'AU',NZ:'NZ',NL:'NL',BE:'BE',PL:'PL',SE:'SE',NO:'NO',DK:'DK',FI:'FI',PT:'PT',AT:'AT',CH:'CH',CZ:'CZ',CR:'CR',CL:'CL',AR:'AR',CO:'CO',PE:'PE',SG:'SG',KR:'KR',TW:'TW',HK:'HK',IE:'IE'};const code=codes[c]||(c.length===2?c:'');return /^[A-Z]{2}$/.test(code)?String.fromCodePoint(...[...code].map(x=>127397+x.charCodeAt(0))):'🌐'}
+function playerRecord(p){
+ const record=p.record||p.match_record||p.matchRecord;
+ let vals;
+ if(typeof record==='string'){const m=record.match(/(\d+)\s*[-–/]\s*(\d+)\s*[-–/]\s*(\d+)/);if(m)vals=m.slice(1).map(Number)}
+ else if(record&&typeof record==='object'){vals=[record.wins??record.w,record.losses??record.l,record.ties??record.draws??record.t]}
+ if(!vals)vals=[p.wins??p.w,p.losses??p.l,p.ties??p.draws??p.t];
+ if(vals.some(v=>v===undefined||v===null||v===''||!Number.isInteger(Number(v))||Number(v)<0))return null;
+ const [w,l,t]=vals.map(Number);return {w,l,t,total:w+l+t,percent:w+l+t?100*w/(w+l+t):null};
+}
+function playerPage(){return `${header()}<main class="ranked-library"><a class="back" href="#/tournaments">← &nbsp; Tournament archive</a><div class="eyebrow">PLAYER DATABASE</div><h1>Find a <em>player.</em></h1><p class="rank-subtitle">Search placements in all imported tournaments. Select a result to view its decklist here.</p><label for="playerSearchInput">Player name</label><input id="playerSearchInput" type="search" placeholder="Search player name…" autocomplete="off" style="display:block;width:100%;max-width:560px;padding:13px 16px;border-radius:12px;margin:12px 0 20px;background:var(--surface,#181b26);color:inherit;border:1px solid #777"><div id="playerSearchStatus" class="rank-subtitle">Loading tournament standings…</div><div id="playerSearchResults" class="rank-rows"></div></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`}
+let playerSearchRows=null;
+async function loadPlayerSearchRows(){
+ if(playerSearchRows)return playerSearchRows;
+ const entries=await getTournamentIndex(),rows=[];let next=0,failed=0;
+ async function worker(){while(next<entries.length){const e=entries[next++];try{const d=await getTournamentById(e.id);for(const p of d.standings||[]){if(p.name)rows.push({p,event:e});}}catch(_){failed++}}}
+ await Promise.all(Array.from({length:Math.min(6,entries.length)},worker));
+ if(failed)console.warn('Player search: failed to load '+failed+' tournament files');
+ playerSearchRows=rows;return rows;
+}
+function wirePlayerSearch(){
+ const input=document.getElementById('playerSearchInput'),status=document.getElementById('playerSearchStatus'),results=document.getElementById('playerSearchResults');
+ const renderResults=()=>{
+  if(!input.isConnected)return;
+  const query=playerKey(input.value);
+  if(!query){results.innerHTML='';status.textContent='Enter a player name to search.';return}
+  const matches=(playerSearchRows||[]).filter(r=>playerKey(r.p.name).includes(query));
+  const byName=new Map();for(const r of matches){const key=playerKey(r.p.name);if(!byName.has(key))byName.set(key,[]);byName.get(key).push(r)}
+  status.textContent=matches.length?`${byName.size} matching player name${byName.size===1?'':'s'} · ${matches.length} tournament placement${matches.length===1?'':'s'}`:'No matching players found in imported standings.';
+  let i=0;
+  results.innerHTML=[...byName.values()].sort((a,b)=>a[0].p.name.localeCompare(b[0].p.name)).map(group=>{
+   group.sort((a,b)=>String(b.event.date||'').localeCompare(String(a.event.date||'')));
+   return `<section style="margin:16px 0 24px"><h2 style="margin:0 0 8px">${esc(group[0].p.name)}</h2>${group.map(({p,event})=>{
+    const index=i++,hasList=tournamentHasList(p);
+    return `<div class="rank-row" style="display:block;padding:16px;margin:8px 0"><button type="button" class="player-placement-btn" data-player-result="${index}" style="background:none;border:0;color:inherit;text-align:left;cursor:pointer;font:inherit;width:100%;padding:0"><strong>${esc(tournamentDisplayName(event))}</strong><div style="margin-top:7px">#${esc(p.rank??'—')} · ${esc(event.date||'Date unavailable')}</div><div style="margin-top:7px">${hasList?'View decklist ↓':'Decklist unavailable'}</div></button><div class="player-inline-deck" id="player-inline-${index}" hidden></div></div>`;
+   }).join('')}</section>`;
+  }).join('');
+  // Use the exact same ordering as the rendered results for click-to-expand.
+  const ordered=[...byName.values()].sort((a,b)=>a[0].p.name.localeCompare(b[0].p.name)).flatMap(group=>group);
+  results.querySelectorAll('[data-player-result]').forEach(button=>button.addEventListener('click',()=>{
+   const index=Number(button.dataset.playerResult),row=ordered[index],target=document.getElementById('player-inline-'+index);
+   if(!row||!target)return;
+   if(!target.hidden){target.hidden=true;return}
+   results.querySelectorAll('.player-inline-deck').forEach(el=>el.hidden=true);
+   target.hidden=false;
+   const {p}=row;
+   if(!tournamentHasList(p)){target.innerHTML='<p class="rank-note">No published 60-card decklist is available for this placement.</p>';return}
+   const cards=p.decklist.map(c=>[Number(c.quantity),String(c.name),String(c.set),String(c.number)]);
+   const exportText=cards.map(([q,n,set,num])=>`${q} ${n} ${set} ${num}`).join('\n');
+   target.innerHTML=`<section class="deck-list" style="margin-top:18px"><div class="deck-toolbar"><div><div class="eyebrow small">${esc(p.name)} · #${esc(p.rank)}</div><h2>Player <i>decklist.</i></h2></div><button type="button" class="primary-btn copy-btn">Copy for Pokémon TCG Live <span>⧉</span></button></div><div class="card-grid">${cards.map(tournamentCardMarkup).join('')}</div></section>`;
+   target.querySelector('.copy-btn')?.addEventListener('click',e=>copyDeckToClipboard(exportText,e.currentTarget));
+   hydrateImages();hydrateTournamentPrices('#player-inline-'+index);wireCardButtons();
+  }));
+ };
+ const prefill=new URLSearchParams(location.hash.split('?')[1]||'').get('name');if(prefill)input.value=prefill;
+ input.addEventListener('input',renderResults);
+ const dlg=document.getElementById('cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+ loadPlayerSearchRows().then(rows=>{if(!input.isConnected)return;status.textContent=`${rows.length} standings entries loaded.`;renderResults()}).catch(e=>{if(input.isConnected)status.textContent='Unable to load player search: '+e.message});
+}
+function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><a href="#/players" style="display:inline-block;margin:12px 0">Search players across tournaments →</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
 async function wireTournamentEvent(id){
  const node=document.getElementById('eventResults');
  try{
@@ -465,7 +527,7 @@ async function wireTournamentEvent(id){
   document.title=tournamentDisplayName(d)+' — Computer Search';
   if(!rows.length){node.textContent='Day 2 participation has not been verified for this tournament yet. Re-run the updated importer.';return}
   node.innerHTML=`<h2>${esc(tournamentDisplayName(d))}</h2><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} confirmed Day 2 players · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
-   rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="${tournamentUrl(d)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
+   rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${`<a href="#/players?name=${encodeURIComponent(p.name)}">${esc(p.name)}</a>`}</span><span>${tournamentHasList(p)?`<a href="${tournamentUrl(d)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
    `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">LimitlessTCG ↗</a></p>`;
  }catch(e){if(node.isConnected)node.textContent='Tournament standings could not load: '+e.message}
 }
@@ -613,6 +675,7 @@ function render(){
  const hash=location.hash;
  const isLibrary=hash==='#/decks';
  const isTournament=hash==='#/tournaments';
+ const isPlayers=hash==='#/players'||hash.startsWith('#/players?');
  const eventMatch=hash.match(/^#\/tournament\/([^/]+)$/);
  const deckMatch=hash.match(/^#\/tournament\/([^/]+)\/deck\/(\d+)$/);
  const isImport=hash==='#/import';const isImported=hash==='#/deck/imported'&&!!importedDeck;
@@ -625,11 +688,12 @@ function render(){
  }
  const selected=archetypePages.find(d=>hash==='#/deck/'+d.slug);
  currentGroups=isImported?importedDeck:selected&&extraDecks[selected.slug]?extraDecks[selected.slug]:groups;
- app.innerHTML=deckMatch?tournamentDeckPage(deckMatch[1]):eventMatch?tournamentEventPage(eventMatch[1]):isTournament?tournamentPage():isImport?importPage():isLibrary?library():isImported?importedDeckPage():isDeck&&selected?deck(selected):home();
- document.title=isImport?'Import deck — Computer Search':isImported?'Imported deck — Computer Search':isLibrary?'Deck Rankings — Computer Search':isTournament?'Tournaments — Computer Search':selected?featuredDisplayName(selected.name)+' — Computer Search':'Computer Search — Pokémon TCG Decks';
+ app.innerHTML=deckMatch?tournamentDeckPage(deckMatch[1]):eventMatch?tournamentEventPage(eventMatch[1]):isTournament?tournamentPage():isPlayers?playerPage():isImport?importPage():isLibrary?library():isImported?importedDeckPage():isDeck&&selected?deck(selected):home();
+ document.title=isImport?'Import deck — Computer Search':isImported?'Imported deck — Computer Search':isLibrary?'Deck Rankings — Computer Search':isTournament?'Tournaments — Computer Search':isPlayers?'Players — Computer Search':selected?featuredDisplayName(selected.name)+' — Computer Search':'Computer Search — Pokémon TCG Decks';
  if(deckMatch)wireTournamentDeck(deckMatch[1],deckMatch[2]);
  else if(eventMatch)wireTournamentEvent(eventMatch[1]);
  else if(isTournament)wireTournaments();
+ else if(isPlayers)wirePlayerSearch();
  else if(isImport)wireImport();else if(isLibrary)wireLibrary();
  else if(selected){const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});hydrateImages();wireFeaturedArchetypePlayers()}else wire()
  window.scrollTo({top:0,behavior:'instant'});
