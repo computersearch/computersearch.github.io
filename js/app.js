@@ -11,7 +11,7 @@ const deckExport = () => currentGroups.map(g=>`${g.name}: ${g.count}\n${g.cards.
 
 const app = document.querySelector('#app');
 const API='https://api.tcgdex.net/v2/en';
-const setCodes={SVI:'sv01',PRE:'sv08.5',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
+const setCodes={SVI:'sv01',PRE:'sv08.5',PBL:'me05',WHT:'sv10.5w',BLK:'sv10.5b',TWM:'sv06',TEF:'sv05',SCR:'sv07',MEG:'me01',ASC:'me02.5',POR:'me03',MEE:'mee',SSP:'sv08',JTG:'sv09',DRI:'sv10',SFA:'sv06.5',PFL:'me02',CRI:'me04','30C':'me55'}; // Hints only; verified against TCGdex set metadata and card name before use
 const cardCache=new Map();
 let activeFilter='All';
 const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -30,7 +30,7 @@ function featuredDisplayName(name){
  return String(FEATURED_DISPLAY_NAMES[key]||name).replace(/\s+ex\b/gi,'').replace(/\s+/g,' ').trim();
 }
 const featuredDecks=DeckforgeDecks.all();
-function featureCard(d){return `<a class="featured-card" href="#/deck/${d.slug}" aria-label="View ${esc(featuredDisplayName(d.name))}"><div class="featured-visual ${d.slug}">${d.card?cardFrame(d.card,'featured-image'):`<div class="featured-monogram">${d.rank===2?'✦':'♛'}</div>`}<span class="featured-rank">#${d.rank} RANKED</span></div><div class="featured-info"><div class="eyebrow small">${d.points.toLocaleString()} POINTS · ${d.share} SHARE</div><h3>${esc(featuredDisplayName(d.name))}</h3><p>${esc(d.description)}</p><span class="view-link">Explore deck <span>↗</span></span></div></a>`}
+function featureCard(d){return `<a class="featured-card" href="#/deck/${slug(featuredDisplayName(d.name))}" aria-label="View ${esc(featuredDisplayName(d.name))}"><div class="featured-visual ${d.slug}">${d.card?cardFrame(d.card,'featured-image'):`<div class="featured-monogram">${d.rank===2?'✦':'♛'}</div>`}<span class="featured-rank">#${d.rank} RANKED</span></div><div class="featured-info"><div class="eyebrow small">${d.points.toLocaleString()} POINTS · ${d.share} SHARE</div><h3>${esc(featuredDisplayName(d.name))}</h3><p>${esc(d.description)}</p><span class="view-link">Explore deck <span>↗</span></span></div></a>`}
 function home(){return `${header()}<main><section class="home-hero"><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE DECK ARCHIVE <span class="edition">/ TOP 3</span></div><h1>Build your<br><em>next legend.</em></h1><p>Discover the top competitive decks, explore their strategies, and get ready for your next match.</p><a class="primary-btn" href="#/decks">Explore rankings <span>↗</span></a><div class="hero-meta"><span>✦ LIMITLESS POINTS</span><span>✦ LIVE CARD DATA</span></div></div><div class="hero-visual"><div class="visual-glow"></div><div class="orb orb-one"></div><div class="orb orb-two"></div>${cardFrame([3,'Dragapult ex','TWM','130'],'hero-card')}<div class="float-label">TOP RANKED <b>01 / 03</b></div></div></section><section class="featured"><div class="section-top"><div><div class="eyebrow small">COMPETITIVE META · LIMITLESS TCG</div><h2>Featured <i>decks.</i></h2></div><span class="section-count">TOP 03 BY TOURNAMENT POINTS</span></div><div class="featured-grid">${featuredDecks.filter(d=>d.rank<=3).map(featureCard).join('')}</div><p class="featured-source">Ranking snapshot: October 28, 2026 · TEF–30C format · <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Source: Limitless TCG ↗</a></p></section></main>${footer()}`}
 function featuredOverview(d){return deck(d)}
 
@@ -84,8 +84,8 @@ function groupMarkup(){return currentGroups.filter(g=>activeFilter==='All'||g.na
 const setDetailCache=new Map();
 // PTCG Live abbreviations are distinct from TCGdex set IDs.
 // These are candidate IDs only; every returned card must match name and collector number.
-const setAliases={SVI:['sv01'],PRE:['sv08.5'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
-const setNames={SVI:['Scarlet & Violet'],PRE:['Prismatic Evolutions'],WHT:['White Flare'],BLK:['Black Bolt'],TWM:['Twilight Masquerade'],TEF:['Temporal Forces'],SCR:['Stellar Crown'],MEG:['Mega Evolution'],ASC:['Ascended Heroes'],POR:['Phantasmal Flames'],MEE:['Mega Evolution Energy'],SSP:['Surging Sparks'],JTG:['Journey Together'],DRI:['Destined Rivals'],SFA:['Shrouded Fable'],PFL:['Perfect Order'],CRI:['Crimson'],'30C':['30th Celebration']};
+const setAliases={SVI:['sv01'],PRE:['sv08.5'],PBL:['me05'],WHT:['sv10.5w'],BLK:['sv10.5b'],TWM:['sv06','sv6'],TEF:['sv05','sv5'],SCR:['sv07','sv7'],MEG:['me01'],ASC:['me02.5'],POR:['me03'],MEE:['mee'],SSP:['sv08','sv8'],JTG:['sv09','sv9'],DRI:['sv10'],SFA:['sv06.5','sv6.5'],PFL:['me02'],CRI:['me04'],'30C':['me55']};
+const setNames={SVI:['Scarlet & Violet'],PRE:['Prismatic Evolutions'],PBL:['Pitch Black'],WHT:['White Flare'],BLK:['Black Bolt'],TWM:['Twilight Masquerade'],TEF:['Temporal Forces'],SCR:['Stellar Crown'],MEG:['Mega Evolution'],ASC:['Ascended Heroes'],POR:['Phantasmal Flames'],MEE:['Mega Evolution Energy'],SSP:['Surging Sparks'],JTG:['Journey Together'],DRI:['Destined Rivals'],SFA:['Shrouded Fable'],PFL:['Perfect Order'],CRI:['Crimson'],'30C':['30th Celebration']};
 // Shared built-in mappings travel with this HTML to every future deck.
 // Verified discoveries are also cached locally when browser storage is available.
 const SET_MAPPING_CACHE_KEY='deckforge.tcgdex.verified-set-mappings.v1';
@@ -227,10 +227,19 @@ function wireCardButtons(){document.querySelectorAll('[data-open]').forEach(b=>b
 const rankedDecks=[
 ['Dragapult',4937,'36.64%'],['Basic Box',1192,'8.85%'],['Slowking',1021,'7.58%'],["N’s Zoroark",1014,'7.52%'],['Alakazam',852,'6.32%'],['Festival Lead',773,'5.74%'],['Dhelmise',558,'4.14%'],['Hydrapple',497,'3.69%'],['Mega Lopunny',393,'2.92%'],['Crustle',326,'2.42%'],['Mega Excadrill',304,'2.26%'],['Mega Lucario',283,'2.10%'],['Mega Sharpedo',201,'1.49%'],["Rocket’s Honchkrow",195,'1.45%'],["Cynthia’s Garchomp",145,'1.08%'],['Ogerpon Meganium',112,'0.83%'],["Marnie’s Grimmsnarl",95,'0.70%'],['Mew Box Memory Helix',83,'0.62%'],["Rocket’s Mewtwo",56,'0.42%'],['Raging Bolt',47,'0.35%'],["Hop’s Trevenant",47,'0.35%'],["Lillie’s Clefairy",39,'0.29%'],['Mega Absol Box',39,'0.29%'],['Mega Starmie',33,'0.24%'],['Greninja',28,'0.21%']];
 for(const d of DeckforgeDecks.all()) if(!rankedDecks.some(row=>row[0]===featuredDisplayName(d.name))) rankedDecks.push([featuredDisplayName(d.name),d.points,d.share]);
-const archetypePages=rankedDecks.map(([name,points,share],i)=>{
- const existing=featuredDecks.find(d=>normalizeArchetypeName(featuredDisplayName(d.name))===normalizeArchetypeName(name));
- return existing||{name,points,share,rank:i+1,slug:'archetype-'+slug(name),description:'Regional Championship archetype',card:null};
-});
+// All ranked archetypes use one consistent tournament-backed page model.
+// Never reuse legacy featured-deck objects (old slugs, card covers and loaders).
+const archetypePages=rankedDecks.map(([name,points,share],i)=>({
+ name,points,share,rank:i+1,slug:slug(name),
+ description:'Regional Championship archetype',card:null
+}));
+// Old links remain usable, but resolve to the short, readable archetype URL.
+const LEGACY_ARCHETYPE_SLUGS={
+ 'dragapult-ex':'dragapult','slowking-seek-inspiration':'slowking',
+ 'crustle-mysterious-rock-inn':'crustle',
+ 'alakazam-powerful-hand':'alakazam',
+ 'dhelmise-hide-n-sneak':'dhelmise'
+};
 function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore all 25 archetypes and the best-finishing verified Day 2 player builds since July 2026. Ranking snapshot: October 28, 2026.</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Ranking points sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Decklists come from imported Regional results; archetypes without a verified 60-card list show an availability message.</p></main>${footer()}`}
 function wireLibrary(){const input=document.getElementById('rankSearch');const rows=document.getElementById('rankRows');const update=()=>{const q=input.value.trim().toLowerCase();rows.innerHTML=rankedDecks.map((d,i)=>({name:d[0],points:d[1],share:d[2],rank:i+1,page:archetypePages[i]})).filter(d=>d.name.toLowerCase().includes(q)).map(d=>`<a class="rank-row" href="#/deck/${esc(d.page.slug)}"><span class="rank-number">#${d.rank}</span><span class="rank-title">${esc(d.name)}<small>View top-finishing player's decklist ↗</small></span><span class="rank-share">${esc(d.share)} share</span><span class="rank-points">${d.points.toLocaleString()} <small>PTS</small></span><span class="rank-arrow">↗</span></a>`).join('')||'<p>No matching decks found.</p>'};input.addEventListener('input',update);update()}
 
@@ -500,6 +509,12 @@ function render(){
  const deckMatch=hash.match(/^#\/tournament\/([^/]+)\/deck\/(\d+)$/);
  const isImport=hash==='#/import';const isImported=hash==='#/deck/imported'&&!!importedDeck;
  const isDeck=hash.startsWith('#/deck/');
+ const oldSlug=hash.startsWith('#/deck/')?hash.slice(7):'';
+ const newSlug=LEGACY_ARCHETYPE_SLUGS[oldSlug]||(oldSlug.startsWith('archetype-')?oldSlug.slice(10):'');
+ if(newSlug&&archetypePages.some(d=>d.slug===newSlug)){
+  location.replace(location.pathname+location.search+'#/deck/'+newSlug);
+  return;
+ }
  const selected=archetypePages.find(d=>hash==='#/deck/'+d.slug);
  currentGroups=isImported?importedDeck:selected&&extraDecks[selected.slug]?extraDecks[selected.slug]:groups;
  app.innerHTML=deckMatch?tournamentDeckPage(deckMatch[1]):eventMatch?tournamentEventPage(eventMatch[1]):isTournament?tournamentPage():isImport?importPage():isLibrary?library():isImported?importedDeckPage():isDeck&&selected?deck(selected):home();
