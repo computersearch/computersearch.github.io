@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tournament_id:
-        description: 'Tournament ID (auto-detect Worlds or Regional; blank = latest Regionals)'
+        description: 'Tournament ID (auto-detect Worlds, International or Regional; blank = latest Regionals)'
         required: false
         type: string
   schedule:
@@ -32,10 +32,13 @@ jobs:
           if [ -n "$TOURNAMENT_ID" ]; then
             EVENT_TYPE=$(python tools/detect_tournament_type.py --tournament-id "$TOURNAMENT_ID")
             echo "Detected tournament type: $EVENT_TYPE"
-            if [ "$EVENT_TYPE" = "worlds" ]; then
-              python tools/import_worlds.py --tournament-id "$TOURNAMENT_ID"
-            else
+            if [ "$EVENT_TYPE" = "worlds" ] || [ "$EVENT_TYPE" = "international" ]; then
+              python tools/import_worlds.py --tournament-id "$TOURNAMENT_ID" --event-type "$EVENT_TYPE"
+            elif [ "$EVENT_TYPE" = "regional" ]; then
               python tools/import_limitless.py --tournament-id "$TOURNAMENT_ID"
+            else
+              echo "Unsupported event type: $EVENT_TYPE" >&2
+              exit 1
             fi
           else
             echo "Importing latest Regional tournaments"
