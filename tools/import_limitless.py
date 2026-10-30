@@ -75,7 +75,7 @@ def parse_deck(soup,tid,url):
                     name=x.get_text(" ",strip=True)
                     break
             if name:break
-    if not rank or not 1<=rank<=(143 if str(tid)=="515" else 64) or not name:return None
+    if not rank or rank < 1 or not name:return None
     title=soup.title.get_text(" ",strip=True) if soup.title else ""
     archetype=title.split(" by ",1)[0].strip()
     return dict(rank=rank,name=name,deck=archetype,decklist=cards,decklist_url=url)
@@ -244,8 +244,8 @@ def import_event(tid,delay):
               f"{max(players, default=0)}",flush=True)
     except requests.RequestException as exc:
         print(f"Separate standings page unavailable: {exc}; using overview",flush=True)
-    if len(players)<64:
-        print(f"NO UPDATE: only {len(players)} placements (minimum 64); preserving existing data")
+    if not players:
+        print("NO UPDATE: no standings placements found; preserving existing data")
         return False
     event_text=soup.get_text(" ",strip=True)
     # Discover lists from the tournament overview FIRST (same as Regionals).
@@ -291,27 +291,30 @@ def import_event(tid,delay):
         except (requests.RequestException,ValueError) as exc:
             print(f"SKIP {link}: {exc}")
         time.sleep(delay)
-    if is_worlds:
-        # A finishing rank is NOT evidence of Day 2 qualification.
-        # Only explicit player-level Day 2 markers from the source qualify.
-        # Keep unconfirmed players false; do not guess based on top 143.
-        explicit_day2 = collect_explicit_day2(soup, players)
-        for path, page in pages:
-            if path != f"/tournaments/{tid}":
-                explicit_day2.update(collect_explicit_day2(page, players))
-        for rank, player in players.items():
-            player["day2"] = rank in explicit_day2
-        confirmed = sum(bool(player["day2"]) for player in players.values())
-        print(f"Worlds Day 2: {confirmed} players explicitly verified; "
-              f"event-reported total 143; {143-confirmed} not verified from source rows", flush=True)
-        if not confirmed:
-            print("WARNING: Source pages contain no explicit player-level Day 2 markers. "
-                  "All day2 flags remain false. Do not infer qualification from rank.", flush=True)
-    if is_worlds and verified==0:
-        print("DIAGNOSTIC: Worlds HTML structure was not recognized. Please share the Worlds heading/card-anchor counts above.",flush=True)
-    if verified==0:
-        print("NO UPDATE: no verified 60-card lists matched player standings; preserving existing data")
+    # All placements are eligible for decklist validation, regardless of rank.
+    # Day 2 is a separate, evidence-based flag, never inferred from placement.
+    explicit_day2 = set()
+    for _, page in pages:
+        explicit_day2.update(collect_explicit_day2(page, players))
+    for rank, player in players.items():
+        player["day2"] = rank in explicit_day2
+    print(f"Regional Day 2: {len(explicit_day2)} explicitly confirmed of "
+          f"{len(players)} standings players; others unconfirmed (day2=false)", flush=True)
+    if not explicit_day2:
+        print("WARNING: No explicit player-level Day 2 markers found; "
+              "no Day 2 status was inferred from placement.", flush=True)
+    # Persist only confirmed Day 2 standings. Decklists belonging to other
+    # players were checked but are intentionally excluded from the archive.
+    day2_players={rank:player for rank,player in players.items() if player["day2"]}
+    day2_verified=sum(bool(player.get("decklist")) for player in day2_players.values())
+    print(f"Regional save filter: {len(day2_players)} confirmed Day 2 players, "
+          f"{day2_verified} verified Day 2 decklists; "
+          f"excluding {len(players)-len(day2_players)} unconfirmed players",flush=True)
+    if not day2_players:
+        print("NO UPDATE: no explicitly confirmed Day 2 players; preserving existing archive",flush=True)
         return False
+    players=day2_players
+    verified=day2_verified
     # The original tournament page has a visible date, but do not invent it.
     match=re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d\d)",event_text)
     date=datetime.strptime(" ".join(match.groups()),"%d %B %Y").date().isoformat() if match else ""
@@ -322,8 +325,8 @@ def import_event(tid,delay):
     result=dict(id="limitless-"+tid,name=name,date=date,source=f"{BASE}/tournaments/{tid}",
         provider="LimitlessTCG",standings=[players[i] for i in sorted(players)],
         event_type="World Championships" if is_worlds else "Regional Championships",
-        day2_total=143 if is_worlds else None,
-        day2_verified_count=sum(bool(p.get("day2")) for p in players.values()) if is_worlds else None,
+        day2_total=None,
+        day2_verified_count=len(players),
         note="Only publicly published, validated 60-card lists are displayed.")
     OUT.mkdir(exist_ok=True)
     filename=f"limitless-{tid}.json"
@@ -331,7 +334,7 @@ def import_event(tid,delay):
     indexfile=OUT/"index.json"
     index=json.loads(indexfile.read_text()) if indexfile.exists() else []
     entry=dict(id=result["id"],name=name,date=date,file=filename,source=result["source"],verified_decks=verified,
-        event_type=result["event_type"],**({"day2_total":143,"day2_verified_count":result["day2_verified_count"]} if is_worlds else {}))
+        event_type=result["event_type"],day2_verified_count=result["day2_verified_count"])
     index=[x for x in index if x.get("id")!=entry["id"]]+[entry]
     index.sort(key=lambda x:x.get("date",""),reverse=True)
     indexfile.write_text(json.dumps(index,ensure_ascii=False,indent=2)+"\n")

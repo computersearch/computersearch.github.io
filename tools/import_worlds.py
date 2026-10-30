@@ -32,43 +32,53 @@ def find_decks(soup):
     return list(links.values())
 
 
-def parse_deck(soup,tid,url):
-    # Card links on Limitless use /cards/SET/COLLECTOR_NUMBER.
+def parse_deck_cards(soup, url):
+    """Validate a 60-card list without relying on fragile page-header metadata."""
     cards=[]
     for a in soup.select('a[href]'):
-        m=re.search(r"/cards/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)(?:[/?#]|$)",a.get("href",""))
+        m=re.search(r"/cards/([A-Za-z0-9-]+)/([A-Za-z0-9-]+)(?:[/?#]|$)",a.get('href',''))
         if not m:continue
-        label=a.get_text(" ",strip=True)
-        match=re.match(r"^(\d+)\s+(.+)$",label)
+        label=a.get_text(' ',strip=True)
+        match=re.match(r"^(\d{1,2})\s+(.+)$",label)
         if not match:continue
         qty=int(match[1])
         if not 1<=qty<=60:continue
         cards.append(dict(quantity=qty,name=match[2],set=m[1],number=m[2]))
-    if sum(x["quantity"] for x in cards)!=60:return None
-    text=soup.get_text(" ",strip=True)
-    # Deck page explicitly states "26th Place Regional Puebla - Sanjeev Viswan".
-    # Locate tournament association and rank from the text near its name.
-    tournament_links=[a for a in soup.select('a[href]') if re.search(r"/tournaments/"+re.escape(tid)+r"(?:[/?#]|$)",a.get("href",""))]
-    if not tournament_links:return None
-    rank=None
-    name=None
-    for a in tournament_links:
+    if sum(c['quantity'] for c in cards)!=60:return None
+    title=soup.title.get_text(' ',strip=True) if soup.title else ''
+    archetype=title.split(' by ',1)[0].strip()
+    return dict(deck=archetype or None,decklist=cards,decklist_url=url)
+
+
+def parse_deck_identity(soup):
+    for a in soup.select('a[href]'):
+        if not re.search(r"/tournaments/515(?:[/?#]|$)",a.get('href','')):continue
         parent=a.parent
-        nearby=parent.get_text(" ",strip=True) if parent else ""
+        if parent is None:continue
+        nearby=parent.get_text(' ',strip=True)
         match=re.search(r"(\d+)(?:st|nd|rd|th)\s+Place",nearby,re.I)
-        if match:
-            rank=int(match[1])
-            # player name is generally the next anchor in the same list item
-            links=parent.select('a[href]') if parent else []
-            for x in links:
-                if x is not a and "/players/" in x.get("href",""):
-                    name=x.get_text(" ",strip=True)
-                    break
-            if name:break
-    if not rank or rank<1 or not name:return None
-    title=soup.title.get_text(" ",strip=True) if soup.title else ""
-    archetype=title.split(" by ",1)[0].strip()
-    return dict(rank=rank,name=name,deck=archetype,decklist=cards,decklist_url=url)
+        if not match:continue
+        for p in parent.select('a[href*="/players/"]'):
+            name=p.get_text(' ',strip=True)
+            if name:return int(match[1]),name
+    return None
+
+
+def roster_deck_links(soup,players):
+    """Use tournament standings row as the authoritative player-to-list mapping."""
+    mapped={}
+    for tr in soup.select('tr'):
+        cells=tr.find_all('td',recursive=False)
+        if len(cells)<2:continue
+        raw=cells[0].get_text(' ',strip=True).lstrip('#').strip()
+        if not raw.isdigit():continue
+        rank=int(raw)
+        if rank not in players:continue
+        if normalize_name(cells[1].get_text(' ',strip=True))!=normalize_name(players[rank]['name']):continue
+        for a in tr.select('a[href]'):
+            m=re.search(r"/decks/list/(\d+)(?:[/?#]|$)",a.get('href',''))
+            if m:mapped[urljoin(BASE,a['href'])]=rank
+    return mapped
 
 
 def standings(soup, limit=None):
@@ -211,27 +221,46 @@ def import_worlds(delay):
         for link in found:
             if link not in seen:seen.add(link);links.append(link)
     print(f"Discovered {len(links)} unique decklist URLs; processing ALL",flush=True)
+    # A URL in the standings row already has a verified player/rank association.
+    # Avoid rejecting it when the decklist page has different header markup.
+    mapped=roster_deck_links(soup,players)
+    print(f"Standings row associations: {len(mapped)} of {len(links)} decklist URLs",flush=True)
     verified=0
+    unassociated=[]
     for link in links:
         try:
-            item=parse_deck(get(link),TID,link)
+            deck_soup=get(link)
+            item=parse_deck_cards(deck_soup,link)
             if item is None:
-                print(f"SKIP unverified 60-card decklist: {link}",flush=True)
-            elif item['rank'] not in players:
-                print(f"SKIP decklist not on Phase 2 roster: {link}",flush=True)
-            elif normalize_name(item['name'])!=normalize_name(players[item['rank']]['name']):
-                print(f"SKIP name mismatch #{item['rank']}: {item['name']!r} vs {players[item['rank']]['name']!r}",flush=True)
-            elif players[item['rank']]['decklist'] is None:
-                players[item['rank']].update(item);verified+=1
+                print(f"SKIP invalid/unrecognized 60-card decklist: {link}",flush=True)
+                continue
+            rank=mapped.get(link)
+            if rank is None:
+                # Fallback for list links not located directly inside the standings row.
+                # Require an explicit tournament placement and matching player name.
+                metadata=parse_deck_identity(deck_soup)
+                if metadata:
+                    candidate,name=metadata
+                    if candidate in players and normalize_name(name)==normalize_name(players[candidate]['name']):
+                        rank=candidate
+            if rank is None:
+                unassociated.append(link)
+                print(f"SKIP cannot match list to Phase 2 player: {link}",flush=True)
+            elif players[rank]['decklist'] is None:
+                players[rank].update(item)
+                verified+=1
         except (requests.RequestException,ValueError) as exc:
             print(f"SKIP {link}: {exc}",flush=True)
-        time.sleep(delay)
+        finally:
+            time.sleep(delay)
+    print(f"Worlds: {verified} verified lists attached; {len(unassociated)} valid lists without a roster association",flush=True)
     if not links and len(pages)>1:
         embedded=worlds_decklists(pages[-1][1],players,TID)
         for item in embedded:
             if item['rank'] in players and players[item['rank']]['decklist'] is None:
                 players[item['rank']].update(item);verified+=1
-    # Preserve standings even when no decklists are published/recognized.
+    # The source is the confirmed Phase 2 roster: only its members are saved.
+    # Preserve those standings even when no decklists are published/recognized.
     OUT.mkdir(parents=True,exist_ok=True)
     result=dict(id='limitless-515',name='2026 World Championships',date='2026-08-28',
         source=f'{BASE}{path}',provider='LimitlessTCG',event_type='World Championships',
