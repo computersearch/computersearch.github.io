@@ -434,7 +434,7 @@ async function wireTournaments(){
   }));
  }catch(e){if(node.isConnected)node.textContent='Tournament index could not load: '+e.message}
 }
-function tournamentEventPage(id){return `${header()}<main class="ranked-library"><div class="tournament-source-banner">Data from Limitless</div><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
+function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
 async function wireTournamentEvent(id){
  const node=document.getElementById('eventResults');
  try{
@@ -443,7 +443,7 @@ async function wireTournamentEvent(id){
   const rows=(d.standings||[]).filter(p=>p.day2===true||p.madePhase2===true);
   document.title=tournamentDisplayName(d)+' — Computer Search';
   if(!rows.length){node.textContent='Day 2 participation has not been verified for this tournament yet. Re-run the updated importer.';return}
-  node.innerHTML=`<h2>${esc(tournamentDisplayName(d))}</h2><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} confirmed Day 2 players · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
+  node.innerHTML=`<h2>${esc(tournamentDisplayName(d))}</h2><div class="tournament-source-banner">Data from Limitless</div><p class="rank-subtitle">${esc(d.date||'')} · ${rows.length} confirmed Day 2 players · ${rows.filter(tournamentHasList).length} verified 60-card decklists</p>`+
    rows.map(p=>`<div class="rank-row" style="grid-template-columns:55px minmax(0,1fr) minmax(150px,1fr)"><span class="rank-number">#${esc(p.rank)}</span><span class="rank-title">${esc(p.name)}</span><span>${tournamentHasList(p)?`<a href="#/tournament/${encodeURIComponent(id)}/deck/${encodeURIComponent(p.rank)}" aria-label="View ${esc(p.name)} decklist">${esc(p.deck||'Published decklist')} · View deck ↗</a>`:`${esc(p.deck||'')} <small>Decklist unavailable</small>`}</span></div>`).join('')+
    `<p class="rank-note">Source: <a href="${esc(d.source||'https://limitlesstcg.com/tournaments')}" target="_blank" rel="noopener noreferrer">LimitlessTCG ↗</a></p>`;
  }catch(e){if(node.isConnected)node.textContent='Tournament standings could not load: '+e.message}
