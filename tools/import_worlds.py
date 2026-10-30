@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Dedicated 2026 Worlds Masters importer (Limitless tournament 515).
-The standings table on this specific Phase 2 results page is the Day 2 roster.
-All rows on that source are marked day2=True based on source provenance,
-not based on a finishing-rank cutoff. Published decklists are optional.
+All standings rows are Day 2; inspect every player for an event-specific
+decklist, and never infer that 128 list links means only 128 players.
 """
 import argparse, json, re, time, unicodedata
 from pathlib import Path
@@ -77,7 +76,7 @@ def roster_deck_links(soup,players):
         if normalize_name(cells[1].get_text(' ',strip=True))!=normalize_name(players[rank]['name']):continue
         for a in tr.select('a[href]'):
             m=re.search(r"/decks/list/(\d+)(?:[/?#]|$)",a.get('href',''))
-            if m:mapped[urljoin(BASE,a['href'])]=rank
+            if m:mapped.setdefault(urljoin(BASE,a['href']),set()).add(rank)
     return mapped
 
 
@@ -192,23 +191,49 @@ def worlds_decklists(soup, players, tid="515"):
 def normalize_name(name):
     return re.sub(r"[^a-z0-9]", "", unicodedata.normalize("NFKD",name).casefold().encode("ascii","ignore").decode())
 
+def roster_player_profiles(soup, players):
+    """Collect the profile URL for EVERY standings row, independently of deck links."""
+    profiles={}
+    for tr in soup.select('tr'):
+        cells=tr.find_all('td',recursive=False)
+        if len(cells)<2:continue
+        raw=cells[0].get_text(' ',strip=True).lstrip('#').strip()
+        if not raw.isdigit():continue
+        rank=int(raw)
+        if rank not in players:continue
+        if normalize_name(cells[1].get_text(' ',strip=True))!=normalize_name(players[rank]['name']):continue
+        a=cells[1].select_one('a[href*="/players/"]') or tr.select_one('a[href*="/players/"]')
+        if a:profiles[rank]=urljoin(BASE,a['href'])
+    return profiles
+
+
+def player_worlds_links(profile_soup):
+    """Find list URLs in sections explicitly associated with tournament 515."""
+    found=set()
+    for a in profile_soup.select('a[href]'):
+        href=a.get('href','')
+        if not re.search(r'/decks/list/\d+(?:[/?#]|$)',href):continue
+        for ancestor in list(a.parents)[:5]:
+            if ancestor.name in ('body','html'):break
+            if ancestor.select_one('a[href*="/tournaments/515"]') or re.search(r'(?:World Championships|Worlds).*2026|2026.*(?:World Championships|Worlds)',ancestor.get_text(' ',strip=True),re.I):
+                found.add(urljoin(BASE,href));break
+    return found
+
+
 def import_worlds(delay):
     path=f"/tournaments/{TID}"
     print(f"Worlds Phase 2 source: {BASE}{path}",flush=True)
     soup=get(path)
     players=standings(soup)
     print(f"Phase 2 standings: {len(players)} players; highest placement {max(players,default=0)}",flush=True)
-    if not players:
-        raise RuntimeError("No Phase 2 standings parsed; existing archive preserved")
+    if len(players) != 143:
+        raise RuntimeError(f"Expected all 143 Worlds standings players; got {len(players)}. Refusing incomplete snapshot.")
     # This specific source is the Masters Phase 2 standings, not general
     # tournament standings. Membership in its rows is the Day 2 evidence.
     # Never infer qualification from a rank threshold or from a decklist link.
     for p in players.values():
         p['day2']=True
         p['day2_source']=f"{BASE}{path}"
-    if len(players)!=143:
-        print(f"WARNING: Expected 143 Phase 2 players, found {len(players)}. "
-              "All retrieved roster entries are marked Day 2; review source completeness.",flush=True)
     pages=[(path,soup)]
     for extra in (f"{path}/decklists",):
         try:pages.append((extra,get(extra)))
@@ -224,42 +249,100 @@ def import_worlds(delay):
     # A URL in the standings row already has a verified player/rank association.
     # Avoid rejecting it when the decklist page has different header markup.
     mapped=roster_deck_links(soup,players)
-    print(f"Standings row associations: {len(mapped)} of {len(links)} decklist URLs",flush=True)
+    print(f"Standings row associations: {len(mapped)} URLs covering "
+          f"{len(set().union(*mapped.values()) if mapped else set())} players",flush=True)
     verified=0
     unassociated=[]
+    # Cache each URL once, but attach it to every player whose own standings
+    # row explicitly references that URL. Unique URLs != unique players.
+    deck_cache={}
     for link in links:
         try:
             deck_soup=get(link)
             item=parse_deck_cards(deck_soup,link)
+            deck_cache[link]=item
             if item is None:
                 print(f"SKIP invalid/unrecognized 60-card decklist: {link}",flush=True)
                 continue
-            rank=mapped.get(link)
-            if rank is None:
-                # Fallback for list links not located directly inside the standings row.
-                # Require an explicit tournament placement and matching player name.
-                metadata=parse_deck_identity(deck_soup)
-                if metadata:
-                    candidate,name=metadata
+            ranks=set(mapped.get(link,()))
+            if not ranks:
+                identity=parse_deck_identity(deck_soup)
+                if identity:
+                    candidate,name=identity
                     if candidate in players and normalize_name(name)==normalize_name(players[candidate]['name']):
-                        rank=candidate
-            if rank is None:
+                        ranks.add(candidate)
+            if not ranks:
                 unassociated.append(link)
-                print(f"SKIP cannot match list to Phase 2 player: {link}",flush=True)
-            elif players[rank]['decklist'] is None:
-                players[rank].update(item)
-                verified+=1
+                print(f"SKIP cannot match list to roster: {link}",flush=True)
+            for rank in sorted(ranks):
+                if players[rank]['decklist'] is None:
+                    players[rank].update(item)
+                    verified+=1
         except (requests.RequestException,ValueError) as exc:
             print(f"SKIP {link}: {exc}",flush=True)
         finally:
             time.sleep(delay)
-    print(f"Worlds: {verified} verified lists attached; {len(unassociated)} valid lists without a roster association",flush=True)
-    if not links and len(pages)>1:
+    print(f"Worlds: {verified} verified player lists attached from {len(links)} unique URLs; "
+          f"{len(unassociated)} valid URLs without roster association",flush=True)
+    # Second pass checks player profiles for additional event-specific links.
+    missing=[rank for rank,p in sorted(players.items()) if p['decklist'] is None]
+    profiles=roster_player_profiles(soup,players)
+    print(f"Worlds roster audit: {len(players)} players, {len(missing)} without attached lists, "
+          f"{len(profiles)} player profiles available",flush=True)
+    for rank in missing:
+        player=players[rank]
+        profile=profiles.get(rank)
+        if not profile:
+            print(f"MISSING #{rank} {player['name']}: no player profile link",flush=True)
+            continue
+        try:
+            profile_soup=get(profile)
+            candidates=sorted(player_worlds_links(profile_soup))
+            print(f"PROFILE #{rank} {player['name']}: {len(candidates)} Worlds candidate URLs",flush=True)
+            for url in candidates:
+                try:
+                    # An explicit standings-row association is authoritative.
+                    # Do not infer that a list belongs to a player solely
+                    # because the profile links to it: validate identity otherwise.
+                    if url in deck_cache:
+                        item=deck_cache[url]
+                        if item is None:continue
+                        if rank not in mapped.get(url,set()):
+                            continue
+                    else:
+                        deck_soup=get(url)
+                        item=parse_deck_cards(deck_soup,url)
+                        deck_cache[url]=item
+                        if item is None:continue
+                        identity=parse_deck_identity(deck_soup)
+                        if not identity or identity[0]!=rank or normalize_name(identity[1])!=normalize_name(player['name']):
+                            print(f"SKIP profile candidate without matching Worlds identity: {url}",flush=True)
+                            continue
+                    player.update(item)
+                    verified+=1
+                    print(f"RECOVERED #{rank} {player['name']}: {url}",flush=True)
+                    break
+                except requests.RequestException as exc:
+                    print(f"SKIP profile candidate {url}: {exc}",flush=True)
+                finally:
+                    if url not in links:time.sleep(delay)
+        except requests.RequestException as exc:
+            print(f"SKIP player profile #{rank} {player['name']}: {exc}",flush=True)
+        finally:
+            time.sleep(delay)
+    remaining=[p for p in players.values() if p['decklist'] is None]
+    print(f"Worlds final roster audit: {len(players)} players; {verified} verified lists; "
+          f"{len(remaining)} still missing",flush=True)
+    for player in remaining:
+        print(f"UNRESOLVED #{player['rank']} {player['name']}",flush=True)
+    if len(pages)>1 and remaining:
         embedded=worlds_decklists(pages[-1][1],players,TID)
         for item in embedded:
             if item['rank'] in players and players[item['rank']]['decklist'] is None:
                 players[item['rank']].update(item);verified+=1
-    # The source is the confirmed Phase 2 roster: only its members are saved.
+    remaining=[p for p in players.values() if p["decklist"] is None]
+    print(f"FINAL: {len(players)} Worlds players, {verified} validated decklists, {len(remaining)} without a verified list",flush=True)
+    # The source is the confirmed Worlds roster: only its members are saved.
     # Preserve those standings even when no decklists are published/recognized.
     OUT.mkdir(parents=True,exist_ok=True)
     result=dict(id='limitless-515',name='2026 World Championships',date='2026-08-28',
