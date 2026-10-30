@@ -27,20 +27,20 @@ def get(path):
 def tournament_metadata(soup):
     heading=(soup.select_one("h1") or soup.title)
     title=heading.get_text(" ",strip=True) if heading else ""
-    match=re.search(r"World Championships?\\s+(20\\d{2})",title,re.I)
+    match=re.search(r"(?:World Championships?\s+(20\d{2})|(20\d{2})\s+World Championships?)",title,re.I)
     if not match: raise ValueError(f"Not a World Championship: {title!r}")
-    year=int(match.group(1))
+    year=int(match.group(1) or match.group(2))
     text=soup.get_text(" ",strip=True)
     if not re.search(r"(all players in phase 2|phase 2 of the tournament)",text,re.I):
         raise ValueError("Source does not confirm Phase 2; refusing import")
     date=None
     for el in soup.select("time[datetime]"):
         candidate=el.get("datetime","")[:10]
-        if re.fullmatch(r"20\\d{2}-\\d{2}-\\d{2}",candidate):
+        if re.fullmatch(r"20\d{2}-\d{2}-\d{2}",candidate):
             date=candidate
             break
     if date is None:
-        m=re.search(r"(\\d{1,2})(?:st|nd|rd|th)?\\s+(January|February|March|April|May|June|July|August|September|October|November|December)\\s+(20\\d{2})",text,re.I)
+        m=re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d{2})",text,re.I)
         if m: date=datetime.strptime(f"{m[1]} {m[2]} {m[3]}","%d %B %Y").strftime("%Y-%m-%d")
     if not date or not date.startswith(str(year)):
         raise ValueError("Worlds date not found or inconsistent with year")
