@@ -13,7 +13,7 @@
 /* Drag handle is the only drag target; buttons and history remain clickable. */
 .watch-controls .drag-handle{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;min-width:39px;padding:9px 11px;font-size:22px;line-height:1.1;color:var(--accent)}
 .watch-controls .drag-handle:active{cursor:grabbing}
-.player.drag-placeholder{opacity:.24;border:1px dashed var(--accent);background:rgba(196,250,124,.06)}
+.list{display:flex;flex-direction:column;gap:13px}.list>.player{flex:0 0 auto}.player.drag-placeholder{visibility:hidden}
 .player.drag-preview{border-color:var(--accent);box-shadow:0 16px 45px rgba(0,0,0,.5),0 0 0 2px rgba(196,250,124,.35);opacity:.97;will-change:transform;overflow:hidden;border-radius:17px}
 @media(prefers-reduced-motion:reduce){.player{scroll-behavior:auto}}
 .sorting-players{user-select:none;-webkit-user-select:none}

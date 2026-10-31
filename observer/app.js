@@ -64,70 +64,84 @@
   function watchKey(p) { return norm(nameOf(p)); }
   function watched() { return state.watched[state.event] || []; }
   function updateWatch(keys) { state.watched[state.event]=keys; save(); render(); }
-  // Floating preview + FLIP transitions: the original card keeps its layout slot,
-  // while neighbouring cards glide into place instead of jumping.
+  // Drag a floating copy while the original card remains an invisible,
+  // full-height layout placeholder. Measure untransformed positions to avoid
+  // animation feedback and overlapping cards.
   function installDrag(handle, panel, key) {
     handle.addEventListener('pointerdown', event => {
-      if (event.button !== 0 || !event.isPrimary) return;
+      if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
       event.preventDefault();
       const root = $('players');
       const pointerId = event.pointerId;
-      const startY = event.clientY;
-      const startX = event.clientX;
-      const originOrder = [...root.querySelectorAll('.player')];
-      let active = false, preview = null, frame = 0, lastY = startY;
+      const startX = event.clientX, startY = event.clientY;
+      const initialOrder = [...root.querySelectorAll('.player')];
+      let active = false, preview = null, frame = 0;
+      let x = startX, y = startY;
+      const animations = new Map();
       handle.setPointerCapture(pointerId);
 
-      const animateReflow = action => {
+      function settleAnimations() {
+        for (const animation of animations.values()) animation.cancel();
+        animations.clear();
+      }
+      function reflow(action) {
+        settleAnimations();
         const cards = [...root.querySelectorAll('.player')];
-        const before = new Map(cards.map(card => [card, card.getBoundingClientRect().top]));
+        const before = new Map(cards.map(card => [card, card.offsetTop]));
         action();
         for (const card of cards) {
           if (card === panel) continue;
-          const delta = before.get(card) - card.getBoundingClientRect().top;
+          const delta = before.get(card) - card.offsetTop;
           if (Math.abs(delta) < 1) continue;
-          card.getAnimations().forEach(animation => animation.cancel());
-          card.animate([{transform:`translateY(${delta}px)`},{transform:'translateY(0)'}],
-            {duration:210,easing:'cubic-bezier(.2,.8,.2,1)'});
+          const animation = card.animate(
+            [{ transform: `translateY(${delta}px)` }, { transform: 'translateY(0)' }],
+            { duration: 180, easing: 'cubic-bezier(.22,.8,.25,1)' }
+          );
+          animations.set(card, animation);
+          animation.addEventListener('finish', () => {
+            if (animations.get(card) === animation) animations.delete(card);
+          }, { once: true });
         }
-      };
-      const draw = () => {
+      }
+      function draw() {
         frame = 0;
-        if (preview) preview.style.transform = `translate3d(0,${lastY-startY}px,0)`;
-      };
-      const move = e => {
+        if (preview) preview.style.transform = `translate3d(${x-startX}px,${y-startY}px,0)`;
+      }
+      function move(e) {
         if (e.pointerId !== pointerId) return;
-        lastY = e.clientY;
-        if (!active && Math.hypot(e.clientX-startX,e.clientY-startY) < 7) return;
+        x = e.clientX; y = e.clientY;
+        if (!active && Math.hypot(x-startX, y-startY) < 7) return;
         if (!active) {
           active = true;
           const rect = panel.getBoundingClientRect();
           preview = panel.cloneNode(true);
           preview.classList.add('drag-preview');
-          preview.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:1000;margin:0;`;
-          preview.setAttribute('aria-hidden','true');
+          preview.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:1000;margin:0;transform:translate3d(0,0,0);`;
+          preview.setAttribute('aria-hidden', 'true');
           document.body.append(preview);
           panel.classList.add('drag-placeholder');
           document.body.classList.add('sorting-players');
         }
         if (!frame) frame = requestAnimationFrame(draw);
+        // offsetTop is the actual layout position, unaffected by FLIP transforms.
         const others = [...root.querySelectorAll('.player')].filter(card => card !== panel);
-        const target = others.find(card => e.clientY < card.getBoundingClientRect().top + card.offsetHeight/2) || null;
-        if (target !== panel.nextElementSibling) animateReflow(() => root.insertBefore(panel,target));
-        // Gently scroll when dragging close to the viewport edge.
-        if (e.clientY < 65) window.scrollBy(0,-12);
-        else if (e.clientY > innerHeight-65) window.scrollBy(0,12);
-      };
-      const cleanup = () => {
-        handle.removeEventListener('pointermove',move);
-        handle.removeEventListener('pointerup',finish);
-        handle.removeEventListener('pointercancel',cancel);
+        const rootTop = root.getBoundingClientRect().top;
+        const target = others.find(card => y < rootTop + card.offsetTop + card.offsetHeight / 2) || null;
+        if (target !== panel.nextElementSibling) reflow(() => root.insertBefore(panel, target));
+        if (y < 65) window.scrollBy(0, -10);
+        else if (y > innerHeight - 65) window.scrollBy(0, 10);
+      }
+      function cleanup() {
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', finish);
+        handle.removeEventListener('pointercancel', cancel);
         if (frame) cancelAnimationFrame(frame);
+        settleAnimations();
         preview?.remove();
         panel.classList.remove('drag-placeholder');
         document.body.classList.remove('sorting-players');
-      };
-      const finish = e => {
+      }
+      function finish(e) {
         if (e.pointerId !== pointerId) return;
         cleanup();
         if (!active) return;
@@ -135,17 +149,16 @@
         if (order.length === watched().length && order.every(k => watched().includes(k))) {
           state.watched[state.event] = order;
           save();
-
         }
-      };
-      const cancel = e => {
+      }
+      function cancel(e) {
         if (e.pointerId !== pointerId) return;
         cleanup();
-        animateReflow(() => originOrder.forEach(card => root.append(card)));
-      };
-      handle.addEventListener('pointermove',move);
-      handle.addEventListener('pointerup',finish);
-      handle.addEventListener('pointercancel',cancel);
+        initialOrder.forEach(card => root.append(card));
+      }
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', finish);
+      handle.addEventListener('pointercancel', cancel);
     });
   }
   function renderSuggestions() {
