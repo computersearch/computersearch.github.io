@@ -34,7 +34,7 @@ def tournament_metadata(soup):
             raise ValueError(f"Not an International Championship: {title!r}")
     else:
         match=re.search(r"(?:World Championships?\s+(20\d{2})|(20\d{2})\s+World Championships?)",title,re.I)
-    if not match: raise ValueError(f"Not a World Championship: {title!r}")
+    if not match: raise ValueError(f"Not a {'International Championship' if EVENT_TYPE == 'international' else 'World Championship'}: {title!r}")
     year=int(next(g for g in match.groups() if g))
     text=soup.get_text(" ",strip=True)
     if EVENT_TYPE=="worlds" and not re.search(r"(all players in phase 2|phase 2 of the tournament)",text,re.I):
@@ -49,7 +49,7 @@ def tournament_metadata(soup):
         m=re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d{2})",text,re.I)
         if m: date=datetime.strptime(f"{m[1]} {m[2]} {m[3]}","%d %B %Y").strftime("%Y-%m-%d")
     if not date or not date.startswith(str(year)):
-        raise ValueError("Worlds date not found or inconsistent with year")
+        raise ValueError("Tournament date not found or inconsistent with year")
     if EVENT_TYPE=="international":
         # The supplied IC source is a Day 2-only roster, not the general entrant list.
         # Preserve the actual event title for its regional IC identity.
@@ -259,14 +259,15 @@ def player_worlds_links(profile_soup):
 def import_worlds(delay):
     global EVENT_TYPE
     path=f"/tournaments/{TID}"
-    print(f"Worlds Phase 2 source: {BASE}{path}",flush=True)
+    event_label = "International Championship" if EVENT_TYPE == "international" else "Worlds Phase 2"
+    print(f"{event_label} source: {BASE}{path}",flush=True)
     soup=get(path)
     WORLDS[TID]=tournament_metadata(soup)
-    print(f"Detected Worlds {WORLDS[TID]['year']} on {WORLDS[TID]['date']}",flush=True)
+    print(f"Detected {event_label} {WORLDS[TID]['year']} on {WORLDS[TID]['date']}",flush=True)
     players=standings(soup)
-    print(f"Phase 2 standings: {len(players)} players; highest placement {max(players,default=0)}",flush=True)
+    print(f"{'Tournament' if EVENT_TYPE == 'international' else 'Phase 2'} standings: {len(players)} players; highest placement {max(players,default=0)}",flush=True)
     if len(players)<8 or sorted(players)!=list(range(1,max(players)+1)):
-        raise RuntimeError("Incomplete or non-contiguous Worlds Phase 2 standings; refusing snapshot.")
+        raise RuntimeError(f"Incomplete or non-contiguous {event_label} standings; refusing snapshot.")
     # This specific source is the Masters Phase 2 standings, not general
     # tournament standings. Membership in its rows is the Day 2 evidence.
     # Never infer qualification from a rank threshold or from a decklist link.
@@ -321,12 +322,12 @@ def import_worlds(delay):
             print(f"SKIP {link}: {exc}",flush=True)
         finally:
             time.sleep(delay)
-    print(f"Worlds: {verified} verified player lists attached from {len(links)} unique URLs; "
+    print(f"{event_label}: {verified} verified player lists attached from {len(links)} unique URLs; "
           f"{len(unassociated)} valid URLs without roster association",flush=True)
     # Second pass checks player profiles for additional event-specific links.
     missing=[rank for rank,p in sorted(players.items()) if p['decklist'] is None]
     profiles=roster_player_profiles(soup,players)
-    print(f"Worlds roster audit: {len(players)} players, {len(missing)} without attached lists, "
+    print(f"{event_label} roster audit: {len(players)} players, {len(missing)} without attached lists, "
           f"{len(profiles)} player profiles available",flush=True)
     for rank in missing:
         player=players[rank]
@@ -337,7 +338,7 @@ def import_worlds(delay):
         try:
             profile_soup=get(profile)
             candidates=sorted(player_worlds_links(profile_soup))
-            print(f"PROFILE #{rank} {player['name']}: {len(candidates)} Worlds candidate URLs",flush=True)
+            print(f"PROFILE #{rank} {player['name']}: {len(candidates)} {event_label} candidate URLs",flush=True)
             for url in candidates:
                 try:
                     # An explicit standings-row association is authoritative.
@@ -355,7 +356,7 @@ def import_worlds(delay):
                         if item is None:continue
                         identity=parse_deck_identity(deck_soup)
                         if not identity or identity[0]!=rank or normalize_name(identity[1])!=normalize_name(player['name']):
-                            print(f"SKIP profile candidate without matching Worlds identity: {url}",flush=True)
+                            print(f"SKIP profile candidate without matching {event_label} identity: {url}",flush=True)
                             continue
                     player.update(item)
                     verified+=1
@@ -370,7 +371,7 @@ def import_worlds(delay):
         finally:
             time.sleep(delay)
     remaining=[p for p in players.values() if p['decklist'] is None]
-    print(f"Worlds final roster audit: {len(players)} players; {verified} verified lists; "
+    print(f"{event_label} final roster audit: {len(players)} players; {verified} verified lists; "
           f"{len(remaining)} still missing",flush=True)
     for player in remaining:
         print(f"UNRESOLVED #{player['rank']} {player['name']}",flush=True)
@@ -380,7 +381,7 @@ def import_worlds(delay):
             if item['rank'] in players and players[item['rank']]['decklist'] is None:
                 players[item['rank']].update(item);verified+=1
     remaining=[p for p in players.values() if p["decklist"] is None]
-    print(f"FINAL: {len(players)} Worlds players, {verified} validated decklists, {len(remaining)} without a verified list",flush=True)
+    print(f"FINAL: {len(players)} {event_label} players, {verified} validated decklists, {len(remaining)} without a verified list",flush=True)
     # The source is the confirmed Worlds roster: only its members are saved.
     # Preserve those standings even when no decklists are published/recognized.
     OUT.mkdir(parents=True,exist_ok=True)
@@ -399,7 +400,7 @@ def import_worlds(delay):
     index=[e for e in index if e.get('id')!=entry['id']]+[entry]
     index.sort(key=lambda e:e.get('date',''),reverse=True)
     indexfile.write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n')
-    print(f"SUCCESS: Worlds Phase 2: {len(players)} Day 2 roster players, "
+    print(f"SUCCESS: {event_label}: {len(players)} Day 2 roster players, "
           f"{len(links)} decklist URLs checked, {verified} verified 60-card decks",flush=True)
 
 def main():
