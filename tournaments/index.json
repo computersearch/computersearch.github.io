@@ -51,13 +51,13 @@
   },
   {
     "id": "limitless-578",
-    "name": "Regional Brisbane – Limitless",
+    "name": "Regional 578",
     "date": "2026-09-26",
     "file": "limitless-578.json",
     "source": "https://limitlesstcg.com/tournaments/578",
-    "day2_only": true,
-    "day2_players": 148,
-    "verified_decks": 148
+    "verified_decks": 129,
+    "event_type": "Regional Championships",
+    "day2_verified_count": 148
   },
   {
     "id": "limitless-577",
