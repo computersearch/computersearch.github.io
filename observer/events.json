@@ -6,6 +6,13 @@
       "division": "Masters",
       "source": "https://www.pokedata.ovh/standings2/standings/1000079_Masters.json",
       "enabled": true
+    },
+    {
+      "id": "1000080_masters",
+      "name": "2027 Gdansk Pokémon VGC Regional Championships",
+      "division": "Masters",
+      "source": "https://www.pokedata.ovh/standings2/standings/1000080_Masters.json",
+      "enabled": true
     }
   ]
 }
