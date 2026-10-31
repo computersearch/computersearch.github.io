@@ -7,7 +7,8 @@ on:
         required: false
         type: string
   schedule:
-    - cron: '25 6 * * *'
+    # 04:00 Europe/Stockholm: 02:00 UTC in winter, 03:00 UTC in summer.
+    - cron: '0 2,3 * * *'
 permissions:
   contents: write
 concurrency:
@@ -18,13 +19,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
+      - name: Only run at 04:00 Stockholm time
+        if: github.event_name == 'schedule'
+        id: local_time
+        run: |
+          if [ "$(TZ=Europe/Stockholm date +%H)" = "04" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping UTC slot: not 04:00 in Stockholm"
+          fi
       - uses: actions/checkout@v5
+        if: github.event_name != 'schedule' || steps.local_time.outputs.run == 'true'
       - uses: actions/setup-python@v6
+        if: github.event_name != 'schedule' || steps.local_time.outputs.run == 'true'
         with:
           python-version: '3.12'
       - name: Install downloader dependencies
+        if: github.event_name != 'schedule' || steps.local_time.outputs.run == 'true'
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
       - name: Fetch and validate LimitlessTCG tournament data
+        if: github.event_name != 'schedule' || steps.local_time.outputs.run == 'true'
         env:
           TOURNAMENT_ID: ${{ inputs.tournament_id }}
         shell: bash
@@ -45,13 +60,30 @@ jobs:
             python tools/import_limitless.py
           fi
       - name: Commit verified tournament snapshots
+        if: github.event_name != 'schedule' || steps.local_time.outputs.run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tournaments/
           if ! git diff --cached --quiet; then
             git commit -m "Update verified tournament data"
-            git push
+            # Integrate concurrent edits without force-pushing.
+            for attempt in 1 2 3 4 5; do
+              git fetch origin main
+              if ! git rebase origin/main; then
+                echo "Rebase conflict; stopping to protect concurrent changes" >&2
+                git rebase --abort
+                exit 1
+              fi
+              if git push origin HEAD:main; then
+                echo "Tournament snapshots pushed"
+                exit 0
+              fi
+              echo "Push raced with another commit; retrying ($attempt/5)"
+              sleep 3
+            done
+            echo "Could not push after five attempts" >&2
+            exit 1
           else
             echo "No tournament updates"
           fi
