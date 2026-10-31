@@ -33,7 +33,7 @@
     return rank===undefined?'—':`#${rank}`;
   }
   function country(p) { const c=val(p,['c','countryCode','country_code','country','nationality']); if (c && typeof c==='object') return str(val(c,['code','name'])); return str(c); }
-  function flag(c) { c=str(c).trim().toUpperCase(); return /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0))) : ''; }
+  function flag(c) { c=str(c).trim().toUpperCase(); if(c==='UK')c='GB'; return /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0))) : ''; }
   function record(p) {
     if(Array.isArray(p.s) && p.s.length===3) return p.s.join('–');
     const rec=val(p,['record','matchRecord','match_record','standing']);
