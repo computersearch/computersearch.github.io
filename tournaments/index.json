@@ -385,6 +385,17 @@
     "day2_verified_count": 127
   },
   {
+    "id": "limitless-463",
+    "name": "NAIC 2025, New Orleans",
+    "date": "2025-06-13",
+    "file": "limitless-463.json",
+    "source": "https://limitlesstcg.com/tournaments/463",
+    "verified_decks": 390,
+    "event_type": "International Championships",
+    "day2_total": 390,
+    "day2_verified_count": 390
+  },
+  {
     "id": "limitless-497",
     "name": "Regional Portland, OR – Limitless",
     "date": "2025-05-23",
