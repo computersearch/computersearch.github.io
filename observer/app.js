@@ -64,9 +64,8 @@
   function watchKey(p) { return norm(nameOf(p)); }
   function watched() { return state.watched[state.event] || []; }
   function updateWatch(keys) { state.watched[state.event]=keys; save(); render(); }
-  // Drag a floating copy while the original card remains an invisible,
-  // full-height layout placeholder. Measure untransformed positions to avoid
-  // animation feedback and overlapping cards.
+  // A real, full-height placeholder reserves the drop position in the flex list.
+  // Only the original card floats; it is returned to normal flow on release.
   function installDrag(handle, panel, key) {
     handle.addEventListener('pointerdown', event => {
       if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
@@ -74,91 +73,104 @@
       const root = $('players');
       const pointerId = event.pointerId;
       const startX = event.clientX, startY = event.clientY;
-      const initialOrder = [...root.querySelectorAll('.player')];
-      let active = false, preview = null, frame = 0;
-      let x = startX, y = startY;
+      const initialNext = panel.nextSibling;
+      const startRect = panel.getBoundingClientRect();
+      let active = false, placeholder = null;
+      let lastX = startX, lastY = startY;
+      let frame = 0;
       const animations = new Map();
       handle.setPointerCapture(pointerId);
 
-      function settleAnimations() {
+      function stopAnimations() {
         for (const animation of animations.values()) animation.cancel();
         animations.clear();
       }
-      function reflow(action) {
-        settleAnimations();
-        const cards = [...root.querySelectorAll('.player')];
-        const before = new Map(cards.map(card => [card, card.offsetTop]));
+      function animateReflow(action) {
+        stopAnimations();
+        const cards = [...root.querySelectorAll('.player:not(.dragging-card)')];
+        const before = new Map(cards.map(card => [card, card.getBoundingClientRect().top]));
         action();
         for (const card of cards) {
-          if (card === panel) continue;
-          const delta = before.get(card) - card.offsetTop;
+          const previous = before.get(card);
+          if (previous === undefined) continue;
+          const delta = previous - card.getBoundingClientRect().top;
           if (Math.abs(delta) < 1) continue;
           const animation = card.animate(
-            [{ transform: `translateY(${delta}px)` }, { transform: 'translateY(0)' }],
-            { duration: 180, easing: 'cubic-bezier(.22,.8,.25,1)' }
+            [{transform:`translateY(${delta}px)`},{transform:'translateY(0)'}],
+            {duration:170,easing:'cubic-bezier(.2,.75,.25,1)'}
           );
-          animations.set(card, animation);
-          animation.addEventListener('finish', () => {
-            if (animations.get(card) === animation) animations.delete(card);
-          }, { once: true });
+          animations.set(card,animation);
+          animation.addEventListener('finish',()=>{if(animations.get(card)===animation)animations.delete(card);},{once:true});
         }
       }
       function draw() {
         frame = 0;
-        if (preview) preview.style.transform = `translate3d(${x-startX}px,${y-startY}px,0)`;
+        if (active) {
+          panel.style.left = `${startRect.left + lastX - startX}px`;
+          panel.style.top = `${startRect.top + lastY - startY}px`;
+        }
+      }
+      function begin() {
+        active = true;
+        placeholder = document.createElement('div');
+        placeholder.className = 'drag-slot';
+        placeholder.style.height = `${startRect.height}px`;
+        placeholder.style.flex = '0 0 auto';
+        root.insertBefore(placeholder,panel);
+        panel.classList.add('dragging-card');
+        Object.assign(panel.style, {
+          position:'fixed', left:`${startRect.left}px`, top:`${startRect.top}px`,
+          width:`${startRect.width}px`, height:`${startRect.height}px`,
+          margin:'0', zIndex:'1000', pointerEvents:'none', boxSizing:'border-box'
+        });
+        document.body.append(panel);
+        document.body.classList.add('sorting-players');
       }
       function move(e) {
         if (e.pointerId !== pointerId) return;
-        x = e.clientX; y = e.clientY;
-        if (!active && Math.hypot(x-startX, y-startY) < 7) return;
-        if (!active) {
-          active = true;
-          const rect = panel.getBoundingClientRect();
-          preview = panel.cloneNode(true);
-          preview.classList.add('drag-preview');
-          preview.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:1000;margin:0;transform:translate3d(0,0,0);`;
-          preview.setAttribute('aria-hidden', 'true');
-          document.body.append(preview);
-          panel.classList.add('drag-placeholder');
-          document.body.classList.add('sorting-players');
+        lastX=e.clientX; lastY=e.clientY;
+        if (!active && Math.hypot(lastX-startX,lastY-startY)<7) return;
+        if (!active) begin();
+        if (!frame) frame=requestAnimationFrame(draw);
+        // Compare viewport coordinates, never offsetTop (which has a different origin).
+        const cards=[...root.querySelectorAll('.player')];
+        const target=cards.find(card=>lastY<card.getBoundingClientRect().top+card.getBoundingClientRect().height/2)||null;
+        if (target !== placeholder.nextElementSibling) {
+          animateReflow(()=>root.insertBefore(placeholder,target));
         }
-        if (!frame) frame = requestAnimationFrame(draw);
-        // offsetTop is the actual layout position, unaffected by FLIP transforms.
-        const others = [...root.querySelectorAll('.player')].filter(card => card !== panel);
-        const rootTop = root.getBoundingClientRect().top;
-        const target = others.find(card => y < rootTop + card.offsetTop + card.offsetHeight / 2) || null;
-        if (target !== panel.nextElementSibling) reflow(() => root.insertBefore(panel, target));
-        if (y < 65) window.scrollBy(0, -10);
-        else if (y > innerHeight - 65) window.scrollBy(0, 10);
+        if (lastY<65) window.scrollBy(0,-10);
+        else if (lastY>window.innerHeight-65) window.scrollBy(0,10);
       }
       function cleanup() {
-        handle.removeEventListener('pointermove', move);
-        handle.removeEventListener('pointerup', finish);
-        handle.removeEventListener('pointercancel', cancel);
-        if (frame) cancelAnimationFrame(frame);
-        settleAnimations();
-        preview?.remove();
-        panel.classList.remove('drag-placeholder');
-        document.body.classList.remove('sorting-players');
-      }
-      function finish(e) {
-        if (e.pointerId !== pointerId) return;
-        cleanup();
-        if (!active) return;
-        const order = [...root.querySelectorAll('.player')].map(card => card.dataset.watchKey);
-        if (order.length === watched().length && order.every(k => watched().includes(k))) {
-          state.watched[state.event] = order;
-          save();
+        handle.removeEventListener('pointermove',move);
+        handle.removeEventListener('pointerup',finish);
+        handle.removeEventListener('pointercancel',cancel);
+        if(frame)cancelAnimationFrame(frame);
+        stopAnimations();
+        if (active) {
+          panel.classList.remove('dragging-card');
+          for(const prop of ['position','left','top','width','height','margin','zIndex','pointerEvents','boxSizing']) panel.style[prop]='';
+          document.body.classList.remove('sorting-players');
         }
       }
-      function cancel(e) {
-        if (e.pointerId !== pointerId) return;
+      function finish(e) {
+        if(e.pointerId!==pointerId)return;
+        if(active){
+          root.insertBefore(panel,placeholder);
+          placeholder.remove();
+          const order=[...root.querySelectorAll('.player')].map(card=>card.dataset.watchKey);
+          if(order.length===watched().length&&order.every(k=>watched().includes(k))){state.watched[state.event]=order;save();}
+        }
         cleanup();
-        initialOrder.forEach(card => root.append(card));
       }
-      handle.addEventListener('pointermove', move);
-      handle.addEventListener('pointerup', finish);
-      handle.addEventListener('pointercancel', cancel);
+      function cancel(e) {
+        if(e.pointerId!==pointerId)return;
+        if(active){root.insertBefore(panel,initialNext&&initialNext.parentNode===root?initialNext:null);placeholder.remove();}
+        cleanup();
+      }
+      handle.addEventListener('pointermove',move);
+      handle.addEventListener('pointerup',finish);
+      handle.addEventListener('pointercancel',cancel);
     });
   }
   function renderSuggestions() {
