@@ -265,14 +265,7 @@ def import_event(tid,delay):
                 seen.add(link)
                 links.append(link)
     print(f"Discovery total: {len(links)} distinct individual decklists",flush=True)
-    decklist_soup=pages[-1][1] if pages[-1][0].endswith('/decklists') else None
     verified=0
-    if is_worlds and not links and decklist_soup is not None:
-        embedded=worlds_decklists(decklist_soup,players)
-        print(f"Fallback: {len(embedded)} verified embedded Worlds decklists",flush=True)
-        for item in embedded:
-            players[item["rank"]].update(item)
-            verified+=1
     print(f"Found {len(links)} separate decklist links; checking ALL discovered URLs (no cap)",flush=True)
     for link in links:
         try:
