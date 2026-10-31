@@ -24,7 +24,13 @@
     const arrays=arrayCandidates(raw).sort((a,b)=>b.filter(x=>x && typeof x==='object' && nameOf(x)).length-a.filter(x=>x && typeof x==='object' && nameOf(x)).length);
     const rows=(arrays[0]||[]).filter(x=>x && typeof x==='object' && nameOf(x));
     const unique=new Map(); for (const p of rows) { const n=norm(nameOf(p)); if (n && !unique.has(n)) unique.set(n,p); }
-    return [...unique.values()].sort((a,b)=>nameOf(a).localeCompare(nameOf(b)));
+    return [...unique.values()]; // Pokédata standings are already sorted by rank.
+  }
+  function rankOf(p) {
+    const rows=state.snapshot?.raw?.standings?.players;
+    if(Array.isArray(rows)){const index=rows.indexOf(p);if(index>=0)return `#${index+1}`;}
+    const rank=val(p,['rank','placement','place','position']);
+    return rank===undefined?'—':`#${rank}`;
   }
   function country(p) { const c=val(p,['c','countryCode','country_code','country','nationality']); if (c && typeof c==='object') return str(val(c,['code','name'])); return str(c); }
   function flag(c) { c=str(c).trim().toUpperCase(); return /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0))) : ''; }
@@ -44,7 +50,7 @@
         const [id,points,table]=entry;const other=byId.get(Number(id));
         const hasTable=Number.isFinite(Number(table)) && Number(table)>0;
         const isBye=!hasTable && (id===null || id===undefined || Number(id)<0);
-        return {round:i+1,opponent:other?.n || (isBye?'Bye':''),opponentCountry:other?.c||'',table:hasTable?table:null,result:isBye?'Bye':points===3?'Win':points===1?'Tie':points===0?'Loss':'Pending'};
+        return {round:i+1,opponent:other?.n || (isBye?'Bye':''),opponentCountry:other?.c||'',table:hasTable?table:null,result:isBye?'Bye':points===-1?'Pending':points===3?'Win':points===1?'Tie':points===0?'Loss':'Pending'};
       }).filter(Boolean);
     }
     const a=val(p,['matches','rounds','matchHistory','match_history','pairings','games','opponents']);
@@ -70,10 +76,10 @@
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
     for(const key of keys){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');add(left,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
       top.append(btn('Remove',()=>updateWatch(watched().filter(x=>x!==key))));
-      const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?str(val(p,['rank','placement','place','position'])??'—'):'—');
-      const history=add(panel,'div','history');const rounds=p?matches(p):[];const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;
+      const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?rankOf(p):'—');
+      const history=add(panel,'div','history');const rounds=p?matches(p):[];const latest=rounds[rounds.length-1];if(latest && result(latest)==='Pending'){const live=add(head,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;
       if(!rounds.length)add(history,'div','muted','Round-by-round opponents are not available in this snapshot.');
-      for(let i=0;i<rounds.length;i++){const m=rounds[i];if(!m||typeof m!=='object')continue;const row=add(history,'div','match');add(row,'div','muted',`R${val(m,['round','roundNumber','round_number'])??i+1}`);const center=add(row,'div');const opp=opponent(m);const oc=val(m,['opponentCountry']);add(center,'div','',opp?(opp+(oc?' '+flag(oc):'')):'Opponent unavailable');const table=val(m,['table','tableNumber','table_number']);add(center,'div','tiny',table!==undefined && table!==null && table!==''?`Table ${table}`:'No table');const r=result(m);add(row,'div','result '+(/win|bye/i.test(r)?'win':/loss|lose/i.test(r)?'loss':/tie|draw/i.test(r)?'tie':''),r);}
+      for(let i=0;i<rounds.length;i++){const m=rounds[i];if(!m||typeof m!=='object')continue;const row=add(history,'div','match');add(row,'div','muted',`R${val(m,['round','roundNumber','round_number'])??i+1}`);const center=add(row,'div');const opp=opponent(m);const oc=val(m,['opponentCountry']);add(center,'div','',opp?(opp+(oc?' '+flag(oc):'')):'Opponent unavailable');const table=val(m,['table','tableNumber','table_number']);add(center,'div','tiny',table!==undefined && table!==null && table!==''?`Table ${table}`:'No table');const r=result(m);if(r==='Pending'){const badge=add(row,'div','result still-playing');add(badge,'span','live-dot');add(badge,'span','','Still playing');}else add(row,'div','result '+(/win|bye/i.test(r)?'win':/loss|lose/i.test(r)?'loss':/tie|draw/i.test(r)?'tie':''),r);}
     }
   }
   async function load(){
