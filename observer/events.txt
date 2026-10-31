@@ -1,0 +1,2 @@
+https://www.pokedata.ovh/standings2/standings/1000079_Masters.json
+https://www.pokedata.ovh/standings2/standings/1000080_Masters.json

@@ -2,7 +2,7 @@
   "events": [
     {
       "id": "1000079_masters",
-      "name": "Pokédata tournament 1000079 — Masters",
+      "name": "2027 Gdansk Pokémon TCG Regional Championships",
       "division": "Masters",
       "source": "https://www.pokedata.ovh/standings2/standings/1000079_Masters.json",
       "enabled": true
