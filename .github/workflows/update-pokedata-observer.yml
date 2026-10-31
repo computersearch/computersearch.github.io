@@ -13,17 +13,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Fetch standings JSON
         run: python tools/fetch_pokedata_observer.py
-      - name: Commit observer snapshots only
+      - name: Commit observer snapshots only (retry on concurrent pushes)
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add observer/data/*.json
-          if ! git diff --cached --quiet; then
+
+          # Keep the fetched snapshot while refreshing the checkout to the
+          # latest main. Never force-push or overwrite unrelated changes.
+          snapshot_dir="$(mktemp -d)"
+          cp -a observer/data/. "$snapshot_dir/"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p observer/data
+            cp -a "$snapshot_dir/." observer/data/
+            git add -- 'observer/data/*.json'
+
+            if git diff --cached --quiet; then
+              echo 'No snapshot changes to commit.'
+              exit 0
+            fi
+
             git commit -m 'Update Pokédata observer snapshots'
-            git push
-          fi
+            if git push origin HEAD:main; then
+              echo 'Observer snapshots updated successfully.'
+              exit 0
+            fi
+            echo "Push raced with another commit (attempt $attempt/5); retrying."
+            sleep 3
+          done
+
+          echo 'Unable to push after 5 attempts.' >&2
+          exit 1
