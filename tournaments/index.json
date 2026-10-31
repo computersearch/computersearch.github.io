@@ -496,6 +496,17 @@
     "verified_decks": 234
   },
   {
+    "id": "limitless-462",
+    "name": "EUIC 2025, London",
+    "date": "2025-02-21",
+    "file": "limitless-462.json",
+    "source": "https://limitlesstcg.com/tournaments/462",
+    "verified_decks": 360,
+    "event_type": "International Championships",
+    "day2_total": 360,
+    "day2_verified_count": 360
+  },
+  {
     "id": "limitless-472",
     "name": "Regional Mérida – Limitless",
     "date": "2025-02-08",
