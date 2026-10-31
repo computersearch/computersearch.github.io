@@ -9,10 +9,12 @@
 @keyframes observer-live-pulse{50%{opacity:.4;box-shadow:0 0 0 6px rgba(96,242,154,0)}}
 @media(prefers-reduced-motion:reduce){.live-dot{animation:none}}
 .player-name-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.player-name-row .still-playing{margin:0;flex-shrink:0}
- .watch-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.watch-controls .move-player{min-width:39px;padding:9px 11px;font-size:19px;line-height:1.1} 
+ .watch-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap} 
 /* Drag handle is the only drag target; buttons and history remain clickable. */
 .watch-controls .drag-handle{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;min-width:39px;padding:9px 11px;font-size:22px;line-height:1.1;color:var(--accent)}
 .watch-controls .drag-handle:active{cursor:grabbing}
-.player.dragging{border-color:var(--accent);box-shadow:0 0 0 2px rgba(196,250,124,.25);opacity:.82}
+.player.drag-placeholder{opacity:.24;border:1px dashed var(--accent);background:rgba(196,250,124,.06)}
+.player.drag-preview{border-color:var(--accent);box-shadow:0 16px 45px rgba(0,0,0,.5),0 0 0 2px rgba(196,250,124,.35);opacity:.97;will-change:transform;overflow:hidden;border-radius:17px}
+@media(prefers-reduced-motion:reduce){.player{scroll-behavior:auto}}
 .sorting-players{user-select:none;-webkit-user-select:none}
 </style></head><body><main><div class="top"><div class="brand">COMPUTER <b>SEARCH</b></div><span class="private">UNLISTED PREVIEW</span></div><h1>Live player <span>observer.</span></h1><p>Follow friends across tournament rounds. Data is refreshed from published Pokédata snapshots.</p><section class="toolbar"><div><label for="event">Tournament</label><select id="event"></select></div><div><label for="search">Find a player</label><input id="search" type="search" placeholder="Search player name…" autocomplete="off"></div><button id="reload">Refresh view</button></section><div id="suggestions" class="suggestions"></div><h2 id="event-title" style="margin:18px 0 4px;font-size:22px">Tournament</h2><div class="between"><h2>Following <span id="count">0</span> players</h2><div id="status" class="status">Loading…</div></div><section id="players" class="list"></section><footer>Source: Pokédata · Scheduled fetch every 15 minutes · Not official tournament standings. This page is unlisted, not access-controlled.</footer></main><script src="./app.js"></script></body></html>

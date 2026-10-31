@@ -64,65 +64,88 @@
   function watchKey(p) { return norm(nameOf(p)); }
   function watched() { return state.watched[state.event] || []; }
   function updateWatch(keys) { state.watched[state.event]=keys; save(); render(); }
-  function moveWatch(key, offset) {
-    const keys=[...watched()]; const index=keys.indexOf(key); const target=index+offset;
-    if(index<0 || target<0 || target>=keys.length)return;
-    [keys[index],keys[target]]=[keys[target],keys[index]];
-    updateWatch(keys);
-  }
-  // Pointer-based sorting works with mouse, touch and pen. Only the handle starts a drag.
+  // Floating preview + FLIP transitions: the original card keeps its layout slot,
+  // while neighbouring cards glide into place instead of jumping.
   function installDrag(handle, panel, key) {
     handle.addEventListener('pointerdown', event => {
       if (event.button !== 0 || !event.isPrimary) return;
       event.preventDefault();
-      const startY = event.clientY;
-      let dragging = false;
+      const root = $('players');
       const pointerId = event.pointerId;
+      const startY = event.clientY;
+      const startX = event.clientX;
+      const originOrder = [...root.querySelectorAll('.player')];
+      let active = false, preview = null, frame = 0, lastY = startY;
       handle.setPointerCapture(pointerId);
+
+      const animateReflow = action => {
+        const cards = [...root.querySelectorAll('.player')];
+        const before = new Map(cards.map(card => [card, card.getBoundingClientRect().top]));
+        action();
+        for (const card of cards) {
+          if (card === panel) continue;
+          const delta = before.get(card) - card.getBoundingClientRect().top;
+          if (Math.abs(delta) < 1) continue;
+          card.getAnimations().forEach(animation => animation.cancel());
+          card.animate([{transform:`translateY(${delta}px)`},{transform:'translateY(0)'}],
+            {duration:210,easing:'cubic-bezier(.2,.8,.2,1)'});
+        }
+      };
+      const draw = () => {
+        frame = 0;
+        if (preview) preview.style.transform = `translate3d(0,${lastY-startY}px,0)`;
+      };
       const move = e => {
         if (e.pointerId !== pointerId) return;
-        if (!dragging && Math.abs(e.clientY - startY) < 6) return;
-        if (!dragging) {
-          dragging = true;
-          panel.classList.add('dragging');
+        lastY = e.clientY;
+        if (!active && Math.hypot(e.clientX-startX,e.clientY-startY) < 7) return;
+        if (!active) {
+          active = true;
+          const rect = panel.getBoundingClientRect();
+          preview = panel.cloneNode(true);
+          preview.classList.add('drag-preview');
+          preview.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;pointer-events:none;z-index:1000;margin:0;`;
+          preview.setAttribute('aria-hidden','true');
+          document.body.append(preview);
+          panel.classList.add('drag-placeholder');
           document.body.classList.add('sorting-players');
         }
-        // Determine insertion position from card midpoints, not the moving handle.
-        const cards = [...$('players').querySelectorAll('.player')];
-        const others = cards.filter(card => card !== panel);
-        let index = others.findIndex(card => e.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
-        if (index < 0) index = others.length;
-        const reference = others[index] || null;
-        if (reference !== panel.nextElementSibling) $('players').insertBefore(panel, reference);
+        if (!frame) frame = requestAnimationFrame(draw);
+        const others = [...root.querySelectorAll('.player')].filter(card => card !== panel);
+        const target = others.find(card => e.clientY < card.getBoundingClientRect().top + card.offsetHeight/2) || null;
+        if (target !== panel.nextElementSibling) animateReflow(() => root.insertBefore(panel,target));
+        // Gently scroll when dragging close to the viewport edge.
+        if (e.clientY < 65) window.scrollBy(0,-12);
+        else if (e.clientY > innerHeight-65) window.scrollBy(0,12);
+      };
+      const cleanup = () => {
+        handle.removeEventListener('pointermove',move);
+        handle.removeEventListener('pointerup',finish);
+        handle.removeEventListener('pointercancel',cancel);
+        if (frame) cancelAnimationFrame(frame);
+        preview?.remove();
+        panel.classList.remove('drag-placeholder');
+        document.body.classList.remove('sorting-players');
       };
       const finish = e => {
         if (e.pointerId !== pointerId) return;
-        handle.removeEventListener('pointermove', move);
-        handle.removeEventListener('pointerup', finish);
-        handle.removeEventListener('pointercancel', cancel);
-        panel.classList.remove('dragging');
-        document.body.classList.remove('sorting-players');
-        if (dragging) {
-          const order = [...$('players').querySelectorAll('.player')].map(card => card.dataset.watchKey);
-          if (order.length === watched().length && order.every(k => watched().includes(k))) {
-            state.watched[state.event] = order;
-            save();
-          }
-          render();
+        cleanup();
+        if (!active) return;
+        const order = [...root.querySelectorAll('.player')].map(card => card.dataset.watchKey);
+        if (order.length === watched().length && order.every(k => watched().includes(k))) {
+          state.watched[state.event] = order;
+          save();
+
         }
       };
       const cancel = e => {
         if (e.pointerId !== pointerId) return;
-        handle.removeEventListener('pointermove', move);
-        handle.removeEventListener('pointerup', finish);
-        handle.removeEventListener('pointercancel', cancel);
-        panel.classList.remove('dragging');
-        document.body.classList.remove('sorting-players');
-        render();
+        cleanup();
+        animateReflow(() => originOrder.forEach(card => root.append(card)));
       };
-      handle.addEventListener('pointermove', move);
-      handle.addEventListener('pointerup', finish);
-      handle.addEventListener('pointercancel', cancel);
+      handle.addEventListener('pointermove',move);
+      handle.addEventListener('pointerup',finish);
+      handle.addEventListener('pointercancel',cancel);
     });
   }
   function renderSuggestions() {
@@ -138,8 +161,6 @@
     for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');panel.dataset.watchKey=key;const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
       const controls=add(top,'div','watch-controls');
       const handle=btn('⠿',()=>{},'drag-handle');handle.title='Drag to reorder player';handle.setAttribute('aria-label',`Drag ${p?nameOf(p):key} to reorder`);controls.append(handle);installDrag(handle,panel,key);
-      const up=btn('↑',()=>moveWatch(key,-1),'move-player');up.title='Move player up';up.setAttribute('aria-label',`Move ${p?nameOf(p):key} up`);up.disabled=position===0;controls.append(up);
-      const down=btn('↓',()=>moveWatch(key,1),'move-player');down.title='Move player down';down.setAttribute('aria-label',`Move ${p?nameOf(p):key} down`);down.disabled=position===keys.length-1;controls.append(down);
       controls.append(btn('Remove',()=>updateWatch(watched().filter(x=>x!==key))));
       const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?rankOf(p):'—');
       const history=add(panel,'div','history');const rounds=p?matches(p):[];const latest=rounds[rounds.length-1];if(latest && result(latest)==='Pending'){const live=add(nameRow,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;
