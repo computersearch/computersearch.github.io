@@ -31,13 +31,15 @@ jobs:
           # latest main. Never force-push or overwrite unrelated changes.
           snapshot_dir="$(mktemp -d)"
           cp -a observer/data/. "$snapshot_dir/"
+           cp observer/events.json "$snapshot_dir/events.json"
 
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
             mkdir -p observer/data
             cp -a "$snapshot_dir/." observer/data/
-            git add -- 'observer/data/*.json'
+             mv observer/data/events.json observer/events.json
+            git add -- 'observer/data/*.json' observer/events.json
 
             if git diff --cached --quiet; then
               echo 'No snapshot changes to commit.'
