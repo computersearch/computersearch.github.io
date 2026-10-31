@@ -64,6 +64,67 @@
   function watchKey(p) { return norm(nameOf(p)); }
   function watched() { return state.watched[state.event] || []; }
   function updateWatch(keys) { state.watched[state.event]=keys; save(); render(); }
+  function moveWatch(key, offset) {
+    const keys=[...watched()]; const index=keys.indexOf(key); const target=index+offset;
+    if(index<0 || target<0 || target>=keys.length)return;
+    [keys[index],keys[target]]=[keys[target],keys[index]];
+    updateWatch(keys);
+  }
+  // Pointer-based sorting works with mouse, touch and pen. Only the handle starts a drag.
+  function installDrag(handle, panel, key) {
+    handle.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || !event.isPrimary) return;
+      event.preventDefault();
+      const startY = event.clientY;
+      let dragging = false;
+      const pointerId = event.pointerId;
+      handle.setPointerCapture(pointerId);
+      const move = e => {
+        if (e.pointerId !== pointerId) return;
+        if (!dragging && Math.abs(e.clientY - startY) < 6) return;
+        if (!dragging) {
+          dragging = true;
+          panel.classList.add('dragging');
+          document.body.classList.add('sorting-players');
+        }
+        // Determine insertion position from card midpoints, not the moving handle.
+        const cards = [...$('players').querySelectorAll('.player')];
+        const others = cards.filter(card => card !== panel);
+        let index = others.findIndex(card => e.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
+        if (index < 0) index = others.length;
+        const reference = others[index] || null;
+        if (reference !== panel.nextElementSibling) $('players').insertBefore(panel, reference);
+      };
+      const finish = e => {
+        if (e.pointerId !== pointerId) return;
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', finish);
+        handle.removeEventListener('pointercancel', cancel);
+        panel.classList.remove('dragging');
+        document.body.classList.remove('sorting-players');
+        if (dragging) {
+          const order = [...$('players').querySelectorAll('.player')].map(card => card.dataset.watchKey);
+          if (order.length === watched().length && order.every(k => watched().includes(k))) {
+            state.watched[state.event] = order;
+            save();
+          }
+          render();
+        }
+      };
+      const cancel = e => {
+        if (e.pointerId !== pointerId) return;
+        handle.removeEventListener('pointermove', move);
+        handle.removeEventListener('pointerup', finish);
+        handle.removeEventListener('pointercancel', cancel);
+        panel.classList.remove('dragging');
+        document.body.classList.remove('sorting-players');
+        render();
+      };
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', finish);
+      handle.addEventListener('pointercancel', cancel);
+    });
+  }
   function renderSuggestions() {
     const box=$('suggestions'); box.replaceChildren(); const q=norm($('search').value); if(q.length<2)return;
     const tracked=new Set(watched()); const list=state.people.filter(p=>norm(nameOf(p)).includes(q) && !tracked.has(watchKey(p))).slice(0,12);
@@ -74,8 +135,12 @@
   function render(){
     renderSuggestions(); const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
-    for(const key of keys){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
-      top.append(btn('Remove',()=>updateWatch(watched().filter(x=>x!==key))));
+    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');panel.dataset.watchKey=key;const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
+      const controls=add(top,'div','watch-controls');
+      const handle=btn('⠿',()=>{},'drag-handle');handle.title='Drag to reorder player';handle.setAttribute('aria-label',`Drag ${p?nameOf(p):key} to reorder`);controls.append(handle);installDrag(handle,panel,key);
+      const up=btn('↑',()=>moveWatch(key,-1),'move-player');up.title='Move player up';up.setAttribute('aria-label',`Move ${p?nameOf(p):key} up`);up.disabled=position===0;controls.append(up);
+      const down=btn('↓',()=>moveWatch(key,1),'move-player');down.title='Move player down';down.setAttribute('aria-label',`Move ${p?nameOf(p):key} down`);down.disabled=position===keys.length-1;controls.append(down);
+      controls.append(btn('Remove',()=>updateWatch(watched().filter(x=>x!==key))));
       const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?rankOf(p):'—');
       const history=add(panel,'div','history');const rounds=p?matches(p):[];const latest=rounds[rounds.length-1];if(latest && result(latest)==='Pending'){const live=add(nameRow,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;
       if(!rounds.length)add(history,'div','muted','Round-by-round opponents are not available in this snapshot.');
