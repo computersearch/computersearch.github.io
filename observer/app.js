@@ -64,114 +64,11 @@
   function watchKey(p) { return norm(nameOf(p)); }
   function watched() { return state.watched[state.event] || []; }
   function updateWatch(keys) { state.watched[state.event]=keys; save(); render(); }
-  // A real, full-height placeholder reserves the drop position in the flex list.
-  // Only the original card floats; it is returned to normal flow on release.
-  function installDrag(handle, panel, key) {
-    handle.addEventListener('pointerdown', event => {
-      if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
-      event.preventDefault();
-      const root = $('players');
-      const pointerId = event.pointerId;
-      const startX = event.clientX, startY = event.clientY;
-      const initialNext = panel.nextSibling;
-      const startRect = panel.getBoundingClientRect();
-      let active = false, placeholder = null;
-      let lastX = startX, lastY = startY;
-      let frame = 0;
-      const animations = new Map();
-      handle.setPointerCapture(pointerId);
-
-      function stopAnimations() {
-        for (const animation of animations.values()) animation.cancel();
-        animations.clear();
-      }
-      function animateReflow(action) {
-        stopAnimations();
-        const cards = [...root.querySelectorAll('.player:not(.dragging-card)')];
-        const before = new Map(cards.map(card => [card, card.getBoundingClientRect().top]));
-        action();
-        for (const card of cards) {
-          const previous = before.get(card);
-          if (previous === undefined) continue;
-          const delta = previous - card.getBoundingClientRect().top;
-          if (Math.abs(delta) < 1) continue;
-          const animation = card.animate(
-            [{transform:`translateY(${delta}px)`},{transform:'translateY(0)'}],
-            {duration:170,easing:'cubic-bezier(.2,.75,.25,1)'}
-          );
-          animations.set(card,animation);
-          animation.addEventListener('finish',()=>{if(animations.get(card)===animation)animations.delete(card);},{once:true});
-        }
-      }
-      function draw() {
-        frame = 0;
-        if (active) {
-          panel.style.left = `${startRect.left + lastX - startX}px`;
-          panel.style.top = `${startRect.top + lastY - startY}px`;
-        }
-      }
-      function begin() {
-        active = true;
-        placeholder = document.createElement('div');
-        placeholder.className = 'drag-slot';
-        placeholder.style.height = `${startRect.height}px`;
-        placeholder.style.flex = '0 0 auto';
-        root.insertBefore(placeholder,panel);
-        panel.classList.add('dragging-card');
-        Object.assign(panel.style, {
-          position:'fixed', left:`${startRect.left}px`, top:`${startRect.top}px`,
-          width:`${startRect.width}px`, height:`${startRect.height}px`,
-          margin:'0', zIndex:'1000', pointerEvents:'none', boxSizing:'border-box'
-        });
-        document.body.append(panel);
-        document.body.classList.add('sorting-players');
-      }
-      function move(e) {
-        if (e.pointerId !== pointerId) return;
-        lastX=e.clientX; lastY=e.clientY;
-        if (!active && Math.hypot(lastX-startX,lastY-startY)<7) return;
-        if (!active) begin();
-        if (!frame) frame=requestAnimationFrame(draw);
-        // Compare viewport coordinates, never offsetTop (which has a different origin).
-        const cards=[...root.querySelectorAll('.player')];
-        const target=cards.find(card=>lastY<card.getBoundingClientRect().top+card.getBoundingClientRect().height/2)||null;
-        if (target !== placeholder.nextElementSibling) {
-          animateReflow(()=>root.insertBefore(placeholder,target));
-        }
-        if (lastY<65) window.scrollBy(0,-10);
-        else if (lastY>window.innerHeight-65) window.scrollBy(0,10);
-      }
-      function cleanup() {
-        handle.removeEventListener('pointermove',move);
-        handle.removeEventListener('pointerup',finish);
-        handle.removeEventListener('pointercancel',cancel);
-        if(frame)cancelAnimationFrame(frame);
-        stopAnimations();
-        if (active) {
-          panel.classList.remove('dragging-card');
-          for(const prop of ['position','left','top','width','height','margin','zIndex','pointerEvents','boxSizing']) panel.style[prop]='';
-          document.body.classList.remove('sorting-players');
-        }
-      }
-      function finish(e) {
-        if(e.pointerId!==pointerId)return;
-        if(active){
-          root.insertBefore(panel,placeholder);
-          placeholder.remove();
-          const order=[...root.querySelectorAll('.player')].map(card=>card.dataset.watchKey);
-          if(order.length===watched().length&&order.every(k=>watched().includes(k))){state.watched[state.event]=order;save();}
-        }
-        cleanup();
-      }
-      function cancel(e) {
-        if(e.pointerId!==pointerId)return;
-        if(active){root.insertBefore(panel,initialNext&&initialNext.parentNode===root?initialNext:null);placeholder.remove();}
-        cleanup();
-      }
-      handle.addEventListener('pointermove',move);
-      handle.addEventListener('pointerup',finish);
-      handle.addEventListener('pointercancel',cancel);
-    });
+  function moveWatch(key, offset) {
+    const keys=[...watched()]; const index=keys.indexOf(key); const target=index+offset;
+    if(index<0 || target<0 || target>=keys.length)return;
+    [keys[index],keys[target]]=[keys[target],keys[index]];
+    updateWatch(keys);
   }
   function renderSuggestions() {
     const box=$('suggestions'); box.replaceChildren(); const q=norm($('search').value); if(q.length<2)return;
@@ -183,9 +80,10 @@
   function render(){
     renderSuggestions(); const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
-    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');panel.dataset.watchKey=key;const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
+    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
       const controls=add(top,'div','watch-controls');
-      const handle=btn('⠿',()=>{},'drag-handle');handle.title='Drag to reorder player';handle.setAttribute('aria-label',`Drag ${p?nameOf(p):key} to reorder`);controls.append(handle);installDrag(handle,panel,key);
+      const up=btn('↑',()=>moveWatch(key,-1),'move-player');up.title='Move player up';up.setAttribute('aria-label',`Move ${p?nameOf(p):key} up`);up.disabled=position===0;controls.append(up);
+      const down=btn('↓',()=>moveWatch(key,1),'move-player');down.title='Move player down';down.setAttribute('aria-label',`Move ${p?nameOf(p):key} down`);down.disabled=position===keys.length-1;controls.append(down);
       controls.append(btn('Remove',()=>updateWatch(watched().filter(x=>x!==key))));
       const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?rankOf(p):'—');
       const history=add(panel,'div','history');const rounds=p?matches(p):[];const latest=rounds[rounds.length-1];if(latest && result(latest)==='Pending'){const live=add(nameRow,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;
