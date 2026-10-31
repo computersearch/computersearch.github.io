@@ -287,25 +287,27 @@ def import_event(tid,delay):
     explicit_day2 = set()
     for _, page in pages:
         explicit_day2.update(collect_explicit_day2(page, players))
+    # Limitless sometimes explicitly identifies the entire overview roster as
+    # Phase 2. This is direct source evidence for every listed player, not an
+    # inference from placement or from a decklist link.
+    phase2_roster_confirmed = bool(re.search(
+        r"\bthis page lists all players in phase\s*2 of the tournament\b",
+        event_text, re.I))
+    if phase2_roster_confirmed:
+        explicit_day2.update(players)
+        print(f"Regional Phase 2: source confirms all {len(players)} standings players", flush=True)
     for rank, player in players.items():
         player["day2"] = rank in explicit_day2
     print(f"Regional Day 2: {len(explicit_day2)} explicitly confirmed of "
           f"{len(players)} standings players; others unconfirmed (day2=false)", flush=True)
     if not explicit_day2:
-        print("WARNING: No explicit player-level Day 2 markers found; "
+        print("WARNING: No explicit player-level or roster-level Day 2 markers found; "
               "no Day 2 status was inferred from placement.", flush=True)
-    # Persist only confirmed Day 2 standings. Decklists belonging to other
-    # players were checked but are intentionally excluded from the archive.
-    day2_players={rank:player for rank,player in players.items() if player["day2"]}
-    day2_verified=sum(bool(player.get("decklist")) for player in day2_players.values())
-    print(f"Regional save filter: {len(day2_players)} confirmed Day 2 players, "
-          f"{day2_verified} verified Day 2 decklists; "
-          f"excluding {len(players)-len(day2_players)} unconfirmed players",flush=True)
-    if not day2_players:
-        print("NO UPDATE: no explicitly confirmed Day 2 players; preserving existing archive",flush=True)
-        return False
-    players=day2_players
-    verified=day2_verified
+    # Preserve all published standings; use roster-level confirmation when
+    # provided, otherwise leave unconfirmed players marked day2=false.
+    day2_verified=sum(bool(p.get("day2")) for p in players.values())
+    print(f"Regional archive: saving all {len(players)} standings players; "
+          f"{day2_verified} explicitly confirmed Day 2", flush=True)
     # The original tournament page has a visible date, but do not invent it.
     match=re.search(r"(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d\d)",event_text)
     date=datetime.strptime(" ".join(match.groups()),"%d %B %Y").date().isoformat() if match else ""
@@ -313,8 +315,8 @@ def import_event(tid,delay):
         provider="LimitlessTCG",standings=[players[i] for i in sorted(players)],
         event_type="International Championships" if is_international else "Regional Championships",
         day2_total=None,
-        day2_verified_count=len(players),
-        note="Only publicly published, validated 60-card lists are displayed.")
+        day2_verified_count=day2_verified,
+        note="All published standings are retained. Day 2 is marked true only with explicit player-level or roster-level source evidence; only validated 60-card decklists are attached.")
     OUT.mkdir(exist_ok=True)
     filename=f"limitless-{tid}.json"
     (OUT/filename).write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
