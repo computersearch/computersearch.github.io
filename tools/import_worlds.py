@@ -37,8 +37,6 @@ def tournament_metadata(soup):
     if not match: raise ValueError(f"Not a {'International Championship' if EVENT_TYPE == 'international' else 'World Championship'}: {title!r}")
     year=int(next(g for g in match.groups() if g))
     text=soup.get_text(" ",strip=True)
-    if EVENT_TYPE=="worlds" and not re.search(r"(all players in phase 2|phase 2 of the tournament)",text,re.I):
-        raise ValueError("Source does not confirm Phase 2; refusing import")
     date=None
     for el in soup.select("time[datetime]"):
         candidate=el.get("datetime","")[:10]
@@ -268,12 +266,23 @@ def import_worlds(delay):
     print(f"{'Tournament' if EVENT_TYPE == 'international' else 'Phase 2'} standings: {len(players)} players; highest placement {max(players,default=0)}",flush=True)
     if len(players)<8 or sorted(players)!=list(range(1,max(players)+1)):
         raise RuntimeError(f"Incomplete or non-contiguous {event_label} standings; refusing snapshot.")
-    # This specific source is the Masters Phase 2 standings, not general
-    # tournament standings. Membership in its rows is the Day 2 evidence.
-    # Never infer qualification from a rank threshold or from a decklist link.
+    # Same roster-level confirmation rule as the Regional importer:
+    # only an explicit statement that ALL listed players are in Phase 2
+    # confirms the entire standings roster. Do not infer from rank or decklists.
+    event_text=soup.get_text(" ",strip=True)
+    phase2_roster_confirmed=bool(re.search(
+        r"\bthis page lists all players in phase\s*2 of the tournament\b",
+        event_text,re.I))
+    if phase2_roster_confirmed:
+        print(f"{event_label} Phase 2: source confirms all {len(players)} standings players",flush=True)
+    else:
+        print(f"WARNING: {event_label} has no explicit roster-level Phase 2 confirmation; "
+              "players remain unconfirmed",flush=True)
     for p in players.values():
-        p['day2']=True
-        p['day2_source']=f"{BASE}{path}"
+        p['day2']=phase2_roster_confirmed
+        if phase2_roster_confirmed:
+            p['day2_source']=f"{BASE}{path}"
+    confirmed_day2=len(players) if phase2_roster_confirmed else 0
     pages=[(path,soup)]
     for extra in (f"{path}/decklists",):
         try:pages.append((extra,get(extra)))
@@ -382,25 +391,25 @@ def import_worlds(delay):
                 players[item['rank']].update(item);verified+=1
     remaining=[p for p in players.values() if p["decklist"] is None]
     print(f"FINAL: {len(players)} {event_label} players, {verified} validated decklists, {len(remaining)} without a verified list",flush=True)
-    # The source is the confirmed Worlds roster: only its members are saved.
+    # Preserve the published roster even when Phase 2 is unconfirmed.
     # Preserve those standings even when no decklists are published/recognized.
     OUT.mkdir(parents=True,exist_ok=True)
     result=dict(id=f'limitless-{TID}',name=WORLDS[TID]["name"],date=WORLDS[TID]['date'],
         source=f'{BASE}{path}',provider='LimitlessTCG',event_type=WORLDS[TID]['event_type'],
-        day2_total=len(players),day2_verified_count=len(players),
+        day2_total=confirmed_day2,day2_verified_count=confirmed_day2,
         standings=[players[i] for i in sorted(players)],
-        note='Day 2 status comes from the event-specific Day 2 standings roster. Only validated 60-card decklists are attached.')
+        note=('Phase 2 status is confirmed by the source statement covering all listed players.' if phase2_roster_confirmed else 'Phase 2 status is unconfirmed by the source.')+' Only validated 60-card decklists are attached.')
     filename=f'limitless-{TID}.json'
     (OUT/filename).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
     indexfile=OUT/'index.json'
     index=json.loads(indexfile.read_text()) if indexfile.exists() else []
     entry=dict(id=result['id'],name=result['name'],date=result['date'],file=filename,
         source=result['source'],verified_decks=verified,event_type=result['event_type'],
-        day2_total=len(players),day2_verified_count=len(players))
+        day2_total=confirmed_day2,day2_verified_count=confirmed_day2)
     index=[e for e in index if e.get('id')!=entry['id']]+[entry]
     index.sort(key=lambda e:e.get('date',''),reverse=True)
     indexfile.write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n')
-    print(f"SUCCESS: {event_label}: {len(players)} Day 2 roster players, "
+    print(f"SUCCESS: {event_label}: {len(players)} standings players, {confirmed_day2} confirmed Phase 2, "
           f"{len(links)} decklist URLs checked, {verified} verified 60-card decks",flush=True)
 
 def main():
