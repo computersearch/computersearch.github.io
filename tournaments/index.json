@@ -273,6 +273,17 @@
     "verified_decks": 383
   },
   {
+    "id": "limitless-516",
+    "name": "LAIC 2025–26, São Paulo",
+    "date": "2025-11-21",
+    "file": "limitless-516.json",
+    "source": "https://limitlesstcg.com/tournaments/516",
+    "verified_decks": 367,
+    "event_type": "International Championships",
+    "day2_total": 367,
+    "day2_verified_count": 367
+  },
+  {
     "id": "limitless-526",
     "name": "Regional Las Vegas, NV – Limitless",
     "date": "2025-11-14",
