@@ -114,16 +114,26 @@
       }
     }
     if(!rounds.size){add(root,'div','muted','Elimination pairings have not been published in this snapshot.');return;}
-    for(const [i,games] of [...rounds].sort((a,b)=>a[0]-b[0])){
-      const section=add(root,'section','bracket-round');
+    const board=add(root,'div','bracket-board');
+    const ordered=[...rounds].sort((a,b)=>a[0]-b[0]);
+    for(const [index,[i,games]] of ordered.entries()){
+      const column=add(board,'section','bracket-column');
       const label=games.length===4?'Quarterfinals (Top 8)':games.length===2?'Semifinals':games.length===1?'Final':`Round ${i+1}`;
-      add(section,'h3','',label);
+      add(column,'h3','bracket-heading',label);
+      const slots=add(column,'div','bracket-slots');
+      slots.style.setProperty('--round-depth',String(index));
       for(const game of games){
-        const row=add(section,'div','bracket-match');
-        add(row,'span','',nameOf(game.p)+' vs '+nameOf(game.other));
-        add(row,'strong',game.decided?'win':'muted',game.decided?`Winner: ${nameOf(game.winner)}`:'Awaiting confirmed result');
+        const card=add(slots,'div','bracket-card'+(game.decided?' complete':''));
+        for(const player of [game.p,game.other]){
+          const won=game.decided&&Number(game.winner.i)===Number(player.i);
+          const line=add(card,'div','bracket-player'+(won?' bracket-winner':game.decided?' bracket-loser':''));
+          add(line,'span','bracket-player-name',nameOf(player));
+          if(won)add(line,'span','bracket-check','✓');
+        }
+        add(card,'div','bracket-result',game.decided?`Winner: ${nameOf(game.winner)}`:'Awaiting confirmed result');
       }
     }
+
   }
   async function load(){
     $('status').textContent='Loading snapshot…';state.people=[];state.snapshot=null;render();
