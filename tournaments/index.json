@@ -1,7 +1,7 @@
 [
   {
     "id": "limitless-583",
-    "name": "583 Regional Championship",
+    "name": "Puebla Regional Championship",
     "date": "2026-10-24",
     "file": "limitless-583.json",
     "source": "https://limitlesstcg.com/tournaments/583",
@@ -93,7 +93,7 @@
   },
   {
     "id": "limitless-559",
-    "name": "Regional Indianapolis, IN – Limitless",
+    "name": "Indianapolis Regional Championship",
     "date": "2026-05-29",
     "file": "limitless-559.json",
     "source": "https://limitlesstcg.com/tournaments/559",
@@ -103,7 +103,7 @@
   },
   {
     "id": "limitless-550",
-    "name": "Regional Melbourne – Limitless",
+    "name": "Melbourne Regional Championship",
     "date": "2026-05-23",
     "file": "limitless-550.json",
     "source": "https://limitlesstcg.com/tournaments/550",
@@ -113,7 +113,7 @@
   },
   {
     "id": "limitless-535",
-    "name": "Regional Utrecht – Limitless",
+    "name": "Utrecht Regional Championship",
     "date": "2026-05-16",
     "file": "limitless-535.json",
     "source": "https://limitlesstcg.com/tournaments/535",
@@ -123,7 +123,7 @@
   },
   {
     "id": "limitless-544",
-    "name": "Regional Campinas – Limitless",
+    "name": "Campinas Regional Championship",
     "date": "2026-05-16",
     "file": "limitless-544.json",
     "source": "https://limitlesstcg.com/tournaments/544",
@@ -133,7 +133,7 @@
   },
   {
     "id": "limitless-558",
-    "name": "Regional Los Angeles, CA – Limitless",
+    "name": "Los Angeles Regional Championship",
     "date": "2026-05-08",
     "file": "limitless-558.json",
     "source": "https://limitlesstcg.com/tournaments/558",
@@ -143,7 +143,7 @@
   },
   {
     "id": "limitless-539",
-    "name": "Regional Prague – Limitless",
+    "name": "Prague Regional Championship",
     "date": "2026-04-25",
     "file": "limitless-539.json",
     "source": "https://limitlesstcg.com/tournaments/539",
@@ -153,7 +153,7 @@
   },
   {
     "id": "limitless-534",
-    "name": "Regional Querétaro – Limitless",
+    "name": "Querétaro Regional Championship",
     "date": "2026-04-04",
     "file": "limitless-534.json",
     "source": "https://limitlesstcg.com/tournaments/534",
@@ -163,7 +163,7 @@
   },
   {
     "id": "limitless-552",
-    "name": "Regional Orlando, FL – Limitless",
+    "name": "Orlando Regional Championship",
     "date": "2026-04-03",
     "file": "limitless-552.json",
     "source": "https://limitlesstcg.com/tournaments/552",
@@ -173,7 +173,7 @@
   },
   {
     "id": "limitless-551",
-    "name": "Regional Houston, TX – Limitless",
+    "name": "Houston Regional Championship",
     "date": "2026-03-20",
     "file": "limitless-551.json",
     "source": "https://limitlesstcg.com/tournaments/551",
@@ -183,7 +183,7 @@
   },
   {
     "id": "limitless-543",
-    "name": "Regional Curitiba – Limitless",
+    "name": "Curitiba Regional Championship",
     "date": "2026-03-14",
     "file": "limitless-543.json",
     "source": "https://limitlesstcg.com/tournaments/543",
@@ -193,7 +193,7 @@
   },
   {
     "id": "limitless-542",
-    "name": "Regional Seattle, WA – Limitless",
+    "name": "Seattle Regional Championship",
     "date": "2026-03-01",
     "file": "limitless-542.json",
     "source": "https://limitlesstcg.com/tournaments/542",
@@ -214,7 +214,7 @@
   },
   {
     "id": "limitless-532",
-    "name": "Regional Santiago – Limitless",
+    "name": "Santiago Regional Championship",
     "date": "2026-02-07",
     "file": "limitless-532.json",
     "source": "https://limitlesstcg.com/tournaments/532",
@@ -224,7 +224,7 @@
   },
   {
     "id": "limitless-553",
-    "name": "Regional Sydney – Limitless",
+    "name": "Sydney Regional Championship",
     "date": "2026-02-07",
     "file": "limitless-553.json",
     "source": "https://limitlesstcg.com/tournaments/553",
@@ -234,7 +234,7 @@
   },
   {
     "id": "limitless-529",
-    "name": "Regional Birmingham – Limitless",
+    "name": "Birmingham Regional Championship",
     "date": "2026-01-24",
     "file": "limitless-529.json",
     "source": "https://limitlesstcg.com/tournaments/529",
@@ -244,7 +244,7 @@
   },
   {
     "id": "limitless-530",
-    "name": "Regional Mérida – Limitless",
+    "name": "Mérida Regional Championship",
     "date": "2026-01-24",
     "file": "limitless-530.json",
     "source": "https://limitlesstcg.com/tournaments/530",
@@ -254,7 +254,7 @@
   },
   {
     "id": "limitless-538",
-    "name": "Regional Toronto – Limitless",
+    "name": "Toronto Regional Championship",
     "date": "2026-01-16",
     "file": "limitless-538.json",
     "source": "https://limitlesstcg.com/tournaments/538",
@@ -264,7 +264,7 @@
   },
   {
     "id": "limitless-528",
-    "name": "Regional Stuttgart – Limitless",
+    "name": "Stuttgart Regional Championship",
     "date": "2025-11-29",
     "file": "limitless-528.json",
     "source": "https://limitlesstcg.com/tournaments/528",
@@ -285,7 +285,7 @@
   },
   {
     "id": "limitless-526",
-    "name": "Regional Las Vegas, NV – Limitless",
+    "name": "Las Vegas Regional Championship",
     "date": "2025-11-14",
     "file": "limitless-526.json",
     "source": "https://limitlesstcg.com/tournaments/526",
@@ -295,7 +295,7 @@
   },
   {
     "id": "limitless-525",
-    "name": "Regional Gdańsk – Limitless",
+    "name": "Gdańsk Regional Championship",
     "date": "2025-11-01",
     "file": "limitless-525.json",
     "source": "https://limitlesstcg.com/tournaments/525",
@@ -305,7 +305,7 @@
   },
   {
     "id": "limitless-541",
-    "name": "Regional Brisbane – Limitless",
+    "name": "Brisbane Regional Championship",
     "date": "2025-11-01",
     "file": "limitless-541.json",
     "source": "https://limitlesstcg.com/tournaments/541",
@@ -315,7 +315,7 @@
   },
   {
     "id": "limitless-524",
-    "name": "Regional Lille – Limitless",
+    "name": "Lille Regional Championship",
     "date": "2025-10-25",
     "file": "limitless-524.json",
     "source": "https://limitlesstcg.com/tournaments/524",
@@ -325,7 +325,7 @@
   },
   {
     "id": "limitless-522",
-    "name": "Regional Belo Horizonte – Limitless",
+    "name": "Belo Horizonte Regional Championship",
     "date": "2025-10-11",
     "file": "limitless-522.json",
     "source": "https://limitlesstcg.com/tournaments/522",
@@ -335,7 +335,7 @@
   },
   {
     "id": "limitless-523",
-    "name": "Regional Milwaukee, WI – Limitless",
+    "name": "Milwaukee Regional Championship",
     "date": "2025-10-10",
     "file": "limitless-523.json",
     "source": "https://limitlesstcg.com/tournaments/523",
@@ -345,7 +345,7 @@
   },
   {
     "id": "limitless-521",
-    "name": "Regional Pittsburgh, PA – Limitless",
+    "name": "Pittsburgh Regional Championship",
     "date": "2025-09-19",
     "file": "limitless-521.json",
     "source": "https://limitlesstcg.com/tournaments/521",
@@ -355,7 +355,7 @@
   },
   {
     "id": "limitless-519",
-    "name": "Regional Frankfurt – Limitless",
+    "name": "Frankfurt Regional Championship",
     "date": "2025-09-13",
     "file": "limitless-519.json",
     "source": "https://limitlesstcg.com/tournaments/519",
@@ -365,7 +365,7 @@
   },
   {
     "id": "limitless-520",
-    "name": "Regional Monterrey – Limitless",
+    "name": "Monterrey Regional Championship",
     "date": "2025-09-13",
     "file": "limitless-520.json",
     "source": "https://limitlesstcg.com/tournaments/520",
@@ -397,7 +397,7 @@
   },
   {
     "id": "limitless-497",
-    "name": "Regional Portland, OR – Limitless",
+    "name": "Portland Regional Championship",
     "date": "2025-05-23",
     "file": "limitless-497.json",
     "source": "https://limitlesstcg.com/tournaments/497",
@@ -407,7 +407,7 @@
   },
   {
     "id": "limitless-475",
-    "name": "Regional Santiago – Limitless",
+    "name": "Santiago Regional Championship",
     "date": "2025-05-17",
     "file": "limitless-475.json",
     "source": "https://limitlesstcg.com/tournaments/475",
@@ -417,7 +417,7 @@
   },
   {
     "id": "limitless-498",
-    "name": "Regional Melbourne – Limitless",
+    "name": "Melbourne Regional Championship",
     "date": "2025-05-17",
     "file": "limitless-498.json",
     "source": "https://limitlesstcg.com/tournaments/498",
@@ -427,7 +427,7 @@
   },
   {
     "id": "limitless-466",
-    "name": "Regional Milwaukee, WI – Limitless",
+    "name": "Milwaukee Regional Championship",
     "date": "2025-05-02",
     "file": "limitless-466.json",
     "source": "https://limitlesstcg.com/tournaments/466",
@@ -437,7 +437,7 @@
   },
   {
     "id": "limitless-474",
-    "name": "Regional Monterrey – Limitless",
+    "name": "Monterrey Regional Championship",
     "date": "2025-04-19",
     "file": "limitless-474.json",
     "source": "https://limitlesstcg.com/tournaments/474",
@@ -447,7 +447,7 @@
   },
   {
     "id": "limitless-489",
-    "name": "Regional Atlanta, GA – Limitless",
+    "name": "Atlanta Regional Championship",
     "date": "2025-04-11",
     "file": "limitless-489.json",
     "source": "https://limitlesstcg.com/tournaments/489",
@@ -457,7 +457,7 @@
   },
   {
     "id": "limitless-477",
-    "name": "Regional Brisbane – Limitless",
+    "name": "Brisbane Regional Championship",
     "date": "2025-03-29",
     "file": "limitless-477.json",
     "source": "https://limitlesstcg.com/tournaments/477",
@@ -467,7 +467,7 @@
   },
   {
     "id": "limitless-468",
-    "name": "Regional Stockholm – Limitless",
+    "name": "Stockholm Regional Championship",
     "date": "2025-03-22",
     "file": "limitless-468.json",
     "source": "https://limitlesstcg.com/tournaments/468",
@@ -477,7 +477,7 @@
   },
   {
     "id": "limitless-473",
-    "name": "Regional Fortaleza – Limitless",
+    "name": "Fortaleza Regional Championship",
     "date": "2025-03-08",
     "file": "limitless-473.json",
     "source": "https://limitlesstcg.com/tournaments/473",
@@ -487,7 +487,7 @@
   },
   {
     "id": "limitless-465",
-    "name": "Regional Vancouver – Limitless",
+    "name": "Vancouver Regional Championship",
     "date": "2025-03-07",
     "file": "limitless-465.json",
     "source": "https://limitlesstcg.com/tournaments/465",
@@ -508,7 +508,7 @@
   },
   {
     "id": "limitless-472",
-    "name": "Regional Mérida – Limitless",
+    "name": "Mérida Regional Championship",
     "date": "2025-02-08",
     "file": "limitless-472.json",
     "source": "https://limitlesstcg.com/tournaments/472",
@@ -518,7 +518,7 @@
   },
   {
     "id": "limitless-484",
-    "name": "Regional San Antonio, TX – Limitless",
+    "name": "San Antonio Regional Championship",
     "date": "2025-01-24",
     "file": "limitless-484.json",
     "source": "https://limitlesstcg.com/tournaments/484",
@@ -528,7 +528,7 @@
   },
   {
     "id": "limitless-467",
-    "name": "Regional Birmingham – Limitless",
+    "name": "Birmingham Regional Championship",
     "date": "2025-01-18",
     "file": "limitless-467.json",
     "source": "https://limitlesstcg.com/tournaments/467",
@@ -538,7 +538,7 @@
   },
   {
     "id": "limitless-471",
-    "name": "Regional Rio de Janeiro – Limitless",
+    "name": "Rio de Janeiro Regional Championship",
     "date": "2025-01-18",
     "file": "limitless-471.json",
     "source": "https://limitlesstcg.com/tournaments/471",
@@ -548,7 +548,7 @@
   },
   {
     "id": "limitless-460",
-    "name": "Regional Toronto – Limitless",
+    "name": "Toronto Regional Championship",
     "date": "2024-12-13",
     "file": "limitless-460.json",
     "source": "https://limitlesstcg.com/tournaments/460",
@@ -558,7 +558,7 @@
   },
   {
     "id": "limitless-476",
-    "name": "Regional Perth – Limitless",
+    "name": "Perth Regional Championship",
     "date": "2024-12-07",
     "file": "limitless-476.json",
     "source": "https://limitlesstcg.com/tournaments/476",
@@ -568,7 +568,7 @@
   },
   {
     "id": "limitless-458",
-    "name": "Regional Stuttgart – Limitless",
+    "name": "Stuttgart Regional Championship",
     "date": "2024-12-01",
     "file": "limitless-458.json",
     "source": "https://limitlesstcg.com/tournaments/458",
@@ -578,7 +578,7 @@
   },
   {
     "id": "limitless-457",
-    "name": "Regional Sacramento, CA – Limitless",
+    "name": "Sacramento Regional Championship",
     "date": "2024-11-22",
     "file": "limitless-457.json",
     "source": "https://limitlesstcg.com/tournaments/457",
@@ -588,7 +588,7 @@
   },
   {
     "id": "limitless-455",
-    "name": "Regional Gdańsk – Limitless",
+    "name": "Gdańsk Regional Championship",
     "date": "2024-11-02",
     "file": "limitless-455.json",
     "source": "https://limitlesstcg.com/tournaments/455",
@@ -598,7 +598,7 @@
   },
   {
     "id": "limitless-454",
-    "name": "Regional Lille – Limitless",
+    "name": "Lille Regional Championship",
     "date": "2024-10-19",
     "file": "limitless-454.json",
     "source": "https://limitlesstcg.com/tournaments/454",
@@ -608,7 +608,7 @@
   },
   {
     "id": "limitless-453",
-    "name": "Regional Louisville, KY – Limitless",
+    "name": "Louisville Regional Championship",
     "date": "2024-10-11",
     "file": "limitless-453.json",
     "source": "https://limitlesstcg.com/tournaments/453",
@@ -618,7 +618,7 @@
   },
   {
     "id": "limitless-450",
-    "name": "Regional Dortmund – Limitless",
+    "name": "Dortmund Regional Championship",
     "date": "2024-09-28",
     "file": "limitless-450.json",
     "source": "https://limitlesstcg.com/tournaments/450",
@@ -628,7 +628,7 @@
   },
   {
     "id": "limitless-451",
-    "name": "Regional Joinville – Limitless",
+    "name": "Joinville Regional Championship",
     "date": "2024-09-28",
     "file": "limitless-451.json",
     "source": "https://limitlesstcg.com/tournaments/451",
@@ -638,7 +638,7 @@
   },
   {
     "id": "limitless-449",
-    "name": "Regional Baltimore, MD – Limitless",
+    "name": "Baltimore Regional Championship",
     "date": "2024-09-13",
     "file": "limitless-449.json",
     "source": "https://limitlesstcg.com/tournaments/449",
