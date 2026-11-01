@@ -341,8 +341,24 @@ def main():
         print("INFO: --max-decks is deprecated and ignored; processing all discovered decklist URLs",flush=True)
     ids=[(args.tournament_id,"manual")] if args.tournament_id else tournament_ids()[:3]
     if not ids:raise RuntimeError("No recent Regional Championships found on Limitless")
+    successful=[]
+    unsuccessful=[]
     for tid,_ in ids:
-        if import_event(tid,max(args.delay,1.0)):return
-    raise RuntimeError("No tournament produced a validated import. Existing JSON was preserved.")
+        try:
+            if import_event(tid,max(args.delay,1.0)):
+                successful.append(tid)
+            else:
+                unsuccessful.append(tid)
+        except Exception as exc:
+            unsuccessful.append(tid)
+            print(f"ERROR importing tournament {tid}: {exc}",flush=True)
+            if args.tournament_id:
+                raise
+    print(f"Import summary: {len(successful)} succeeded ({', '.join(successful) or 'none'}); "
+          f"{len(unsuccessful)} unsuccessful ({', '.join(unsuccessful) or 'none'})",flush=True)
+    if unsuccessful and not successful:
+        raise RuntimeError("No tournament produced a validated import. Existing JSON was preserved.")
+    if unsuccessful:
+        print("WARNING: Some tournaments were not updated; successful imports were preserved.",flush=True)
 
 if __name__=="__main__":main()
