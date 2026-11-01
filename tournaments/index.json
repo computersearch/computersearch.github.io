@@ -1,13 +1,13 @@
 [
   {
     "id": "limitless-583",
-    "name": "Regional Puebla – Limitless",
+    "name": "Regional 583",
     "date": "2026-10-24",
     "file": "limitless-583.json",
     "source": "https://limitlesstcg.com/tournaments/583",
-    "day2_only": true,
-    "day2_players": 369,
-    "verified_decks": 369
+    "verified_decks": 320,
+    "event_type": "Regional Championships",
+    "day2_verified_count": 369
   },
   {
     "id": "limitless-582",
