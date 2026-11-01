@@ -314,13 +314,8 @@ def import_event(tid,delay,listing_label=None):
     print(f"Reused {reused} previously verified 60-card lists",flush=True)
     print(f"Standings overview: {len(players)} players, highest rank "
           f"{max(players, default=0)}",flush=True)
-    try:
-        additional=standings(get(f"/tournaments/{tid}/standings"))
-        players.update(additional)
-        print(f"Standings combined: {len(players)} players, highest rank "
-              f"{max(players, default=0)}",flush=True)
-    except requests.RequestException as exc:
-        print(f"Separate standings page unavailable: {exc}; using overview",flush=True)
+    # Regional tournament overview already supplies the published standings.
+    # Limitless does not provide a separate /standings endpoint for these events.
     if not players:
         print("NO UPDATE: no standings placements found; preserving existing data")
         return False
@@ -329,7 +324,7 @@ def import_event(tid,delay,listing_label=None):
     # Some tournaments expose individual deck links on the overview or
     # standings page, but not on the aggregate /decklists page.
     pages=[(f"/tournaments/{tid}",soup)]
-    for path in (f"/tournaments/{tid}/standings",f"/tournaments/{tid}/decklists"):
+    for path in (f"/tournaments/{tid}/decklists",):
         try:
             pages.append((path,get(path)))
         except requests.RequestException as exc:
