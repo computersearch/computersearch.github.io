@@ -92,84 +92,112 @@
     }
   }
   function renderBracket(){
-    const root=$('bracket'); if(!root)return;root.replaceChildren();
-    const players=state.snapshot?.raw?.standings?.players;
+    const root=$('bracket'); if(!root)return; root.replaceChildren();
+    const raw=state.snapshot?.raw;
+    const players=raw?.standings?.players;
     if(!Array.isArray(players))return;
+    const seeded=players.filter(p=>Number.isInteger(p.top_cut_seed)&&p.top_cut_seed>0&&Number.isInteger(p.bracket_size)&&p.bracket_size>1);
+    const sizes=[...new Set(seeded.map(p=>p.bracket_size))];
+    const size=sizes.length===1?sizes[0]:NaN;
+    const swiss=Number(raw.tournament?.day1)+Number(raw.tournament?.day2);
+    if(!Number.isInteger(size)||size<2||(size&(size-1))!==0||!Number.isInteger(swiss)||swiss<1){
+      add(root,'div','muted','Waiting for valid top-cut and Swiss-round metadata.');return;
+    }
     const byId=new Map(players.map(p=>[Number(p.i),p]));
-    const raw=state.snapshot.raw;
-    // Top-cut metadata is per player: top_cut_seed is a bracket seed, NOT a Swiss round.
-    const seeded=players.filter(p=>Number.isInteger(Number(p.top_cut_seed)) && Number(p.top_cut_seed)>0 && Number(p.bracket_size)>1);
-    const sizes=[...new Set(seeded.map(p=>Number(p.bracket_size)))];
-    const bracketSize=sizes.length===1?sizes[0]:NaN;
-    const day1=Number(raw.tournament?.day1), day2=Number(raw.tournament?.day2);
-    const swissRounds=Number.isInteger(day1)&&Number.isInteger(day2)&&day1>=0&&day2>=0?day1+day2:null;
-    if(swissRounds===null){add(root,'div','muted','Waiting for tournament Swiss-round metadata.');return;}
-    if(!Number.isInteger(bracketSize)||bracketSize<2||(bracketSize&(bracketSize-1))!==0){
-      add(root,'div','muted','Waiting for a valid player bracket_size.');return;
-    }
-    const stageCount=Math.log2(bracketSize);
-    const seedOf=p=>Number(p?.top_cut_seed)||Infinity;
-    // Standard seeded bracket positions, used as a fallback when future pairings are unpublished.
-    let seedOrder=[1];
-    while(seedOrder.length<bracketSize){
-      const total=seedOrder.length*2+1;
-      seedOrder=seedOrder.flatMap(seed=>[seed,total-seed]);
-    }
-    const seedPosition=new Map(seedOrder.map((seed,index)=>[seed,index]));
-    const position=p=>seedPosition.get(seedOf(p))??bracketSize;
-    // Only players with a valid Top Cut seed are eligible for bracket slots.
-    const entrants=new Map(seeded.filter(p=>Number(p.bracket_size)===bracketSize && seedPosition.has(seedOf(p))).map(p=>[seedOf(p),p]));
-    const slotsByStage=Array.from({length:stageCount},(_,stage)=>Array.from({length:bracketSize/(2**(stage+1))},()=>null));
-    // Place first-round players in canonical seeded positions (1 v N, 8 v 9, etc.).
-    for(let slot=0;slot<bracketSize/2;slot++){
-      const p=entrants.get(seedOrder[slot*2]),other=entrants.get(seedOrder[slot*2+1]);
-      if(p&&other)slotsByStage[0][slot]={p,other,winner:null,decided:false};
-    }
-    // Only reciprocal results between seeded entrants count as elimination results.
-    // Later-round matches are assigned to their fixed bracket subtree, never reordered by standings.
-    for(let stage=0;stage<stageCount;stage++){
-      const roundIndex=swissRounds+stage;
+    const entrants=new Map(seeded.filter(p=>p.bracket_size===size&&p.top_cut_seed<=size).map(p=>[p.top_cut_seed,p]));
+    const valid=p=>p&&entrants.get(p.top_cut_seed)===p;
+    const stages=Math.log2(size);
+    const pairKey=(a,b)=>[a.top_cut_seed,b.top_cut_seed].sort((x,y)=>x-y).join(':');
+    const observed=Array.from({length:stages},()=>new Map());
+    for(let stage=0;stage<stages;stage++){
+      const index=swiss+stage;
       for(const p of entrants.values()){
-        const entry=p.r?.[roundIndex];if(!Array.isArray(entry))continue;
-        const other=byId.get(Number(entry[0]));
-        if(!other || !entrants.has(seedOf(other)) || entrants.get(seedOf(other))!==other)continue;
-        const posA=position(p),posB=position(other);
-        const block=2**(stage+1);
-        if(Math.floor(posA/block)!==Math.floor(posB/block))continue;
-        const slot=Math.floor(posA/block);
-        const reverse=other.r?.[roundIndex];
+        const entry=p.r?.[index]; if(!Array.isArray(entry))continue;
+        const other=byId.get(Number(entry[0])); if(!valid(other)||other===p)continue;
+        const key=pairKey(p,other);if(observed[stage].has(key))continue;
+        const reverse=other.r?.[index];
         const reciprocal=Array.isArray(reverse)&&Number(reverse[0])===Number(p.i);
-        const score=Number(entry[1]),otherScore=reciprocal?Number(reverse[1]):-1;
+        const score=Number(entry[1]),otherScore=reciprocal?Number(reverse[1]):NaN;
         const decided=reciprocal&&((score===3&&otherScore===0)||(score===0&&otherScore===3));
-        const winner=decided?(score===3?p:other):null;
-        const game=slotsByStage[stage][slot];
-        if(stage===0 && game){game.winner=winner;game.decided=decided;}
-        else if(stage>0){slotsByStage[stage][slot]={p,other,winner,decided};}
+        observed[stage].set(key,{p,other,winner:decided?(score===3?p:other):null,decided});
       }
     }
-    const rounds=slotsByStage;
+    // Lay out the recorded first-round games according to which winners meet next.
+    // This avoids assuming the tournament follows a conventional 1-v-N seed bracket.
+    const first=[...observed[0].values()];
+    const used=new Set(first.flatMap(g=>[g.p.top_cut_seed,g.other.top_cut_seed]));
+    const remaining=[...entrants.values()].filter(p=>!used.has(p.top_cut_seed)).sort((a,b)=>a.top_cut_seed-b.top_cut_seed);
+    while(remaining.length>=2){first.push({p:remaining.shift(),other:remaining.shift(),winner:null,decided:false});}
+    if(remaining.length)first.push({p:remaining.shift(),other:null,winner:null,decided:false});
+    // An unmatched seed is kept visible, but never given an invented opponent or result.
+    while(first.length<size/2)first.push(null);
+    const groups=first.map((game,i)=>({games:[game],seeds:new Set(game?[game.p?.top_cut_seed,game.other?.top_cut_seed].filter(Boolean):[]),order:i}));
+    let level=groups;
+    const rounds=[[]];
+    for(let stage=1;stage<stages;stage++){
+      const next=[];const available=[...level];
+      const links=[...observed[stage].values()];
+      // Prefer links recorded for this stage; an unconfirmed pairing is still a valid link.
+      for(const link of links){
+        const a=available.find(g=>g.seeds.has(link.p.top_cut_seed));
+        const b=available.find(g=>g.seeds.has(link.other.top_cut_seed));
+        if(!a||!b||a===b)continue;
+        available.splice(available.indexOf(a),1);available.splice(available.indexOf(b),1);
+        next.push({children:[a,b],seeds:new Set([...a.seeds,...b.seeds]),order:Math.min(a.order,b.order)});
+      }
+      available.sort((a,b)=>a.order-b.order);
+      while(available.length>=2){const a=available.shift(),b=available.shift();next.push({children:[a,b],seeds:new Set([...a.seeds,...b.seeds]),order:Math.min(a.order,b.order)});}
+      if(available.length)next.push({children:[available.shift(),null],seeds:new Set(),order:Infinity});
+      level=next;
+    }
+    // Traverse the resulting tree to obtain contiguous positions for every round.
+    const ordered=Array.from({length:stages},()=>[]);
+    function walk(node,stage){
+      if(stage===0){ordered[0].push(node?.games?.[0]??null);return;}
+      if(!node){for(let i=0;i<2**stage;i++)ordered[0].push(null);return;}
+      walk(node.children?.[0],stage-1);walk(node.children?.[1],stage-1);
+      ordered[stage].push(node);
+    }
+    // Rebuild all round columns by collecting nodes at each depth.
+    const tree=level;
+    const collect=(node,stage)=>{
+      ordered[stage].push(node);
+      if(stage>0){collect(node?.children?.[0]??null,stage-1);collect(node?.children?.[1]??null,stage-1);}
+    };
+    for(const row of ordered)row.length=0;
+    for(const node of tree)collect(node,stages-1);
     const board=add(root,'div','bracket-board');
-    for(let stage=0;stage<stageCount;stage++){
-      const games=rounds[stage];
-      const column=add(board,'section','bracket-column');
-      const participants=bracketSize/(2**stage);
+    for(let stage=0;stage<stages;stage++){
+      const participants=size/(2**stage);
       const label=participants===2?'Final':participants===4?'Semifinals':participants===8?'Quarterfinals (Top 8)':`Top ${participants}`;
-      add(column,'h3','bracket-heading',label);
-      const slots=add(column,'div','bracket-slots');
-      slots.style.setProperty('--round-depth',String(stage));
-      for(const game of games){
+      const column=add(board,'section','bracket-column');add(column,'h3','bracket-heading',label);
+      const slots=add(column,'div','bracket-slots');slots.style.setProperty('--round-depth',String(stage));
+      for(const node of ordered[stage]){
+        let game=null;
+        if(stage===0)game=node?.games?.[0]??null;
+        else if(node){
+          const children=node.children||[];
+          const candidate=children.map(child=>{
+            if(!child)return null;
+            if(stage===1)return child.games?.[0]?.winner??null;
+            const prior=ordered[stage-1].includes(child)?null:null;
+            return null;
+          });
+          const actual=[...observed[stage].values()].find(g=>node.seeds.has(g.p.top_cut_seed)&&node.seeds.has(g.other.top_cut_seed));
+          if(actual)game=actual;
+          else if(candidate[0]&&candidate[1])game={p:candidate[0],other:candidate[1],winner:null,decided:false};
+        }
         if(!game){add(slots,'div','bracket-card muted','Awaiting bracket pairing');continue;}
         const card=add(slots,'div','bracket-card'+(game.decided?' complete':''));
-        for(const player of [game.p,game.other].sort((a,b)=>position(a)-position(b))){
-          const won=game.decided&&Number(game.winner.i)===Number(player.i);
+        for(const player of [game.p,game.other].filter(Boolean)){
+          const won=game.decided&&game.winner===player;
           const line=add(card,'div','bracket-player'+(won?' bracket-winner':game.decided?' bracket-loser':''));
-          add(line,'span','bracket-player-name',`#${seedOf(player)===Infinity?'?':seedOf(player)} ${nameOf(player)}`);
+          add(line,'span','bracket-player-name',`#${player.top_cut_seed} ${nameOf(player)}`);
           if(won)add(line,'span','bracket-check','✓');
         }
         add(card,'div','bracket-result',game.decided?`Winner: ${nameOf(game.winner)}`:'Awaiting confirmed result');
       }
     }
-
   }
   async function load(){
     $('status').textContent='Loading snapshot…';state.people=[];state.snapshot=null;render();
