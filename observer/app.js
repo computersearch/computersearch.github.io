@@ -96,11 +96,20 @@
     const players=state.snapshot?.raw?.standings?.players;
     if(!Array.isArray(players))return;
     const byId=new Map(players.map(p=>[Number(p.i),p]));
-    const title=str(state.snapshot?.raw?.tournament?.title).toLowerCase();
-    // Swiss rounds are not elimination matches: TCG has 14, VGC has 12.
-    const swissRounds=title.includes('vgc')?12:14;
+    const raw=state.snapshot.raw;
+    // Top-cut metadata is per player: top_cut_seed is a bracket seed, NOT a Swiss round.
+    const seeded=players.filter(p=>Number.isInteger(Number(p.top_cut_seed)) && Number(p.top_cut_seed)>0 && Number(p.bracket_size)>1);
+    const sizes=[...new Set(seeded.map(p=>Number(p.bracket_size)))];
+    const bracketSize=sizes.length===1?sizes[0]:NaN;
+    const day1=Number(raw.tournament?.day1), day2=Number(raw.tournament?.day2);
+    const swissRounds=Number.isInteger(day1)&&Number.isInteger(day2)&&day1>=0&&day2>=0?day1+day2:null;
+    if(swissRounds===null){add(root,'div','muted','Waiting for tournament Swiss-round metadata.');return;}
+    if(!Number.isInteger(bracketSize)||bracketSize<2||(bracketSize&(bracketSize-1))!==0){
+      add(root,'div','muted','Waiting for a valid player bracket_size.');return;
+    }
+    const stageCount=Math.log2(bracketSize);
     const rounds=new Map();
-    for(const p of players){
+    for(const p of seeded){
       for(let i=swissRounds;i<(p.r||[]).length;i++){
         const entry=p.r[i];if(!Array.isArray(entry))continue;
         const [id,pts]=entry,other=byId.get(Number(id));if(!other || Number(id)<0)continue;
@@ -117,12 +126,16 @@
     if(!rounds.size){add(root,'div','muted','Elimination pairings have not been published in this snapshot.');return;}
     const board=add(root,'div','bracket-board');
     const ordered=[...rounds].sort((a,b)=>a[0]-b[0]);
-    for(const [index,[i,games]] of ordered.entries()){
+    for(let stage=0;stage<stageCount;stage++){
+      const i=swissRounds+stage;
+      const games=rounds.get(i)||[];
       const column=add(board,'section','bracket-column');
-      const label=games.length===8?'Top 16':games.length===4?'Quarterfinals (Top 8)':games.length===2?'Semifinals':games.length===1?'Final':`Elimination round ${i+1-swissRounds}`;
+      const participants=bracketSize/(2**stage);
+      const label=participants===2?'Final':participants===4?'Semifinals':participants===8?'Quarterfinals (Top 8)':`Top ${participants}`;
       add(column,'h3','bracket-heading',label);
       const slots=add(column,'div','bracket-slots');
-      slots.style.setProperty('--round-depth',String(index));
+      slots.style.setProperty('--round-depth',String(stage));
+      if(!games.length)add(slots,'div','muted','Pairings not yet published');
       for(const game of games){
         const card=add(slots,'div','bracket-card'+(game.decided?' complete':''));
         for(const player of [game.p,game.other]){
@@ -138,7 +151,7 @@
   }
   async function load(){
     $('status').textContent='Loading snapshot…';state.people=[];state.snapshot=null;render();
-    try {const response=await fetch(`./data/${encodeURIComponent(state.event)}.json?t=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error('Snapshot not available yet');const snap=await response.json();if(!snap || !snap.raw)throw new Error('Invalid snapshot');state.snapshot=snap;state.people=playersFrom(snap.raw);const eventTitle=snap.raw?.tournament?.title || snap.event_name || state.events.find(e=>e.id===state.event)?.name || 'Tournament';$('event-title').textContent=eventTitle;const option=$('event').selectedOptions[0];if(option)option.textContent=eventTitle;const when=snap.fetched_at?new Date(snap.fetched_at).toLocaleString():'unknown';$('status').textContent=`${state.people.length} players · Updated ${when}`;if(!state.people.length)$('status').textContent='Snapshot fetched, but player fields could not be recognized — check JSON schema';}
+    try {const response=await fetch(`./data/${encodeURIComponent(state.event)}.json?t=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error('Snapshot not available yet');const snap=await response.json();if(!snap || !(snap.raw||snap.standings?.players))throw new Error('Invalid snapshot');state.snapshot=snap.raw?snap:{...snap,raw:snap};state.people=playersFrom(state.snapshot.raw);const eventTitle=snap.raw?.tournament?.title || snap.event_name || state.events.find(e=>e.id===state.event)?.name || 'Tournament';$('event-title').textContent=eventTitle;const option=$('event').selectedOptions[0];if(option)option.textContent=eventTitle;const when=snap.fetched_at?new Date(snap.fetched_at).toLocaleString():'unknown';$('status').textContent=`${state.people.length} players · Updated ${when}`;if(!state.people.length)$('status').textContent='Snapshot fetched, but player fields could not be recognized — check JSON schema';}
     catch(e){$('status').textContent=`No published snapshot: ${e.message}`;}
     render();
   }
