@@ -122,50 +122,75 @@
         observed[stage].set(key,{p,other,winner:decided?(score===3?p:other):null,decided});
       }
     }
-    // Lay out the recorded first-round games according to which winners meet next.
-    // This avoids assuming the tournament follows a conventional 1-v-N seed bracket.
+    // A published pairing is authoritative. Fill absent first-round matches with
+    // unpaired seeded entrants, but never invent a winner for them.
     const first=[...observed[0].values()];
     const used=new Set(first.flatMap(g=>[g.p.top_cut_seed,g.other.top_cut_seed]));
     const remaining=[...entrants.values()].filter(p=>!used.has(p.top_cut_seed)).sort((a,b)=>a.top_cut_seed-b.top_cut_seed);
-    while(remaining.length>=2){first.push({p:remaining.shift(),other:remaining.shift(),winner:null,decided:false});}
+    while(remaining.length>=2)first.push({p:remaining.shift(),other:remaining.shift(),winner:null,decided:false});
     if(remaining.length)first.push({p:remaining.shift(),other:null,winner:null,decided:false});
-    // An unmatched seed is kept visible, but never given an invented opponent or result.
     while(first.length<size/2)first.push(null);
-    const groups=first.map((game,i)=>({games:[game],seeds:new Set(game?[game.p?.top_cut_seed,game.other?.top_cut_seed].filter(Boolean):[]),order:i}));
-    let level=groups;
-    const rounds=[[]];
+    let level=first.map((game,i)=>({game,children:null,seeds:new Set(game?[game.p?.top_cut_seed,game.other?.top_cut_seed].filter(Boolean):[]),order:i}));
+    // Standard seeded ordering of *groups*, not forced first-round pairings.
+    // For four quarterfinal groups this is 1,4,2,3, ensuring the two halves
+    // connect correctly even when the published Top 16 pairings are unusual.
+    function seedOrder(n){
+      if(n<=1)return [1];
+      let order=[1,2];
+      while(order.length<n){const m=order.length*2;order=order.flatMap(x=>[x,m+1-x]);}
+      return order;
+    }
+    function orderGroups(groups){
+      const ranked=[...groups].sort((a,b)=>Math.min(...a.seeds)-Math.min(...b.seeds));
+      const positions=seedOrder(ranked.length);
+      return positions.map(rank=>ranked[rank-1]);
+    }
+    const ordered=Array.from({length:stages},()=>[]);
     for(let stage=1;stage<stages;stage++){
-      const next=[];const available=[...level];
-      const links=[...observed[stage].values()];
-      // Prefer links recorded for this stage; an unconfirmed pairing is still a valid link.
-      for(const link of links){
-        const a=available.find(g=>g.seeds.has(link.p.top_cut_seed));
-        const b=available.find(g=>g.seeds.has(link.other.top_cut_seed));
+      const available=[...level],next=[];
+      // Match the two feeder branches using explicitly published next-round pairings.
+      for(const game of observed[stage].values()){
+        const a=available.find(node=>node.seeds.has(game.p.top_cut_seed));
+        const b=available.find(node=>node.seeds.has(game.other.top_cut_seed));
         if(!a||!b||a===b)continue;
         available.splice(available.indexOf(a),1);available.splice(available.indexOf(b),1);
-        next.push({children:[a,b],seeds:new Set([...a.seeds,...b.seeds]),order:Math.min(a.order,b.order)});
+        next.push({game,children:[a,b],seeds:new Set([...a.seeds,...b.seeds])});
       }
-      available.sort((a,b)=>a.order-b.order);
-      while(available.length>=2){const a=available.shift(),b=available.shift();next.push({children:[a,b],seeds:new Set([...a.seeds,...b.seeds]),order:Math.min(a.order,b.order)});}
-      if(available.length)next.push({children:[available.shift(),null],seeds:new Set(),order:Infinity});
+      // Arrange remaining feeder groups by seeds before joining them. This
+      // keeps the bracket topology stable without fabricating a match result.
+      const groups=stage>1?orderGroups([...next,...available]):null;
+      if(stage===1){
+        // Existing pairings are already nodes; pair any unmatched feeders.
+        const unmatched=orderGroups(available);
+        for(let i=0;i<unmatched.length;i+=2){
+          const a=unmatched[i],b=unmatched[i+1]||null;
+          next.push({game:null,children:[a,b],seeds:new Set([...a.seeds,...(b?.seeds||[])])});
+        }
+      }else{
+        // For subsequent rounds, the complete set of stage nodes is ordered
+        // by its best original seed, then adjacent nodes become opponents.
+        next.length=0;
+        for(let i=0;i<groups.length;i+=2){
+          const a=groups[i],b=groups[i+1]||null;
+          next.push({game:null,children:[a,b],seeds:new Set([...a.seeds,...(b?.seeds||[])])});
+        }
+      }
       level=next;
     }
-    // Traverse the resulting tree to obtain contiguous positions for every round.
-    const ordered=Array.from({length:stages},()=>[]);
-    function walk(node,stage){
-      if(stage===0){ordered[0].push(node?.games?.[0]??null);return;}
-      if(!node){for(let i=0;i<2**stage;i++)ordered[0].push(null);return;}
-      walk(node.children?.[0],stage-1);walk(node.children?.[1],stage-1);
-      ordered[stage].push(node);
+    // Reorder the quarterfinal nodes before constructing semifinals, based on
+    // the original seeds in each quarter (not standings rank or insertion order).
+    // Collect columns in tree order so connectors always lead to the right match.
+    function collect(node,stage){
+      ordered[stage].push(node||null);
+      if(stage>0){collect(node?.children?.[0]||null,stage-1);collect(node?.children?.[1]||null,stage-1);}
     }
-    // Rebuild all round columns by collecting nodes at each depth.
-    const tree=level;
-    const collect=(node,stage)=>{
-      ordered[stage].push(node);
-      if(stage>0){collect(node?.children?.[0]??null,stage-1);collect(node?.children?.[1]??null,stage-1);}
-    };
-    for(const row of ordered)row.length=0;
-    for(const node of tree)collect(node,stages-1);
+    for(const node of level)collect(node,stages-1);
+    function winnerOf(node){
+      if(!node)return null;
+      if(node.game?.decided)return node.game.winner;
+      // An unconfirmed match never produces an inferred winner.
+      return null;
+    }
     const board=add(root,'div','bracket-board');
     for(let stage=0;stage<stages;stage++){
       const participants=size/(2**stage);
@@ -173,19 +198,13 @@
       const column=add(board,'section','bracket-column');add(column,'h3','bracket-heading',label);
       const slots=add(column,'div','bracket-slots');slots.style.setProperty('--round-depth',String(stage));
       for(const node of ordered[stage]){
-        let game=null;
-        if(stage===0)game=node?.games?.[0]??null;
-        else if(node){
-          const children=node.children||[];
-          const candidate=children.map(child=>{
-            if(!child)return null;
-            if(stage===1)return child.games?.[0]?.winner??null;
-            const prior=ordered[stage-1].includes(child)?null:null;
-            return null;
-          });
-          const actual=[...observed[stage].values()].find(g=>node.seeds.has(g.p.top_cut_seed)&&node.seeds.has(g.other.top_cut_seed));
-          if(actual)game=actual;
-          else if(candidate[0]&&candidate[1])game={p:candidate[0],other:candidate[1],winner:null,decided:false};
+        let game=node?.game||null;
+        if(stage>0&&node&&!game){
+          const a=winnerOf(node.children?.[0]);
+          const b=winnerOf(node.children?.[1]);
+          // Projection only: these players won the preceding round, but the
+          // next match has not yet been explicitly published.
+          if(a&&b)game={p:a,other:b,winner:null,decided:false,projected:true};
         }
         if(!game){add(slots,'div','bracket-card muted','Awaiting bracket pairing');continue;}
         const card=add(slots,'div','bracket-card'+(game.decided?' complete':''));
@@ -195,7 +214,7 @@
           add(line,'span','bracket-player-name',`#${player.top_cut_seed} ${nameOf(player)}`);
           if(won)add(line,'span','bracket-check','✓');
         }
-        add(card,'div','bracket-result',game.decided?`Winner: ${nameOf(game.winner)}`:'Awaiting confirmed result');
+        add(card,'div','bracket-result',game.decided?`Winner: ${nameOf(game.winner)}`:game.projected?'Projected pairing · Awaiting published match':'Awaiting confirmed result');
       }
     }
   }
