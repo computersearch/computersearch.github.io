@@ -97,7 +97,8 @@
     if(!Array.isArray(players))return;
     const byId=new Map(players.map(p=>[Number(p.i),p]));
     const title=str(state.snapshot?.raw?.tournament?.title).toLowerCase();
-    const swissRounds=title.includes('vgc')?12:13;
+    // Swiss rounds are not elimination matches: TCG has 14, VGC has 12.
+    const swissRounds=title.includes('vgc')?12:14;
     const rounds=new Map();
     for(const p of players){
       for(let i=swissRounds;i<(p.r||[]).length;i++){
@@ -118,7 +119,7 @@
     const ordered=[...rounds].sort((a,b)=>a[0]-b[0]);
     for(const [index,[i,games]] of ordered.entries()){
       const column=add(board,'section','bracket-column');
-      const label=games.length===4?'Quarterfinals (Top 8)':games.length===2?'Semifinals':games.length===1?'Final':`Round ${i+1}`;
+      const label=games.length===8?'Top 16':games.length===4?'Quarterfinals (Top 8)':games.length===2?'Semifinals':games.length===1?'Final':`Elimination round ${i+1-swissRounds}`;
       add(column,'h3','bracket-heading',label);
       const slots=add(column,'div','bracket-slots');
       slots.style.setProperty('--round-depth',String(index));
