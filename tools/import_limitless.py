@@ -227,6 +227,9 @@ def import_event(tid,delay):
     soup=get(f"/tournaments/{tid}")
     heading=soup.find("h1")
     name=heading.get_text(" ",strip=True) if heading else f"Regional {tid}"
+    # Preserve the city from the Limitless heading, not the numeric event ID.
+    if re.match(r"^Regional\s+.+", name, re.I):
+        name=re.sub(r"^Regional\s+", "", name, flags=re.I).strip()+" Regional Championship"
     is_international=bool(re.search(r"\b(?:International Championships?|EUIC|NAIC|LAIC|OCIC)\b",name,re.I))
     if "Regional" not in name and not is_international:
         raise ValueError("Event is neither a Regional nor an International Championship: "+name)
@@ -264,15 +267,28 @@ def import_event(tid,delay):
             if link not in seen:
                 seen.add(link)
                 links.append(link)
+    # Most recent Limitless Regionals publish decklists inline on the aggregate
+    # /decklists page, without individual /decks/list/ links. Reuse the
+    # 60-card, name-and-placement-verified parser rather than marking them absent.
+    inline_verified=0
+    for path,page in pages:
+        if path != f"/tournaments/{tid}/decklists":
+            continue
+        for item in worlds_decklists(page, players, tid):
+            rank=item["rank"]
+            if rank in players and not players[rank].get("decklist"):
+                players[rank].update(item)
+                inline_verified+=1
+    print(f"Inline verified decklists: {inline_verified}", flush=True)
     print(f"Discovery total: {len(links)} distinct individual decklists",flush=True)
-    verified=0
+    verified=inline_verified
     print(f"Found {len(links)} separate decklist links; checking ALL discovered URLs (no cap)",flush=True)
     for link in links:
         try:
             item=parse_deck(get(link),tid,link)
             if item is None:
                 print(f"SKIP unverified list: {link}",flush=True)
-            if item and item["rank"] in players:
+            if item and item["rank"] in players and not players[item["rank"]].get("decklist"):
                 expected=players[item["rank"]]["name"]
                 # No rank-only merge: the names must match.
                 if re.sub(r"\W+","",expected.casefold())==re.sub(r"\W+","",item["name"].casefold()):
