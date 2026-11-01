@@ -108,27 +108,57 @@
       add(root,'div','muted','Waiting for a valid player bracket_size.');return;
     }
     const stageCount=Math.log2(bracketSize);
-    const rounds=new Map();
-    for(const p of seeded){
-      for(let i=swissRounds;i<(p.r||[]).length;i++){
-        const entry=p.r[i];if(!Array.isArray(entry))continue;
-        const [id,pts]=entry,other=byId.get(Number(id));if(!other || Number(id)<0)continue;
-        const a=Number(p.i),b=Number(other.i);if(!Number.isFinite(a)||!Number.isFinite(b)||a===b||a>b)continue;
+    const seedOf=p=>Number(p?.top_cut_seed)||Infinity;
+    // Standard seeded bracket positions, used as a fallback when future pairings are unpublished.
+    let seedOrder=[1];
+    while(seedOrder.length<bracketSize){
+      const total=seedOrder.length*2+1;
+      seedOrder=seedOrder.flatMap(seed=>[seed,total-seed]);
+    }
+    const seedPosition=new Map(seedOrder.map((seed,index)=>[seed,index]));
+    const position=p=>seedPosition.get(seedOf(p))??bracketSize;
+    const rounds=Array.from({length:stageCount},()=>[]);
+    const seen=Array.from({length:stageCount},()=>new Set());
+    // Read each recorded pairing once, even when only one player has top-cut metadata.
+    for(const p of players){
+      for(let stage=0;stage<stageCount;stage++){
+        const i=swissRounds+stage,entry=p.r?.[i];
+        if(!Array.isArray(entry))continue;
+        const other=byId.get(Number(entry[0]));
+        if(!other || Number(other.i)===Number(p.i))continue;
+        const a=Number(p.i),b=Number(other.i);
+        const key=[a,b].sort((x,y)=>x-y).join(':');
+        if(seen[stage].has(key))continue;
+        seen[stage].add(key);
         const reverse=other.r?.[i];
         const reciprocal=Array.isArray(reverse)&&Number(reverse[0])===a;
-        const score=Number(pts),otherScore=reciprocal?Number(reverse[1]):-1;
+        const score=Number(entry[1]),otherScore=reciprocal?Number(reverse[1]):-1;
         const decided=reciprocal&&((score===3&&otherScore===0)||(score===0&&otherScore===3));
         const winner=decided?(score===3?p:other):null;
-        if(!rounds.has(i))rounds.set(i,[]);
-        rounds.get(i).push({p,other,winner,decided});
+        rounds[stage].push({p,other,winner,decided,key});
       }
     }
-    if(!rounds.size){add(root,'div','muted','Elimination pairings have not been published in this snapshot.');return;}
+    if(!rounds.some(games=>games.length)){
+      add(root,'div','muted','Elimination pairings have not been published in this snapshot.');return;
+    }
+    // Arrange later rounds first, then place each feeder match directly beside the
+    // match its winner actually advances into. Rankings never decide winners.
+    const sortBySeed=(a,b)=>Math.min(position(a.p),position(a.other))-Math.min(position(b.p),position(b.other));
+    for(const games of rounds)games.sort(sortBySeed);
+    for(let stage=stageCount-2;stage>=0;stage--){
+      const remaining=[...rounds[stage]],ordered=[];
+      for(const next of rounds[stage+1]){
+        for(const participant of [next.p,next.other]){
+          const index=remaining.findIndex(game=>
+            Number(game.p.i)===Number(participant.i)||Number(game.other.i)===Number(participant.i));
+          if(index>=0)ordered.push(remaining.splice(index,1)[0]);
+        }
+      }
+      rounds[stage]=[...ordered,...remaining];
+    }
     const board=add(root,'div','bracket-board');
-    const ordered=[...rounds].sort((a,b)=>a[0]-b[0]);
     for(let stage=0;stage<stageCount;stage++){
-      const i=swissRounds+stage;
-      const games=rounds.get(i)||[];
+      const games=rounds[stage];
       const column=add(board,'section','bracket-column');
       const participants=bracketSize/(2**stage);
       const label=participants===2?'Final':participants===4?'Semifinals':participants===8?'Quarterfinals (Top 8)':`Top ${participants}`;
@@ -138,10 +168,10 @@
       if(!games.length)add(slots,'div','muted','Pairings not yet published');
       for(const game of games){
         const card=add(slots,'div','bracket-card'+(game.decided?' complete':''));
-        for(const player of [game.p,game.other]){
+        for(const player of [game.p,game.other].sort((a,b)=>position(a)-position(b))){
           const won=game.decided&&Number(game.winner.i)===Number(player.i);
           const line=add(card,'div','bracket-player'+(won?' bracket-winner':game.decided?' bracket-loser':''));
-          add(line,'span','bracket-player-name',nameOf(player));
+          add(line,'span','bracket-player-name',`#${seedOf(player)===Infinity?'?':seedOf(player)} ${nameOf(player)}`);
           if(won)add(line,'span','bracket-check','✓');
         }
         add(card,'div','bracket-result',game.decided?`Winner: ${nameOf(game.winner)}`:'Awaiting confirmed result');
