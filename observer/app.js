@@ -117,45 +117,37 @@
     }
     const seedPosition=new Map(seedOrder.map((seed,index)=>[seed,index]));
     const position=p=>seedPosition.get(seedOf(p))??bracketSize;
-    const rounds=Array.from({length:stageCount},()=>[]);
-    const seen=Array.from({length:stageCount},()=>new Set());
-    // Read each recorded pairing once, even when only one player has top-cut metadata.
-    for(const p of players){
-      for(let stage=0;stage<stageCount;stage++){
-        const i=swissRounds+stage,entry=p.r?.[i];
-        if(!Array.isArray(entry))continue;
+    // Only players with a valid Top Cut seed are eligible for bracket slots.
+    const entrants=new Map(seeded.filter(p=>Number(p.bracket_size)===bracketSize && seedPosition.has(seedOf(p))).map(p=>[seedOf(p),p]));
+    const slotsByStage=Array.from({length:stageCount},(_,stage)=>Array.from({length:bracketSize/(2**(stage+1))},()=>null));
+    // Place first-round players in canonical seeded positions (1 v N, 8 v 9, etc.).
+    for(let slot=0;slot<bracketSize/2;slot++){
+      const p=entrants.get(seedOrder[slot*2]),other=entrants.get(seedOrder[slot*2+1]);
+      if(p&&other)slotsByStage[0][slot]={p,other,winner:null,decided:false};
+    }
+    // Only reciprocal results between seeded entrants count as elimination results.
+    // Later-round matches are assigned to their fixed bracket subtree, never reordered by standings.
+    for(let stage=0;stage<stageCount;stage++){
+      const roundIndex=swissRounds+stage;
+      for(const p of entrants.values()){
+        const entry=p.r?.[roundIndex];if(!Array.isArray(entry))continue;
         const other=byId.get(Number(entry[0]));
-        if(!other || Number(other.i)===Number(p.i))continue;
-        const a=Number(p.i),b=Number(other.i);
-        const key=[a,b].sort((x,y)=>x-y).join(':');
-        if(seen[stage].has(key))continue;
-        seen[stage].add(key);
-        const reverse=other.r?.[i];
-        const reciprocal=Array.isArray(reverse)&&Number(reverse[0])===a;
+        if(!other || !entrants.has(seedOf(other)) || entrants.get(seedOf(other))!==other)continue;
+        const posA=position(p),posB=position(other);
+        const block=2**(stage+1);
+        if(Math.floor(posA/block)!==Math.floor(posB/block))continue;
+        const slot=Math.floor(posA/block);
+        const reverse=other.r?.[roundIndex];
+        const reciprocal=Array.isArray(reverse)&&Number(reverse[0])===Number(p.i);
         const score=Number(entry[1]),otherScore=reciprocal?Number(reverse[1]):-1;
         const decided=reciprocal&&((score===3&&otherScore===0)||(score===0&&otherScore===3));
         const winner=decided?(score===3?p:other):null;
-        rounds[stage].push({p,other,winner,decided,key});
+        const game=slotsByStage[stage][slot];
+        if(stage===0 && game){game.winner=winner;game.decided=decided;}
+        else if(stage>0){slotsByStage[stage][slot]={p,other,winner,decided};}
       }
     }
-    if(!rounds.some(games=>games.length)){
-      add(root,'div','muted','Elimination pairings have not been published in this snapshot.');return;
-    }
-    // Arrange later rounds first, then place each feeder match directly beside the
-    // match its winner actually advances into. Rankings never decide winners.
-    const sortBySeed=(a,b)=>Math.min(position(a.p),position(a.other))-Math.min(position(b.p),position(b.other));
-    for(const games of rounds)games.sort(sortBySeed);
-    for(let stage=stageCount-2;stage>=0;stage--){
-      const remaining=[...rounds[stage]],ordered=[];
-      for(const next of rounds[stage+1]){
-        for(const participant of [next.p,next.other]){
-          const index=remaining.findIndex(game=>
-            Number(game.p.i)===Number(participant.i)||Number(game.other.i)===Number(participant.i));
-          if(index>=0)ordered.push(remaining.splice(index,1)[0]);
-        }
-      }
-      rounds[stage]=[...ordered,...remaining];
-    }
+    const rounds=slotsByStage;
     const board=add(root,'div','bracket-board');
     for(let stage=0;stage<stageCount;stage++){
       const games=rounds[stage];
@@ -165,8 +157,8 @@
       add(column,'h3','bracket-heading',label);
       const slots=add(column,'div','bracket-slots');
       slots.style.setProperty('--round-depth',String(stage));
-      if(!games.length)add(slots,'div','muted','Pairings not yet published');
       for(const game of games){
+        if(!game){add(slots,'div','bracket-card muted','Awaiting bracket pairing');continue;}
         const card=add(slots,'div','bracket-card'+(game.decided?' complete':''));
         for(const player of [game.p,game.other].sort((a,b)=>position(a)-position(b))){
           const won=game.decided&&Number(game.winner.i)===Number(player.i);
