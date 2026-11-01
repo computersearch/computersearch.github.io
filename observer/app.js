@@ -98,6 +98,21 @@
     let order=[1,2];
     while(order.length<size){const n=order.length*2;order=order.flatMap(s=>[s,n+1-s]);}
     const rounds=Math.log2(size);
+    // Advance only a player whose elimination match is explicitly recorded as a win
+    // against the other player in this bracket pairing. Never infer winners from rank.
+    function confirmedWinner(a,b){
+      if(!a||!b)return null;
+      const match=(p,other)=>Array.isArray(p.r)&&p.r.slice(13).some(entry=>
+        Array.isArray(entry)&&Number(entry[0])===Number(other.i)&&Number(entry[1])===3);
+      const aw=match(a,b),bw=match(b,a);
+      return aw&&!bw?a:bw&&!aw?b:null;
+    }
+    const stages=[order.map(seed=>bySeed.get(seed)||null)];
+    for(let round=1;round<=rounds;round++){
+      const prev=stages[round-1],next=[];
+      for(let i=0;i<prev.length;i+=2)next.push(confirmedWinner(prev[i],prev[i+1]));
+      stages.push(next);
+    }
     const canvas=add(root,'div','bracket-canvas');canvas.style.width=`${(rounds+1)*220+24}px`;
     canvas.style.height=`${size*38+35}px`;
     const slotY=(round,index)=>((2**round)*(index+.5)*38-19);
@@ -107,10 +122,10 @@
       heading.style.left=`${round*220}px`;
       for(let index=0;index<count;index++){
         const seed=round===0?order[index]:null;
-        const p=seed===null?null:bySeed.get(seed);
-        const slot=add(canvas,'div','bracket-slot'+(p?' confirmed':' pending'),p?`#${seed}  ${nameOf(p)}`:round===0?`#${seed}  Awaiting player`:'—');
+        const p=stages[round][index];
+        const slot=add(canvas,'div','bracket-slot'+(p?' confirmed':' pending'),p?`#${p.top_cut_seed}  ${nameOf(p)}`:round===0?`#${seed}  Awaiting player`:'—');
         slot.style.left=`${round*220}px`;slot.style.top=`${slotY(round,index)+30}px`;
-        if(p){slot.title=`Seed #${seed} · ${nameOf(p)}`;if(watched().includes(watchKey(p)))slot.classList.add('watched-seed');}
+        if(p){slot.title=`Seed #${p.top_cut_seed} · ${nameOf(p)}`;if(watched().includes(watchKey(p)))slot.classList.add('watched-seed');}
       }
       if(round<rounds){for(let i=0;i<count;i+=2){
         const x=round*220+192, nextX=(round+1)*220;
@@ -120,8 +135,9 @@
         }
       }}
     }
-    $('top-cut-note').textContent='Only confirmed seeds are shown. Later-round winners remain blank until reliable elimination results are available.';
-    /* add(section,'div','bracket-note','Only confirmed seeds are shown. Later-round winners will remain blank until reliable elimination results are available.'); */
+    const completed=stages.slice(1).reduce((sum,stage)=>sum+stage.filter(Boolean).length,0);
+    $('top-cut-note').textContent=`${completed} confirmed elimination wins. Players advance only when their match result is recorded as a win; pending matches remain unfilled.`;
+
   }
 
   function stat(box,label,value){const x=add(box,'div','stat');add(x,'small','',label);add(x,'strong','',value);}
