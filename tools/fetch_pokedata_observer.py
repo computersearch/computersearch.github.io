@@ -29,7 +29,7 @@ def fetch(url):
 
 
 def configured_events():
-    """Read one Pokédata standings URL per line; ignore blanks and # comments."""
+    """Read URL per line; prefix with inactive| to retain without polling."""
     import re
     urls = []
     seen = set()
@@ -37,6 +37,10 @@ def configured_events():
         url = line.strip()
         if not url or url.startswith('#'):
             continue
+        active = True
+        if url.lower().startswith('inactive|'):
+            active = False
+            url = url.split('|', 1)[1].strip()
         match = re.fullmatch(r'https://www\.pokedata\.ovh/standings2/standings/([A-Za-z0-9_-]+)\.json', url)
         if not match:
             raise ValueError(f'Invalid Pokédata URL on events.txt line {lineno}: {url}')
@@ -46,7 +50,7 @@ def configured_events():
             continue
         seen.add(event_id)
         division = original_id.rsplit('_', 1)[-1] if '_' in original_id else ''
-        urls.append({'id': event_id, 'name': original_id.replace('_', ' '), 'division': division, 'source': url, 'enabled': True})
+        urls.append({'id': event_id, 'name': original_id.replace('_', ' '), 'division': division, 'source': url, 'enabled': True, 'active': active})
     return urls
 
 
@@ -61,7 +65,11 @@ def event_title(raw, fallback):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--event', help='Fetch only one configured event ID')
+    parser.add_argument('--force', action='store_true', help='Allow fetching inactive event (requires --event)')
     args = parser.parse_args()
+    if args.force and not args.event:
+        parser.error('--force requires --event')
+
     config = configured_events()
     DATA.mkdir(parents=True, exist_ok=True)
     failed = 0
@@ -77,17 +85,30 @@ def main():
             event['name'] = previous[event_id].get('name') or event['name']
         if args.event and args.event.lower() != event_id:
             continue
+        if not event['active'] and not args.force:
+            print(f'SKIPPED {event_id}: inactive; existing snapshot retained')
+            continue
         selected += 1
         dest = DATA / (event_id + '.json')
         try:
             raw = fetch(event['source'])
             event['name'] = event_title(raw, event['name'])
+            try:
+                existing = json.loads(dest.read_text(encoding='utf-8'))
+            except (OSError, ValueError, TypeError):
+                existing = None
+            if (isinstance(existing, dict) and existing.get('raw') == raw
+                    and existing.get('event_name') == event['name']
+                    and existing.get('division') == event['division']
+                    and existing.get('source') == event['source']):
+                print(f'UNCHANGED {event_id}: no snapshot rewrite')
+                continue
             stamp = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
             snapshot = {'event_id': event_id, 'event_name': event['name'], 'division': event['division'], 'source': event['source'], 'fetched_at': stamp, 'raw': raw}
             tmp = dest.with_suffix('.json.tmp')
             tmp.write_text(json.dumps(snapshot, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
             tmp.replace(dest)
-            print(f'Fetched {event_id}: {len(json.dumps(raw))} characters')
+            print(f'UPDATED {event_id}: {len(json.dumps(raw))} characters')
         except (urllib.error.URLError, ValueError, TimeoutError, OSError, json.JSONDecodeError) as exc:
             failed += 1
             print(f'FAILED {event_id}: {exc}; keeping existing snapshot')
@@ -97,7 +118,12 @@ def main():
     # Only publish events that already have a snapshot, so new URLs are selectable
     # as soon as their first fetch succeeds.
     published = [e for e in config if (DATA / (e['id'] + '.json')).exists()]
-    MANIFEST.write_text(json.dumps({'events': published}, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    manifest_text = json.dumps({'events': published}, ensure_ascii=False, indent=2) + '\n'
+    if not MANIFEST.exists() or MANIFEST.read_text(encoding='utf-8') != manifest_text:
+        MANIFEST.write_text(manifest_text, encoding='utf-8')
+        print('UPDATED events.json')
+    else:
+        print('UNCHANGED events.json')
     if failed:
         raise SystemExit(1)
 

@@ -1,2 +1,4 @@
-https://www.pokedata.ovh/standings2/standings/1000079_Masters.json
-https://www.pokedata.ovh/standings2/standings/1000080_Masters.json
+# URL = active polling; inactive|URL = retain in Observer without polling.
+# To refresh an inactive event manually: python tools/fetch_pokedata_observer.py --event EVENT_ID --force
+inactive|https://www.pokedata.ovh/standings2/standings/1000079_Masters.json
+inactive|https://www.pokedata.ovh/standings2/standings/1000080_Masters.json
