@@ -78,9 +78,17 @@
   }
   function stat(box,label,value){const x=add(box,'div','stat');add(x,'small','',label);add(x,'strong','',value);}
   function render(){
-    renderSuggestions(); try { renderBracket(); } catch (error) { console.error('Bracket rendering failed:',error); const bracket=$('bracket'); if(bracket){bracket.replaceChildren();add(bracket,'div','muted','Bracket temporarily unavailable. Player history is still accessible.');} } const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
+    renderSuggestions(); renderBracket(); const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
-    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
+    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){
+        const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);
+        const seed=Number(p.top_cut_seed), size=Number(p.bracket_size);
+        if(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size){
+          const badges=add(left,'div','top-cut-badges');
+          add(badges,'span','top-cut-badge',`Top Cut · Top ${size}`);
+          add(badges,'span','seed-badge',`Seed #${seed}`);
+        }
+      }else add(left,'div','muted','Not present in latest snapshot');
       const controls=add(top,'div','watch-controls');
       const up=btn('↑',()=>moveWatch(key,-1),'move-player');up.title='Move player up';up.setAttribute('aria-label',`Move ${p?nameOf(p):key} up`);up.disabled=position===0;controls.append(up);
       const down=btn('↓',()=>moveWatch(key,1),'move-player');down.title='Move player down';down.setAttribute('aria-label',`Move ${p?nameOf(p):key} down`);down.disabled=position===keys.length-1;controls.append(down);
@@ -141,33 +149,41 @@
       return order;
     }
     function orderGroups(groups){
-      if(groups.length<=1)return [...groups];
       const ranked=[...groups].sort((a,b)=>Math.min(...a.seeds)-Math.min(...b.seeds));
-      // The canonical seed ordering is only defined for powers of two.
-      // Incomplete groups are kept in deterministic seed order.
-      if((ranked.length&(ranked.length-1))!==0)return ranked;
-      return seedOrder(ranked.length).map(rank=>ranked[rank-1]);
+      const positions=seedOrder(ranked.length);
+      return positions.map(rank=>ranked[rank-1]);
     }
     const ordered=Array.from({length:stages},()=>[]);
     for(let stage=1;stage<stages;stage++){
-      const available=[...level], next=[];
-      // Explicitly recorded pairings take precedence over inferred positions.
+      const available=[...level],next=[];
+      // Match the two feeder branches using explicitly published next-round pairings.
       for(const game of observed[stage].values()){
-        const a=available.find(node=>node?.seeds?.has(game.p.top_cut_seed));
-        const b=available.find(node=>node?.seeds?.has(game.other.top_cut_seed));
+        const a=available.find(node=>node.seeds.has(game.p.top_cut_seed));
+        const b=available.find(node=>node.seeds.has(game.other.top_cut_seed));
         if(!a||!b||a===b)continue;
-        available.splice(available.indexOf(a),1);
-        available.splice(available.indexOf(b),1);
+        available.splice(available.indexOf(a),1);available.splice(available.indexOf(b),1);
         next.push({game,children:[a,b],seeds:new Set([...a.seeds,...b.seeds])});
       }
-      // Pair only remaining feeder branches; never overwrite a recorded game.
-      const unmatched=orderGroups(available.filter(Boolean));
-      for(let i=0;i<unmatched.length;i+=2){
-        const a=unmatched[i],b=unmatched[i+1]||null;
-        next.push({game:null,children:[a,b],seeds:new Set([...a.seeds,...(b?.seeds||[])])});
+      // Arrange remaining feeder groups by seeds before joining them. This
+      // keeps the bracket topology stable without fabricating a match result.
+      const groups=stage>1?orderGroups([...next,...available]):null;
+      if(stage===1){
+        // Existing pairings are already nodes; pair any unmatched feeders.
+        const unmatched=orderGroups(available);
+        for(let i=0;i<unmatched.length;i+=2){
+          const a=unmatched[i],b=unmatched[i+1]||null;
+          next.push({game:null,children:[a,b],seeds:new Set([...a.seeds,...(b?.seeds||[])])});
+        }
+      }else{
+        // For subsequent rounds, the complete set of stage nodes is ordered
+        // by its best original seed, then adjacent nodes become opponents.
+        next.length=0;
+        for(let i=0;i<groups.length;i+=2){
+          const a=groups[i],b=groups[i+1]||null;
+          next.push({game:null,children:[a,b],seeds:new Set([...a.seeds,...(b?.seeds||[])])});
+        }
       }
-      // Keep the next column in bracket order, preserving every feeder branch.
-      level=orderGroups(next);
+      level=next;
     }
     // Reorder the quarterfinal nodes before constructing semifinals, based on
     // the original seeds in each quarter (not standings rank or insertion order).
@@ -181,6 +197,20 @@
       if(!node)return null;
       if(node.game?.decided)return node.game.winner;
       // An unconfirmed match never produces an inferred winner.
+      return null;
+    }
+    function matchTable(game,stage){
+      if(!game?.p||!game?.other)return null;
+      const index=swiss+stage;
+      const a=game.p.r?.[index],b=game.other.r?.[index];
+      const idA=Number(game.p.i),idB=Number(game.other.i);
+      const aMatches=Array.isArray(a)&&Number(a[0])===idB;
+      const bMatches=Array.isArray(b)&&Number(b[0])===idA;
+      const ta=aMatches?Number(a[2]):NaN;
+      const tb=bMatches?Number(b[2]):NaN;
+      if(aMatches&&bMatches&&Number.isInteger(ta)&&ta>0&&ta===tb)return ta;
+      if(aMatches&&Number.isInteger(ta)&&ta>0&&!bMatches)return ta;
+      if(bMatches&&Number.isInteger(tb)&&tb>0&&!aMatches)return tb;
       return null;
     }
     const board=add(root,'div','bracket-board');
@@ -203,10 +233,11 @@
         for(const player of [game.p,game.other].filter(Boolean)){
           const won=game.decided&&game.winner===player;
           const line=add(card,'div','bracket-player'+(won?' bracket-winner':game.decided?' bracket-loser':''));
-          add(line,'span','bracket-player-name',`#${player.top_cut_seed} ${nameOf(player)}`);
+          add(line,'span','bracket-player-name',`#${player.top_cut_seed} ${flag(country(player))} ${nameOf(player)}`);
           if(won)add(line,'span','bracket-check','✓');
         }
-        add(card,'div','bracket-result',game.decided?`Winner: ${nameOf(game.winner)}`:game.projected?'Projected pairing · Awaiting published match':'Awaiting confirmed result');
+        const table=matchTable(game,stage);
+        add(card,'div','bracket-result',table!==null?`Table ${table}`:'Table not assigned');
       }
     }
   }
