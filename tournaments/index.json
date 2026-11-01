@@ -11,23 +11,23 @@
   },
   {
     "id": "limitless-582",
-    "name": "Regional Nice – Limitless",
+    "name": "Regional 582",
     "date": "2026-10-17",
     "file": "limitless-582.json",
     "source": "https://limitlesstcg.com/tournaments/582",
-    "day2_only": true,
-    "day2_players": 429,
-    "verified_decks": 429
+    "verified_decks": 329,
+    "event_type": "Regional Championships",
+    "day2_verified_count": 429
   },
   {
     "id": "limitless-581",
-    "name": "Regional Louisville, KY – Limitless",
-    "date": "2026-10-09",
+    "name": "Regional 581",
+    "date": "2026-10-10",
     "file": "limitless-581.json",
     "source": "https://limitlesstcg.com/tournaments/581",
-    "day2_only": true,
-    "day2_players": 547,
-    "verified_decks": 547
+    "verified_decks": 411,
+    "event_type": "Regional Championships",
+    "day2_verified_count": 547
   },
   {
     "id": "limitless-580",
