@@ -138,8 +138,13 @@
       const index=swiss+stage; // zero-based: first Top Cut round follows all Swiss rounds
       for(const p of entrants.values()){
         const entry=p.r?.[index]; if(!Array.isArray(entry))continue;
-        const other=byId.get(Number(entry[0])); if(!valid(other)||other===p)continue;
-        const key=pairKey(p,other);if(observed[stage].has(key))continue;
+        const other=byId.get(Number(entry[0]));
+        // In some snapshots a seeded entrant has a published opponent whose
+        // top-cut metadata is missing. Keep that actual first-round match;
+        // subsequent rounds still require seeded feeder participants.
+        if(!other||other===p||(stage>0&&!valid(other)))continue;
+        const key=[Number(p.i),Number(other.i)].sort((a,b)=>a-b).join(':');
+        if(observed[stage].has(key))continue;
         const reverse=other.r?.[index];
         const reciprocal=Array.isArray(reverse)&&Number(reverse[0])===Number(p.i);
         const score=Number(entry[1]),otherScore=reciprocal?Number(reverse[1]):NaN;
