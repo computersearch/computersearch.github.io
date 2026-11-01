@@ -265,6 +265,28 @@ def regional_name(tid, soup, listing_label=None):
     raise ValueError(f"Could not verify city for Regional {tid}; refusing to overwrite its name with an ID")
 
 
+def valid_list(player):
+    cards = player.get("decklist")
+    return isinstance(cards, list) and bool(cards) and sum(
+        c.get("quantity", 0) for c in cards if isinstance(c, dict)) == 60
+
+
+def same_player(a, b):
+    from unicodedata import normalize
+    def norm(value):
+        return re.sub(r"[^a-z0-9]", "", normalize("NFKD", str(value or "")).casefold().encode("ascii", "ignore").decode())
+    return norm(a.get("name")) == norm(b.get("name"))
+
+
+def save_if_changed(path, value):
+    content = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+    if path.exists() and path.read_text() == content:
+        print(f"UNCHANGED: {path.name}; no rewrite", flush=True)
+        return False
+    path.write_text(content)
+    return True
+
+
 def import_event(tid,delay,listing_label=None):
     print(f"Checking Limitless tournament {tid}",flush=True)
     soup=get(f"/tournaments/{tid}")
@@ -274,6 +296,22 @@ def import_event(tid,delay,listing_label=None):
     # Import every standings row shown by the source, without a rank cap.
     # Do not confuse the event's Day 2 count with a standings limit.
     players=standings(soup)
+    existing_path=OUT/f"limitless-{tid}.json"
+    previous={}
+    if existing_path.exists():
+        try:
+            previous_data=json.loads(existing_path.read_text())
+            previous={p["rank"]:p for p in previous_data.get("standings",[]) if isinstance(p,dict) and isinstance(p.get("rank"),int)}
+        except (ValueError, OSError, KeyError, TypeError) as exc:
+            print(f"WARNING: Could not reuse existing data: {exc}",flush=True)
+    reused=0
+    for rank,player in players.items():
+        old=previous.get(rank)
+        if old and same_player(old,player) and valid_list(old):
+            for field in ("deck", "decklist", "decklist_url"):
+                player[field]=old.get(field)
+            reused+=1
+    print(f"Reused {reused} previously verified 60-card lists",flush=True)
     print(f"Standings overview: {len(players)} players, highest rank "
           f"{max(players, default=0)}",flush=True)
     try:
@@ -314,28 +352,34 @@ def import_event(tid,delay,listing_label=None):
             continue
         for item in worlds_decklists(page, players, tid):
             rank=item["rank"]
-            if rank in players and not players[rank].get("decklist"):
-                players[rank].update(item)
-                inline_verified+=1
+            if rank in players and same_player(players[rank],item):
+                old=players[rank]
+                # A current, verified inline list is authoritative even if its cards changed.
+                if any(old.get(k)!=item.get(k) for k in ("deck", "decklist", "decklist_url")):
+                    old.update(item)
+                    inline_verified+=1
     print(f"Inline verified decklists: {inline_verified}", flush=True)
     print(f"Discovery total: {len(links)} distinct individual decklists",flush=True)
-    verified=inline_verified
-    print(f"Found {len(links)} separate decklist links; checking ALL discovered URLs (no cap)",flush=True)
-    for link in links:
-        try:
-            item=parse_deck(get(link),tid,link)
-            if item is None:
-                print(f"SKIP unverified list: {link}",flush=True)
-            if item and item["rank"] in players and not players[item["rank"]].get("decklist"):
-                expected=players[item["rank"]]["name"]
-                # No rank-only merge: the names must match.
-                if re.sub(r"\W+","",expected.casefold())==re.sub(r"\W+","",item["name"].casefold()):
-                    players[item["rank"]].update(item)
-                    verified+=1
-                else:print(f"Name mismatch at #{item['rank']}: {expected!r} vs {item['name']!r}")
-        except (requests.RequestException,ValueError) as exc:
-            print(f"SKIP {link}: {exc}")
-        time.sleep(delay)
+    # Only use individual pages when the aggregate page cannot provide a list.
+    # Individual links have no reliable player identity until fetched, so stop
+    # as soon as every player has a validated list.
+    missing=sum(not valid_list(p) for p in players.values())
+    print(f"Missing verified lists after inline scan: {missing}; individual URLs available: {len(links)}",flush=True)
+    if missing:
+        for link in links:
+            if not missing:
+                break
+            try:
+                item=parse_deck(get(link),tid,link)
+                if item and item["rank"] in players:
+                    target=players[item["rank"]]
+                    if not valid_list(target) and same_player(target,item):
+                        target.update(item)
+                        missing-=1
+            except (requests.RequestException,ValueError) as exc:
+                print(f"SKIP {link}: {exc}",flush=True)
+            time.sleep(delay)
+    verified=sum(valid_list(p) for p in players.values())
     # All placements are eligible for decklist validation, regardless of rank.
     # Day 2 is a separate, evidence-based flag, never inferred from placement.
     explicit_day2 = set()
@@ -351,7 +395,9 @@ def import_event(tid,delay,listing_label=None):
         explicit_day2.update(players)
         print(f"Regional Phase 2: source confirms all {len(players)} standings players", flush=True)
     for rank, player in players.items():
-        player["day2"] = rank in explicit_day2
+        old=previous.get(rank)
+        player["day2"] = (rank in explicit_day2 or
+                          bool(old and same_player(old,player) and old.get("day2")))
     print(f"Regional Day 2: {len(explicit_day2)} explicitly confirmed of "
           f"{len(players)} standings players; others unconfirmed (day2=false)", flush=True)
     if not explicit_day2:
@@ -373,14 +419,14 @@ def import_event(tid,delay,listing_label=None):
         note="All published standings are retained. Day 2 is marked true only with explicit player-level or roster-level source evidence; only validated 60-card decklists are attached.")
     OUT.mkdir(exist_ok=True)
     filename=f"limitless-{tid}.json"
-    (OUT/filename).write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n")
+    save_if_changed(OUT/filename, result)
     indexfile=OUT/"index.json"
     index=json.loads(indexfile.read_text()) if indexfile.exists() else []
     entry=dict(id=result["id"],name=name,date=date,file=filename,source=result["source"],verified_decks=verified,
         event_type=result["event_type"],day2_verified_count=result["day2_verified_count"])
     index=[x for x in index if x.get("id")!=entry["id"]]+[entry]
     index.sort(key=lambda x:x.get("date",""),reverse=True)
-    indexfile.write_text(json.dumps(index,ensure_ascii=False,indent=2)+"\n")
+    save_if_changed(indexfile, index)
     print(f"SUCCESS: {name}: {len(players)} placements, {verified} verified 60-card lists")
     return True
 
@@ -393,7 +439,7 @@ def main():
     args=p.parse_args()
     if args.max_decks is not None:
         print("INFO: --max-decks is deprecated and ignored; processing all discovered decklist URLs",flush=True)
-    ids=[(args.tournament_id,"manual")] if args.tournament_id else tournament_ids()[:3]
+    ids=[(args.tournament_id,"manual")] if args.tournament_id else tournament_ids()[:2]
     if not ids:raise RuntimeError("No recent Regional Championships found on Limitless")
     successful=[]
     unsuccessful=[]
