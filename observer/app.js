@@ -106,6 +106,16 @@
       for(let i=0;i<rounds.length;i++){const m=rounds[i];if(!m||typeof m!=='object')continue;const row=add(history,'div','match');add(row,'div','muted',`R${val(m,['round','roundNumber','round_number'])??i+1}`);const center=add(row,'div');const opp=opponent(m);const oc=val(m,['opponentCountry']);add(center,'div','',opp?(opp+(oc?' '+flag(oc):'')):'Opponent unavailable');const table=val(m,['table','tableNumber','table_number']);add(center,'div','tiny',table!==undefined && table!==null && table!==''?`Table ${table}`:'No table');const r=result(m);if(r==='Pending'){const badge=add(row,'div','result still-playing');add(badge,'span','live-dot');add(badge,'span','','Still playing');}else add(row,'div','result '+(/win|bye/i.test(r)?'win':/loss|lose/i.test(r)?'loss':/tie|draw/i.test(r)?'tie':''),r);}
     }
   }
+  // Pokédata stores Swiss rounds separately from the elimination records.
+  // Never infer the Top Cut start from a player's round count: byes and
+  // incomplete live records can make those counts differ.
+  function swissRoundCount(tournament){
+    if(!tournament || typeof tournament !== 'object')return null;
+    const day1=Number(tournament.day1),day2=Number(tournament.day2);
+    if(!Number.isInteger(day1)||day1<0||!Number.isInteger(day2)||day2<0)return null;
+    const total=day1+day2;
+    return total>0?total:null;
+  }
   function renderBracket(){
     const root=$('bracket'); if(!root)return; root.replaceChildren();
     const raw=state.snapshot?.raw;
@@ -114,7 +124,7 @@
     const seeded=players.filter(p=>Number.isInteger(p.top_cut_seed)&&p.top_cut_seed>0&&Number.isInteger(p.bracket_size)&&p.bracket_size>1);
     const sizes=[...new Set(seeded.map(p=>p.bracket_size))];
     const size=sizes.length===1?sizes[0]:NaN;
-    const swiss=Number(raw.tournament?.day1)+Number(raw.tournament?.day2);
+    const swiss=swissRoundCount(raw.tournament);
     if(!Number.isInteger(size)||size<2||(size&(size-1))!==0||!Number.isInteger(swiss)||swiss<1){
       add(root,'div','muted','Waiting for valid top-cut and Swiss-round metadata.');return;
     }
@@ -125,7 +135,7 @@
     const pairKey=(a,b)=>[a.top_cut_seed,b.top_cut_seed].sort((x,y)=>x-y).join(':');
     const observed=Array.from({length:stages},()=>new Map());
     for(let stage=0;stage<stages;stage++){
-      const index=swiss+stage;
+      const index=swiss+stage; // zero-based: first Top Cut round follows all Swiss rounds
       for(const p of entrants.values()){
         const entry=p.r?.[index]; if(!Array.isArray(entry))continue;
         const other=byId.get(Number(entry[0])); if(!valid(other)||other===p)continue;
@@ -137,13 +147,21 @@
         observed[stage].set(key,{p,other,winner:decided?(score===3?p:other):null,decided});
       }
     }
-    // A published pairing is authoritative. Fill absent first-round matches with
-    // unpaired seeded entrants, but never invent a winner for them.
+    // First-round byes are explicit entries with opponent ID -1. A bye
+    // occupies its own bracket slot and advances its player automatically.
+    // Never pair two bye recipients with one another.
     const first=[...observed[0].values()];
     const used=new Set(first.flatMap(g=>[g.p.top_cut_seed,g.other.top_cut_seed]));
-    const remaining=[...entrants.values()].filter(p=>!used.has(p.top_cut_seed)).sort((a,b)=>a.top_cut_seed-b.top_cut_seed);
-    while(remaining.length>=2)first.push({p:remaining.shift(),other:remaining.shift(),winner:null,decided:false});
-    if(remaining.length)first.push({p:remaining.shift(),other:null,winner:null,decided:false});
+    for(const p of entrants.values()){
+      const entry=p.r?.[swiss];
+      if(!used.has(p.top_cut_seed)&&Array.isArray(entry)&&Number(entry[0])===-1){
+        first.push({p,other:null,winner:p,decided:true,bye:true});
+        used.add(p.top_cut_seed);
+      }
+    }
+    // Never fabricate first-round opponents from seed order. Live snapshots
+    // can omit pairings, and two unpaired players may each have a bye.
+    // Preserve empty bracket positions until a recorded pairing arrives.
     while(first.length<size/2)first.push(null);
     let level=first.map((game,i)=>({game,children:null,seeds:new Set(game?[game.p?.top_cut_seed,game.other?.top_cut_seed].filter(Boolean):[]),order:i}));
     function seedOrder(n){
@@ -234,7 +252,7 @@
           if(won)add(line,'span','bracket-check','✓');
         }
         const table=matchTable(game,stage);
-        add(card,'div','bracket-result',table!==null?`Table ${table}`:'Table not assigned');
+        add(card,'div','bracket-result',game.bye?'Bye':table!==null?`Table ${table}`:'Table not assigned');
       }
     }
   }
