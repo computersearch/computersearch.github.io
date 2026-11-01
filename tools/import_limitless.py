@@ -388,7 +388,7 @@ def import_event(tid,delay,listing_label=None):
         event_text, re.I))
     if phase2_roster_confirmed:
         explicit_day2.update(players)
-        print(f"Regional Phase 2: source confirms all {len(players)} standings players", flush=True)
+        print(f"Limitless source confirms all {len(players)} players in phase 2 of the tournament.", flush=True)
     for rank, player in players.items():
         old=previous.get(rank)
         player["day2"] = (rank in explicit_day2 or
