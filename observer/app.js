@@ -76,11 +76,59 @@
     if(!list.length){add(box,'div','tiny',state.snapshot?'No matching players in the published snapshot.':'No snapshot loaded yet.');return;}
     for(const p of list){const row=add(box,'div','suggestion');const label=add(row,'span','',nameOf(p));const c=country(p);if(c)label.append(document.createTextNode(' '+flag(c)+' '+c));row.append(btn('+ Follow',()=>{updateWatch([...watched(),watchKey(p)]);$('search').value='';renderSuggestions();},'primary'));}
   }
+
+  // Use confirmed player-level Top Cut data, never the current Swiss rank.
+  function topCutPlayers(){
+    return state.people.filter(p=>Number.isInteger(Number(p.top_cut_seed)) && Number(p.top_cut_seed)>0 && Number(p.bracket_size)>=2)
+      .sort((a,b)=>Number(a.top_cut_seed)-Number(b.top_cut_seed));
+  }
+  function renderBracket(){
+    const section=$('top-cut-section'), root=$('top-cut-bracket');
+    if(!section||!root)return;
+    root.replaceChildren();
+    const qualified=topCutPlayers();
+    if(!qualified.length){section.hidden=true;return;}
+    section.hidden=false;
+    const size=Math.max(...qualified.map(p=>Number(p.bracket_size)));
+    const valid=size>=2 && size<=128 && (size&(size-1))===0;
+    $('top-cut-heading').textContent=`Top Cut · ${qualified.length} confirmed · ${valid?`Top ${size}`:'Seeds'}`;
+    if(!valid){add(root,'div','muted','Bracket size not supported in this snapshot.');return;}
+    const bySeed=new Map(qualified.filter(p=>Number(p.bracket_size)===size).map(p=>[Number(p.top_cut_seed),p]));
+    // Standard seeded single-elimination positions: 1 v N, 8 v 9, etc.
+    let order=[1,2];
+    while(order.length<size){const n=order.length*2;order=order.flatMap(s=>[s,n+1-s]);}
+    const rounds=Math.log2(size);
+    const canvas=add(root,'div','bracket-canvas');canvas.style.width=`${(rounds+1)*220+24}px`;
+    canvas.style.height=`${size*38+35}px`;
+    const slotY=(round,index)=>((2**round)*(index+.5)*38-19);
+    for(let round=0;round<=rounds;round++){
+      const count=size/(2**round);
+      const heading=add(canvas,'div','bracket-round-title',round===0?`Top ${size}`:round===rounds?'Champion':round===rounds-1?'Final':round===rounds-2?'Semifinals':round===rounds-3?'Quarterfinals':`Top ${count}`);
+      heading.style.left=`${round*220}px`;
+      for(let index=0;index<count;index++){
+        const seed=round===0?order[index]:null;
+        const p=seed===null?null:bySeed.get(seed);
+        const slot=add(canvas,'div','bracket-slot'+(p?' confirmed':' pending'),p?`#${seed}  ${nameOf(p)}`:round===0?`#${seed}  Awaiting player`:'—');
+        slot.style.left=`${round*220}px`;slot.style.top=`${slotY(round,index)+30}px`;
+        if(p){slot.title=`Seed #${seed} · ${nameOf(p)}`;if(watched().includes(watchKey(p)))slot.classList.add('watched-seed');}
+      }
+      if(round<rounds){for(let i=0;i<count;i+=2){
+        const x=round*220+192, nextX=(round+1)*220;
+        const a=slotY(round,i)+48,b=slotY(round,i+1)+48,mid=(a+b)/2;
+        for(const [left,top,width,height] of [[x,a,14,1],[x,b,14,1],[x+14,a,1,b-a],[x+14,mid,nextX-x-14,1]]){
+          const line=add(canvas,'div','bracket-connector');Object.assign(line.style,{left:`${left}px`,top:`${top}px`,width:`${width}px`,height:`${Math.max(height,1)}px`});
+        }
+      }}
+    }
+    $('top-cut-note').textContent='Only confirmed seeds are shown. Later-round winners remain blank until reliable elimination results are available.';
+    /* add(section,'div','bracket-note','Only confirmed seeds are shown. Later-round winners will remain blank until reliable elimination results are available.'); */
+  }
+
   function stat(box,label,value){const x=add(box,'div','stat');add(x,'small','',label);add(x,'strong','',value);}
   function render(){
-    renderSuggestions(); const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
+    renderSuggestions(); renderBracket(); const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
-    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
+    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p && Number(p.top_cut_seed)>0 && Number(p.bracket_size)>=2){add(nameRow,'span','top-cut-badge',`Top ${p.bracket_size}`);add(nameRow,'span','top-seed-badge',`Seed #${p.top_cut_seed}`);}if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
       const controls=add(top,'div','watch-controls');
       const up=btn('↑',()=>moveWatch(key,-1),'move-player');up.title='Move player up';up.setAttribute('aria-label',`Move ${p?nameOf(p):key} up`);up.disabled=position===0;controls.append(up);
       const down=btn('↓',()=>moveWatch(key,1),'move-player');down.title='Move player down';down.setAttribute('aria-label',`Move ${p?nameOf(p):key} down`);down.disabled=position===keys.length-1;controls.append(down);
