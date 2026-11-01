@@ -49,8 +49,8 @@
         if(!Array.isArray(entry))return null;
         const [id,points,table]=entry;const other=byId.get(Number(id));
         const hasTable=Number.isFinite(Number(table)) && Number(table)>0;
-        const isBye=!hasTable && (id===null || id===undefined || Number(id)<0);
-        return {round:i+1,opponent:other?.n || (isBye?'Bye':''),opponentCountry:other?.c||'',table:hasTable?table:null,result:isBye?'Bye':points===-1?'Pending':points===3?'Win':points===1?'Tie':points===0?'Loss':'Pending'};
+        const isBye=!hasTable && (id===null || id===undefined || Number(id)<0) && Number(points)===3;
+        return {round:i+1,opponent:other?.n || (isBye?'Bye':Number(id)<0?'Awaiting opponent':''),opponentCountry:other?.c||'',table:hasTable?table:null,result:isBye?'Bye':points===-1?'Pending':points===3?'Win':points===1?'Tie':points===0?'Loss':'Pending'};
       }).filter(Boolean);
     }
     const a=val(p,['matches','rounds','matchHistory','match_history','pairings','games','opponents']);
@@ -76,83 +76,53 @@
     if(!list.length){add(box,'div','tiny',state.snapshot?'No matching players in the published snapshot.':'No snapshot loaded yet.');return;}
     for(const p of list){const row=add(box,'div','suggestion');const label=add(row,'span','',nameOf(p));const c=country(p);if(c)label.append(document.createTextNode(' '+flag(c)+' '+c));row.append(btn('+ Follow',()=>{updateWatch([...watched(),watchKey(p)]);$('search').value='';renderSuggestions();},'primary'));}
   }
-
-  // Use confirmed player-level Top Cut data, never the current Swiss rank.
-  function topCutPlayers(){
-    return state.people.filter(p=>Number.isInteger(Number(p.top_cut_seed)) && Number(p.top_cut_seed)>0 && Number(p.bracket_size)>=2)
-      .sort((a,b)=>Number(a.top_cut_seed)-Number(b.top_cut_seed));
-  }
-  function renderBracket(){
-    const section=$('top-cut-section'), root=$('top-cut-bracket');
-    if(!section||!root)return;
-    root.replaceChildren();
-    const qualified=topCutPlayers();
-    if(!qualified.length){section.hidden=true;return;}
-    section.hidden=false;
-    const size=Math.max(...qualified.map(p=>Number(p.bracket_size)));
-    const valid=size>=2 && size<=128 && (size&(size-1))===0;
-    $('top-cut-heading').textContent=`Top Cut · ${qualified.length} confirmed · ${valid?`Top ${size}`:'Seeds'}`;
-    if(!valid){add(root,'div','muted','Bracket size not supported in this snapshot.');return;}
-    const bySeed=new Map(qualified.filter(p=>Number(p.bracket_size)===size).map(p=>[Number(p.top_cut_seed),p]));
-    // Standard seeded single-elimination positions: 1 v N, 8 v 9, etc.
-    let order=[1,2];
-    while(order.length<size){const n=order.length*2;order=order.flatMap(s=>[s,n+1-s]);}
-    const rounds=Math.log2(size);
-    // Advance only a player whose elimination match is explicitly recorded as a win
-    // against the other player in this bracket pairing. Never infer winners from rank.
-    function confirmedWinner(a,b){
-      if(!a||!b)return null;
-      const match=(p,other)=>Array.isArray(p.r)&&p.r.slice(13).some(entry=>
-        Array.isArray(entry)&&Number(entry[0])===Number(other.i)&&Number(entry[1])===3);
-      const aw=match(a,b),bw=match(b,a);
-      return aw&&!bw?a:bw&&!aw?b:null;
-    }
-    const stages=[order.map(seed=>bySeed.get(seed)||null)];
-    for(let round=1;round<=rounds;round++){
-      const prev=stages[round-1],next=[];
-      for(let i=0;i<prev.length;i+=2)next.push(confirmedWinner(prev[i],prev[i+1]));
-      stages.push(next);
-    }
-    const canvas=add(root,'div','bracket-canvas');canvas.style.width=`${(rounds+1)*220+24}px`;
-    canvas.style.height=`${size*38+35}px`;
-    const slotY=(round,index)=>((2**round)*(index+.5)*38-19);
-    for(let round=0;round<=rounds;round++){
-      const count=size/(2**round);
-      const heading=add(canvas,'div','bracket-round-title',round===0?`Top ${size}`:round===rounds?'Champion':round===rounds-1?'Final':round===rounds-2?'Semifinals':round===rounds-3?'Quarterfinals':`Top ${count}`);
-      heading.style.left=`${round*220}px`;
-      for(let index=0;index<count;index++){
-        const seed=round===0?order[index]:null;
-        const p=stages[round][index];
-        const slot=add(canvas,'div','bracket-slot'+(p?' confirmed':' pending'),p?`#${p.top_cut_seed}  ${nameOf(p)}`:round===0?`#${seed}  Awaiting player`:'—');
-        slot.style.left=`${round*220}px`;slot.style.top=`${slotY(round,index)+30}px`;
-        if(p){slot.title=`Seed #${p.top_cut_seed} · ${nameOf(p)}`;if(watched().includes(watchKey(p)))slot.classList.add('watched-seed');}
-      }
-      if(round<rounds){for(let i=0;i<count;i+=2){
-        const x=round*220+192, nextX=(round+1)*220;
-        const a=slotY(round,i)+48,b=slotY(round,i+1)+48,mid=(a+b)/2;
-        for(const [left,top,width,height] of [[x,a,14,1],[x,b,14,1],[x+14,a,1,b-a],[x+14,mid,nextX-x-14,1]]){
-          const line=add(canvas,'div','bracket-connector');Object.assign(line.style,{left:`${left}px`,top:`${top}px`,width:`${width}px`,height:`${Math.max(height,1)}px`});
-        }
-      }}
-    }
-    const completed=stages.slice(1).reduce((sum,stage)=>sum+stage.filter(Boolean).length,0);
-    $('top-cut-note').textContent=`${completed} confirmed elimination wins. Players advance only when their match result is recorded as a win; pending matches remain unfilled.`;
-
-  }
-
   function stat(box,label,value){const x=add(box,'div','stat');add(x,'small','',label);add(x,'strong','',value);}
   function render(){
     renderSuggestions(); renderBracket(); const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
-    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p && Number(p.top_cut_seed)>0 && Number(p.bracket_size)>=2){add(nameRow,'span','top-cut-badge',`Top ${p.bracket_size}`);add(nameRow,'span','top-seed-badge',`Seed #${p.top_cut_seed}`);}if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
+    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);}else add(left,'div','muted','Not present in latest snapshot');
       const controls=add(top,'div','watch-controls');
       const up=btn('↑',()=>moveWatch(key,-1),'move-player');up.title='Move player up';up.setAttribute('aria-label',`Move ${p?nameOf(p):key} up`);up.disabled=position===0;controls.append(up);
       const down=btn('↓',()=>moveWatch(key,1),'move-player');down.title='Move player down';down.setAttribute('aria-label',`Move ${p?nameOf(p):key} down`);down.disabled=position===keys.length-1;controls.append(down);
       controls.append(btn('Remove',()=>updateWatch(watched().filter(x=>x!==key))));
       const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?rankOf(p):'—');
-      const history=add(panel,'div','history');const rounds=p?matches(p):[];const latest=rounds[rounds.length-1];const dropRound=p?.d;const dropped=dropRound!==null && dropRound!==undefined && dropRound!=='' && dropRound!==false;if(dropped){const label=Number.isInteger(Number(dropRound)) && Number(dropRound)>0?`Dropped · Round ${dropRound}`:'Dropped';add(nameRow,'div','dropped-badge',label);}else if(latest && result(latest)==='Pending'){const live=add(nameRow,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;
+      const history=add(panel,'div','history');const rounds=p?matches(p):[];const latest=rounds[rounds.length-1];const dropRound=p?.d;const dropped=dropRound!==null && dropRound!==undefined && dropRound!=='' && dropRound!==false;if(dropped){const label=Number.isInteger(Number(dropRound)) && Number(dropRound)>0?`Dropped · Round ${dropRound}`:'Dropped';add(nameRow,'div','dropped-badge',label);}else if(latest && result(latest)==='Pending'){const live=add(nameRow,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=false;toggle.textContent=`Round history (${rounds.length}) ▴`;
       if(!rounds.length)add(history,'div','muted','Round-by-round opponents are not available in this snapshot.');
       for(let i=0;i<rounds.length;i++){const m=rounds[i];if(!m||typeof m!=='object')continue;const row=add(history,'div','match');add(row,'div','muted',`R${val(m,['round','roundNumber','round_number'])??i+1}`);const center=add(row,'div');const opp=opponent(m);const oc=val(m,['opponentCountry']);add(center,'div','',opp?(opp+(oc?' '+flag(oc):'')):'Opponent unavailable');const table=val(m,['table','tableNumber','table_number']);add(center,'div','tiny',table!==undefined && table!==null && table!==''?`Table ${table}`:'No table');const r=result(m);if(r==='Pending'){const badge=add(row,'div','result still-playing');add(badge,'span','live-dot');add(badge,'span','','Still playing');}else add(row,'div','result '+(/win|bye/i.test(r)?'win':/loss|lose/i.test(r)?'loss':/tie|draw/i.test(r)?'tie':''),r);}
+    }
+  }
+  function renderBracket(){
+    const root=$('bracket'); if(!root)return;root.replaceChildren();
+    const players=state.snapshot?.raw?.standings?.players;
+    if(!Array.isArray(players))return;
+    const byId=new Map(players.map(p=>[Number(p.i),p]));
+    const title=str(state.snapshot?.raw?.tournament?.title).toLowerCase();
+    const swissRounds=title.includes('vgc')?12:13;
+    const rounds=new Map();
+    for(const p of players){
+      for(let i=swissRounds;i<(p.r||[]).length;i++){
+        const entry=p.r[i];if(!Array.isArray(entry))continue;
+        const [id,pts]=entry,other=byId.get(Number(id));if(!other || Number(id)<0)continue;
+        const a=Number(p.i),b=Number(other.i);if(!Number.isFinite(a)||!Number.isFinite(b)||a===b||a>b)continue;
+        const reverse=other.r?.[i];
+        const reciprocal=Array.isArray(reverse)&&Number(reverse[0])===a;
+        const score=Number(pts),otherScore=reciprocal?Number(reverse[1]):-1;
+        const decided=reciprocal&&((score===3&&otherScore===0)||(score===0&&otherScore===3));
+        const winner=decided?(score===3?p:other):null;
+        if(!rounds.has(i))rounds.set(i,[]);
+        rounds.get(i).push({p,other,winner,decided});
+      }
+    }
+    if(!rounds.size){add(root,'div','muted','Elimination pairings have not been published in this snapshot.');return;}
+    for(const [i,games] of [...rounds].sort((a,b)=>a[0]-b[0])){
+      const section=add(root,'section','bracket-round');
+      const label=games.length===4?'Quarterfinals (Top 8)':games.length===2?'Semifinals':games.length===1?'Final':`Round ${i+1}`;
+      add(section,'h3','',label);
+      for(const game of games){
+        const row=add(section,'div','bracket-match');
+        add(row,'span','',nameOf(game.p)+' vs '+nameOf(game.other));
+        add(row,'strong',game.decided?'win':'muted',game.decided?`Winner: ${nameOf(game.winner)}`:'Awaiting confirmed result');
+      }
     }
   }
   async function load(){
