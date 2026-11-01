@@ -405,16 +405,12 @@ function legacyTournamentSlug(event){
  return `${date}-${name||'tournament'}`;
 }
 function tournamentDisplayName(event){
+ // Tournament names are normalized in the imported JSON. Preserve a fallback
+ // for legacy archives that have not yet been reimported.
  const raw=String(event?.name||'').trim();
- // Strip source attribution from imported titles; the banner handles attribution.
  const clean=raw.replace(/\s*[–—-]\s*Limitless(?:\s*TCG)?\s*$/i,'').trim();
- if(clean && !/^(?:Regional Championship|Tournament)\s*#?\d+$/i.test(clean)){
-  const regional=clean.match(/^Regional\s+(.+)$/i);
-  return stripRegionalState(regional ? `${regional[1]} Regional Championship` : clean);
- }
- const id=String(event?.id||'').replace(/^limitless-/,'');
- const known={'583':'Puebla Regional Championship','582':'Nice Regional Championship','581':'Louisville Regional Championship'};
- return stripRegionalState(known[id]||clean||'Regional Championship');
+ const regional=clean.match(/^Regional\s+(.+)$/i);
+ return stripRegionalState(regional ? `${regional[1].split(',')[0].trim()} Regional Championship` : clean || 'Tournament');
 }
 function tournamentPage(){return `${header()}<main class="ranked-library"><div class="tournament-source-banner">Data from Limitless</div><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional or World Championship to view top players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
 function tournamentSeason(dateString){

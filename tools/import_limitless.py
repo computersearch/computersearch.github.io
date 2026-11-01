@@ -222,17 +222,55 @@ def collect_explicit_day2(soup, players):
             if explicit: confirmed.update(row_names)
     return confirmed
 
-def import_event(tid,delay):
+def regional_name(tid, soup, listing_label=None):
+    """Resolve a city name, never publishing a numeric tournament ID as a city."""
+    candidates = []
+    if listing_label:
+        candidates.append(listing_label)
+    for tag in (soup.find("h1"), soup.title):
+        if tag:
+            candidates.append(tag.get_text(" ", strip=True))
+    for attr in ({"property": "og:title"}, {"name": "twitter:title"}):
+        meta = soup.find("meta", attrs=attr)
+        if meta and meta.get("content"):
+            candidates.append(meta["content"])
+    # Prefer previously verified city names over unreliable numeric headings.
+    index_path = OUT / "index.json"
+    if index_path.exists():
+        try:
+            for item in json.loads(index_path.read_text()):
+                if item.get("id") == "limitless-" + str(tid):
+                    candidates.append(item.get("name", ""))
+                    break
+        except (ValueError, OSError):
+            pass
+    event_path = OUT / ("limitless-" + str(tid) + ".json")
+    if event_path.exists():
+        try:
+            candidates.append(json.loads(event_path.read_text()).get("name", ""))
+        except (ValueError, OSError):
+            pass
+    for raw in candidates:
+        value = re.sub(r"\s+", " ", str(raw or "")).strip()
+        value = re.sub(r"\s*[–—|-]\s*Limitless(?:TCG)?\s*$", "", value, flags=re.I)
+        # Limitless commonly uses 'Regional Puebla' or 'Regional Puebla, MX'.
+        match = re.match(r"^Regional\s+(.+?)(?:\s+Championships?)?$", value, re.I)
+        if match:
+            city = match.group(1).split(",", 1)[0].strip()
+        else:
+            match = re.match(r"^(.+?)\s+Regional Championships?$", value, re.I)
+            city = match.group(1).strip() if match else ""
+        if city and not re.fullmatch(r"\d+", city) and not re.match(r"^\d+\s+Regional", city, re.I):
+            return city + " Regional Championship"
+    raise ValueError(f"Could not verify city for Regional {tid}; refusing to overwrite its name with an ID")
+
+
+def import_event(tid,delay,listing_label=None):
     print(f"Checking Limitless tournament {tid}",flush=True)
     soup=get(f"/tournaments/{tid}")
-    heading=soup.find("h1")
-    name=heading.get_text(" ",strip=True) if heading else f"Regional {tid}"
-    # Preserve the city from the Limitless heading, not the numeric event ID.
-    if re.match(r"^Regional\s+.+", name, re.I):
-        name=re.sub(r"^Regional\s+", "", name, flags=re.I).strip()+" Regional Championship"
-    is_international=bool(re.search(r"\b(?:International Championships?|EUIC|NAIC|LAIC|OCIC)\b",name,re.I))
-    if "Regional" not in name and not is_international:
-        raise ValueError("Event is neither a Regional nor an International Championship: "+name)
+    # This importer handles Regionals; Worlds and ICs use import_worlds.py.
+    name=regional_name(tid,soup,listing_label)
+    is_international=False
     # Import every standings row shown by the source, without a rank cap.
     # Do not confuse the event's Day 2 count with a standings limit.
     players=standings(soup)
@@ -359,9 +397,9 @@ def main():
     if not ids:raise RuntimeError("No recent Regional Championships found on Limitless")
     successful=[]
     unsuccessful=[]
-    for tid,_ in ids:
+    for tid,label in ids:
         try:
-            if import_event(tid,max(args.delay,1.0)):
+            if import_event(tid,max(args.delay,1.0),label if label != "manual" else None):
                 successful.append(tid)
             else:
                 unsuccessful.append(tid)
