@@ -419,14 +419,43 @@ def import_event(tid,delay,listing_label=None):
         note="All published standings are retained. Day 2 is marked true only with explicit player-level or roster-level source evidence; only validated 60-card decklists are attached.")
     OUT.mkdir(exist_ok=True)
     filename=f"limitless-{tid}.json"
-    save_if_changed(OUT/filename, result)
+    # Compare the final imported records against the previous snapshot.
+    added = changed = unchanged = 0
+    deck_added = deck_changed = deck_unchanged = deck_missing = 0
+    day2_changed = 0
+    for rank, player in players.items():
+        old = previous.get(rank)
+        if old is None:
+            added += 1
+        elif old == player:
+            unchanged += 1
+        else:
+            changed += 1
+        if old is not None and old.get("day2") != player.get("day2"):
+            day2_changed += 1
+        if valid_list(player):
+            if old is None or not valid_list(old):
+                deck_added += 1
+            elif old.get("decklist") != player.get("decklist") or old.get("deck") != player.get("deck"):
+                deck_changed += 1
+            else:
+                deck_unchanged += 1
+        else:
+            deck_missing += 1
+    removed = len(set(previous) - set(players))
+    print(f"CHANGE SUMMARY {tid}: players new={added}, updated={changed}, unchanged={unchanged}, removed={removed}", flush=True)
+    print(f"CHANGE SUMMARY {tid}: decklists new={deck_added}, updated={deck_changed}, unchanged={deck_unchanged}, missing={deck_missing}", flush=True)
+    print(f"CHANGE SUMMARY {tid}: Day 2 status changed={day2_changed}", flush=True)
+    tournament_written = save_if_changed(OUT/filename, result)
     indexfile=OUT/"index.json"
     index=json.loads(indexfile.read_text()) if indexfile.exists() else []
     entry=dict(id=result["id"],name=name,date=date,file=filename,source=result["source"],verified_decks=verified,
         event_type=result["event_type"],day2_verified_count=result["day2_verified_count"])
     index=[x for x in index if x.get("id")!=entry["id"]]+[entry]
     index.sort(key=lambda x:x.get("date",""),reverse=True)
-    save_if_changed(indexfile, index)
+    index_written = save_if_changed(indexfile, index)
+    print(f"FILE STATUS {tid}: {filename}={'UPDATED' if tournament_written else 'UNCHANGED'}; "
+          f"index.json={'UPDATED' if index_written else 'UNCHANGED'}", flush=True)
     print(f"SUCCESS: {name}: {len(players)} placements, {verified} verified 60-card lists")
     return True
 
