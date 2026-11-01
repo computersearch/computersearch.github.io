@@ -78,7 +78,14 @@
   }
   function stat(box,label,value){const x=add(box,'div','stat');add(x,'small','',label);add(x,'strong','',value);}
   function render(){
-    renderSuggestions(); renderBracket(); const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
+    renderSuggestions();
+    try { renderBracket(); }
+    catch (error) {
+      console.error('Observer bracket rendering failed:', error);
+      const bracketRoot=$('bracket');
+      if(bracketRoot){bracketRoot.replaceChildren();add(bracketRoot,'div','muted','Bracket temporarily unavailable. Followed players are still available.');}
+    }
+    const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
     for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){
         const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);
@@ -150,8 +157,12 @@
     }
     function orderGroups(groups){
       const ranked=[...groups].sort((a,b)=>Math.min(...a.seeds)-Math.min(...b.seeds));
+      // Seed-order permutations are only defined for complete power-of-two
+      // groups. Incomplete live rounds must never introduce undefined nodes.
+      if(!ranked.length)return [];
+      if((ranked.length & (ranked.length-1))!==0)return ranked;
       const positions=seedOrder(ranked.length);
-      return positions.map(rank=>ranked[rank-1]);
+      return positions.map(rank=>ranked[rank-1]).filter(Boolean);
     }
     const ordered=Array.from({length:stages},()=>[]);
     for(let stage=1;stage<stages;stage++){
