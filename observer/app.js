@@ -77,6 +77,48 @@
     for(const p of list){const row=add(box,'div','suggestion');const label=add(row,'span','',nameOf(p));const c=country(p);if(c)label.append(document.createTextNode(' '+flag(c)+' '+c));row.append(btn('+ Follow',()=>{updateWatch([...watched(),watchKey(p)]);$('search').value='';renderSuggestions();},'primary'));}
   }
   function stat(box,label,value){const x=add(box,'div','stat');add(x,'small','',label);add(x,'strong','',value);}
+  // Final placements require a completed reciprocal final and both semifinals.
+  // Semifinal losers are ordered by their verified Top Cut seeds: 3rd and 4th.
+  function finalPlacements(){
+    const raw=state.snapshot?.raw, players=raw?.standings?.players;
+    const swiss=swissRoundCount(raw?.tournament);
+    if(!Array.isArray(players)||!Number.isInteger(swiss))return new Map();
+    const sizes=[...new Set(players.map(p=>Number(p.bracket_size)).filter(n=>Number.isInteger(n)&&n>=4&&(n&(n-1))===0))];
+    if(sizes.length!==1)return new Map();
+    const last=swiss+Math.log2(sizes[0])-1;
+    const byId=new Map(players.map(p=>[Number(p.i),p]));
+    function match(p,index){
+      const a=p.r?.[index];if(!Array.isArray(a))return null;
+      const opponent=byId.get(Number(a[0]));const b=opponent?.r?.[index];
+      if(!opponent||!Array.isArray(b)||Number(b[0])!==Number(p.i))return null;
+      const x=Number(a[1]),y=Number(b[1]);
+      if(!((x===3&&y===0)||(x===0&&y===3)))return null;
+      return {winner:x===3?p:opponent,loser:x===0?p:opponent};
+    }
+    const finals=[];
+    for(const p of players){
+      const pair=match(p,last);
+      if(pair&&!finals.some(x=>x.winner===pair.winner&&x.loser===pair.loser))finals.push(pair);
+    }
+    if(finals.length!==1)return new Map();
+    const {winner,loser}=finals[0],third=[];
+    for(const finalist of [winner,loser]){
+      const semi=match(finalist,last-1);
+      if(!semi||semi.winner!==finalist||third.includes(semi.loser))return new Map();
+      third.push(semi.loser);
+    }
+    if(third.length!==2)return new Map();
+    // Only assign bronze/4th when both semifinalists have distinct, valid
+    // seeds from the same bracket. Never guess based on current standings.
+    const a=Number(third[0].top_cut_seed),b=Number(third[1].top_cut_seed);
+    const valid=p=>Number.isInteger(Number(p.top_cut_seed))&&Number(p.top_cut_seed)>0&&Number(p.top_cut_seed)<=sizes[0]&&Number(p.bracket_size)===sizes[0];
+    const places=new Map([[winner,'1st'],[loser,'2nd']]);
+    if(valid(third[0])&&valid(third[1])&&a!==b){
+      places.set(a<b?third[0]:third[1],'3rd');
+      places.set(a<b?third[1]:third[0],'4th');
+    }
+    return places;
+  }
   function render(){
     renderSuggestions();
     try { renderBracket(); }
@@ -85,6 +127,7 @@
       const bracketRoot=$('bracket');
       if(bracketRoot){bracketRoot.replaceChildren();add(bracketRoot,'div','muted','Bracket temporarily unavailable. Followed players are still available.');}
     }
+    const placements=finalPlacements();
     const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
     for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){
@@ -94,6 +137,13 @@
           const badges=add(left,'div','top-cut-badges');
           add(badges,'span','top-cut-badge',`Top Cut · Top ${size}`);
           add(badges,'span','seed-badge',`Seed #${seed}`);
+          const place=placements.get(p);
+          if(place)add(badges,'span','placement-badge placement-'+place,`${place} Place`);
+        }
+        // A recorded finalist can have missing seed metadata.
+        if(placements.has(p)&&!(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size)){
+          const badges=add(left,'div','top-cut-badges');const place=placements.get(p);
+          add(badges,'span','placement-badge placement-'+place,`${place} Place`);
         }
       }else add(left,'div','muted','Not present in latest snapshot');
       const controls=add(top,'div','watch-controls');
