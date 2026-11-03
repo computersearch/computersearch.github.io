@@ -1,5 +1,15 @@
 [
   {
+    "id": "limitless-584",
+    "name": "Gdańsk Regional Championship",
+    "date": "2026-10-31",
+    "file": "limitless-584.json",
+    "source": "https://limitlesstcg.com/tournaments/584",
+    "verified_decks": 323,
+    "event_type": "Regional Championships",
+    "day2_verified_count": 323
+  },
+  {
     "id": "limitless-583",
     "name": "Puebla Regional Championship",
     "date": "2026-10-24",
