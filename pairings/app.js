@@ -22,12 +22,18 @@
     if (!tournament || !division || !Number.isSafeInteger(round) || round < 1 || !Array.isArray(data.matches) || data.matches.length > 2000) throw Error('Incomplete pairings data');
     const seen = new Set();
     const matches = data.matches.map(m => {
-      const table = Number(m.table);
+      const bye = m.bye === true;
+      const table = bye ? null : Number(m.table);
       const player1 = clean(m.player1), player2 = clean(m.player2);
-      if (!Number.isSafeInteger(table) || table < 1 || !player1 || !player2 || player1.length > 200 || player2.length > 200 || seen.has(table)) throw Error('Invalid match data');
-      seen.add(table);
-      return { table, player1, player2 };
-    }).sort((a, b) => a.table - b.table);
+      if (!player1 || player1.length > 200 || player2.length > 200) throw Error('Invalid player name');
+      if (bye) {
+        if (player2 || m.table !== null) throw Error('Invalid BYE data');
+      } else {
+        if (!Number.isSafeInteger(table) || table < 1 || !player2 || seen.has(table)) throw Error('Invalid match data');
+        seen.add(table);
+      }
+      return { table, player1, player2, bye };
+    }).sort((a, b) => (a.bye ? 1 : 0) - (b.bye ? 1 : 0) || (a.table ?? 0) - (b.table ?? 0));
     return { status: 'published', tournament, division, round, matches, updated_at: clean(data.updated_at) };
   }
   function renderMatches() {
@@ -35,22 +41,23 @@
     container.replaceChildren();
     if (!current || current.status !== 'published') return;
     const query = normalized($('search').value);
-    const matches = current.matches.filter(m => normalized(`${m.player1} ${m.player2}`).includes(query) || String(m.table).includes(query));
+    const matches = current.matches.filter(m => normalized(`${m.player1} ${m.player2}`).includes(query) || (!m.bye && String(m.table).includes(query)));
     for (const match of matches) {
       const card = document.createElement('article'); card.className = 'match';
       if (query && (normalized(match.player1).includes(query) || normalized(match.player2).includes(query))) card.classList.add('highlight');
       const table = document.createElement('div'); table.className = 'table-num';
-      const caption = document.createElement('span'); caption.textContent = 'TABLE';
-      const number = document.createElement('strong'); number.textContent = match.table;
+      const caption = document.createElement('span'); caption.textContent = match.bye ? 'STATUS' : 'TABLE';
+      const number = document.createElement('strong'); number.textContent = match.bye ? 'BYE' : match.table;
       table.append(caption, number);
       const players = document.createElement('div'); players.className = 'players';
-      for (const [index, name] of [match.player1, match.player2].entries()) {
+      for (const [index, name] of (match.bye ? [match.player1] : [match.player1, match.player2]).entries()) {
         if (index) { const vs = document.createElement('span'); vs.className = 'vs'; vs.textContent = 'VS'; players.append(vs); }
         const player = document.createElement('div'); player.className = 'player'; player.textContent = name; players.append(player);
       }
+      if (match.bye) { const note = document.createElement('span'); note.className = 'vs'; note.textContent = 'No opponent this round'; players.append(note); }
       card.append(table, players); container.append(card);
     }
-    text('result-count', `${matches.length} of ${current.matches.length} tables`);
+    text('result-count', `${matches.length} of ${current.matches.length} pairings`);
     show('no-results', matches.length === 0);
     show('clear', Boolean(query));
   }
@@ -60,7 +67,7 @@
     text('division', published ? `${current.division} Division` : 'Pairings will appear here when published.');
     text('round', published ? `Round ${current.round}` : '');
     show('round', published);
-    text('count', published ? `${current.matches.length} tables · ${current.matches.length * 2} players` : 'No active round');
+    text('count', published ? `${current.matches.filter(m => !m.bye).length} tables · ${current.matches.filter(m => m.bye).length} BYEs · ${current.matches.reduce((n, m) => n + (m.bye ? 1 : 2), 0)} players` : 'No active round');
     let updated = '';
     if (published && current.updated_at) {
       const date = new Date(current.updated_at);
