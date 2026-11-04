@@ -8,3 +8,6 @@
 .static-seat-badge { display: inline-block; align-self: flex-start; padding: 3px 8px; border: 1px solid #86b44e; border-radius: 6px; background: #c3ff7215; color: #c3ff72; font-size: 11px; font-weight: 700; white-space: nowrap; }
 .player:last-child .static-seat-badge { align-self: flex-end; }
 @media (max-width:650px) { .player:last-child .static-seat-badge { align-self: flex-start; } }
+
+/* Division selection */
+.division-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}.division-tabs[hidden]{display:none}.division-tab{border:1px solid #34394d;border-radius:10px;background:#171b2b;color:#d5d9e8;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}.division-tab.active{background:#6457dc;border-color:#8174f0;color:#fff}.division-tab:focus-visible{outline:2px solid #a7a0ff;outline-offset:3px}.division-label{font-size:10px;color:#a9a4f5;margin-top:4px;font-weight:700;white-space:nowrap}
