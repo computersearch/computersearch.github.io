@@ -37,50 +37,57 @@ function syncFeaturedDecks(){
   description:'Regional Championship archetype',card:null
  }));
 }
-// Representative Pokémon for each ranked archetype. Basic Box is a toolbox
-// rather than a single named Pokémon, so use its representative attacker.
-const FEATURED_POKEMON={
- 'basic-box':'Mega Kangaskhan ex',
- 'slowking':'Slowking',
- 'dragapult':'Dragapult ex',
- 'ns-zoroark':'N’s Zoroark ex'
-};
+// Featured artwork must be a real card from an imported, verified tournament decklist.
+// Reuse the same exact set/collector-number TCGdex resolver as the decklist viewer.
 const featuredArtworkCache=new Map();
-function featuredPokemonName(name){
- const key=slug(featuredDisplayName(name));
- return FEATURED_POKEMON[key]||String(name).replace(/\s+(?:Seek Inspiration|Powerful Hand|Hide n.? Sneak|Mysterious Rock Inn)$/i,'').trim();
+function featuredCardFromList(archetype, list){
+ const pokemon=(list||[]).filter(c=>c&&c.name&&c.set&&c.number&&Number(c.quantity)>0 &&
+  !/^(?:basic |special )?energy\b/i.test(c.name) && !/^(?:ultra ball|nest ball|buddy-buddy poffin|professor)/i.test(c.name));
+ const key=normalizeArchetypeName(archetype);
+ const words=key.split(' ').filter(w=>w.length>3&&!['basic','seek','inspiration','powerful','mysterious'].includes(w));
+ // Prefer the archetype's named Pokémon when that card is actually in the list.
+ const named=pokemon.filter(c=>words.some(w=>normalizeArchetypeName(c.name).includes(w)));
+ const candidates=named.length?named:pokemon.filter(c=>/\bex\b/i.test(c.name));
+ const pool=candidates.length?candidates:pokemon;
+ return [...pool].sort((a,b)=>Number(b.quantity)-Number(a.quantity))[0]||null;
 }
-async function featuredArtwork(name){
- const pokemon=featuredPokemonName(name);
- if(featuredArtworkCache.has(pokemon))return featuredArtworkCache.get(pokemon);
- const request=(async()=>{
-  const response=await fetch(`${API}/cards?name=${encodeURIComponent(pokemon)}`);
-  if(!response.ok)throw Error('TCGdex '+response.status);
-  const cards=await response.json();
-  if(!Array.isArray(cards))return null;
-  const exact=cards.filter(c=>c.image&&String(c.name).toLowerCase()===pokemon.toLowerCase());
-  const candidates=exact.length?exact:cards.filter(c=>c.image);
-  if(!candidates.length)return null;
-  // Prefer a recent printing with artwork; TCGdex card ids are set-specific.
-  const match=candidates[candidates.length-1];
-  return match.image;
- })().catch(err=>{console.warn('Featured artwork unavailable:',pokemon,err);featuredArtworkCache.delete(pokemon);return null});
- featuredArtworkCache.set(pokemon,request);
- return request;
+async function featuredArtwork(archetype){
+ const key=normalizeArchetypeName(archetype);
+ if(featuredArtworkCache.has(key))return featuredArtworkCache.get(key);
+ const task=(async()=>{
+  const events=(await getTournamentIndex()).filter(e=>String(e.date||'')>='2026-07-01').slice(0,12);
+  // Search recent verified events in order; avoid downloading the full historical archive.
+  for(const entry of events){
+   let event;
+   try{event=await getTournamentById(entry.id)}catch(err){continue}
+   const matching=(event.standings||[]).filter(p=>matchesFeaturedArchetype(p.deck,key)&&Array.isArray(p.decklist)&&p.decklist.length)
+    .sort((a,b)=>Number(a.rank)-Number(b.rank));
+   for(const player of matching.slice(0,5)){
+    const selected=featuredCardFromList(archetype,player.decklist);
+    if(!selected)continue;
+    const card=await getCard(String(selected.set),String(selected.number),String(selected.name));
+    if(card?.image)return {image:card.image,name:selected.name};
+   }
+  }
+  return null;
+ })().catch(err=>{console.warn('Featured decklist artwork unavailable:',archetype,err);return null});
+ featuredArtworkCache.set(key,task);
+ task.then(result=>{if(!result&&featuredArtworkCache.get(key)===task)featuredArtworkCache.delete(key)});
+ return task;
 }
 function hydrateFeaturedArtwork(){
  const nodes=[...document.querySelectorAll('[data-featured-pokemon]')];
  for(const node of nodes){
   const name=node.dataset.featuredPokemon;
-  featuredArtwork(name).then(base=>{
-   if(!base||!node.isConnected||node.dataset.featuredPokemon!==name)return;
+  featuredArtwork(name).then(result=>{
+   if(!result||!node.isConnected||node.dataset.featuredPokemon!==name)return;
    const img=document.createElement('img');
-   img.className='featured-pokemon-card';img.alt=featuredPokemonName(name)+' Pokémon card';
+   img.className='featured-pokemon-card';img.alt=result.name+' Pokémon card';
    img.loading=node.closest('.hero-visual')?'eager':'lazy';img.decoding='async';
    const urls=['/high.jpg','/low.jpg','/high.png','/low.png'];let i=0;
-   img.onerror=()=>{if(++i<urls.length)img.src=base+urls[i];else img.remove()};
+   img.onerror=()=>{if(++i<urls.length)img.src=result.image+urls[i];else img.remove()};
    img.onload=()=>{node.querySelector('.featured-monogram')?.remove()};
-   img.src=base+urls[i];node.append(img);
+   img.src=result.image+urls[i];node.append(img);
   });
  }
 }
