@@ -61,7 +61,7 @@
         player.append(playerName);
         if (index === 0 ? match.static1 : match.static2) { const badge = document.createElement('span'); badge.className = 'static-seat-badge'; badge.textContent = '★ Static Seat'; player.append(badge); }
         const record = index === 0 ? match.record1 : match.record2;
-        if (record) { const recordText = document.createElement('span'); recordText.className = 'player-record'; recordText.textContent = `W–L–T: ${record}`; player.append(recordText); }
+        if (record) { const recordText = document.createElement('span'); recordText.className = 'player-record'; recordText.textContent = record.replaceAll("-", "/"); player.append(recordText); }
         players.append(player);
       }
       if (match.bye) { const note = document.createElement('span'); note.className = 'vs'; note.textContent = 'No opponent this round'; players.append(note); }
