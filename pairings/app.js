@@ -32,7 +32,11 @@
         if (!Number.isSafeInteger(table) || table < 1 || !player2 || seen.has(table)) throw Error('Invalid match data');
         seen.add(table);
       }
-      return { table, player1, player2, bye };
+      const record1 = clean(m.record1), record2 = clean(m.record2);
+      const validRecord = value => /^\d+-\d+-\d+$/.test(value);
+      if (record1 && !validRecord(record1)) throw Error('Invalid player record');
+      if (record2 && !validRecord(record2)) throw Error('Invalid opponent record');
+      return { table, player1, player2, record1, record2, bye };
     }).sort((a, b) => (a.bye ? 1 : 0) - (b.bye ? 1 : 0) || (a.table ?? 0) - (b.table ?? 0));
     return { status: 'published', tournament, division, round, matches, updated_at: clean(data.updated_at) };
   }
@@ -52,7 +56,12 @@
       const players = document.createElement('div'); players.className = 'players';
       for (const [index, name] of (match.bye ? [match.player1] : [match.player1, match.player2]).entries()) {
         if (index) { const vs = document.createElement('span'); vs.className = 'vs'; vs.textContent = 'VS'; players.append(vs); }
-        const player = document.createElement('div'); player.className = 'player'; player.textContent = name; players.append(player);
+        const player = document.createElement('div'); player.className = 'player';
+        const playerName = document.createElement('span'); playerName.className = 'player-name'; playerName.textContent = name;
+        player.append(playerName);
+        const record = index === 0 ? match.record1 : match.record2;
+        if (record) { const recordText = document.createElement('span'); recordText.className = 'player-record'; recordText.textContent = `W–L–T: ${record}`; player.append(recordText); }
+        players.append(player);
       }
       if (match.bye) { const note = document.createElement('span'); note.className = 'vs'; note.textContent = 'No opponent this round'; players.append(note); }
       card.append(table, players); container.append(card);
