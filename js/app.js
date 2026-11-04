@@ -37,10 +37,57 @@ function syncFeaturedDecks(){
   description:'Regional Championship archetype',card:null
  }));
 }
+// Representative Pokémon for each ranked archetype. Basic Box is a toolbox
+// rather than a single named Pokémon, so use its representative attacker.
+const FEATURED_POKEMON={
+ 'basic-box':'Mega Kangaskhan ex',
+ 'slowking':'Slowking',
+ 'dragapult':'Dragapult ex',
+ 'ns-zoroark':'N’s Zoroark ex'
+};
+const featuredArtworkCache=new Map();
+function featuredPokemonName(name){
+ const key=slug(featuredDisplayName(name));
+ return FEATURED_POKEMON[key]||String(name).replace(/\s+(?:Seek Inspiration|Powerful Hand|Hide n.? Sneak|Mysterious Rock Inn)$/i,'').trim();
+}
+async function featuredArtwork(name){
+ const pokemon=featuredPokemonName(name);
+ if(featuredArtworkCache.has(pokemon))return featuredArtworkCache.get(pokemon);
+ const request=(async()=>{
+  const response=await fetch(`${API}/cards?name=${encodeURIComponent(pokemon)}`);
+  if(!response.ok)throw Error('TCGdex '+response.status);
+  const cards=await response.json();
+  if(!Array.isArray(cards))return null;
+  const exact=cards.filter(c=>c.image&&String(c.name).toLowerCase()===pokemon.toLowerCase());
+  const candidates=exact.length?exact:cards.filter(c=>c.image);
+  if(!candidates.length)return null;
+  // Prefer a recent printing with artwork; TCGdex card ids are set-specific.
+  const match=candidates[candidates.length-1];
+  return match.image;
+ })().catch(err=>{console.warn('Featured artwork unavailable:',pokemon,err);featuredArtworkCache.delete(pokemon);return null});
+ featuredArtworkCache.set(pokemon,request);
+ return request;
+}
+function hydrateFeaturedArtwork(){
+ const nodes=[...document.querySelectorAll('[data-featured-pokemon]')];
+ for(const node of nodes){
+  const name=node.dataset.featuredPokemon;
+  featuredArtwork(name).then(base=>{
+   if(!base||!node.isConnected||node.dataset.featuredPokemon!==name)return;
+   const img=document.createElement('img');
+   img.className='featured-pokemon-card';img.alt=featuredPokemonName(name)+' Pokémon card';
+   img.loading=node.closest('.hero-visual')?'eager':'lazy';img.decoding='async';
+   const urls=['/high.jpg','/low.jpg','/high.png','/low.png'];let i=0;
+   img.onerror=()=>{if(++i<urls.length)img.src=base+urls[i];else img.remove()};
+   img.onload=()=>{node.querySelector('.featured-monogram')?.remove()};
+   img.src=base+urls[i];node.append(img);
+  });
+ }
+}
 function snapshotLabel(){return metagameUpdated?`Ranking snapshot: ${esc(metagameUpdated)} · `:'Ranking data: bundled fallback · '}
 
-function featureCard(d){return `<a class="featured-card" href="#/deck/${slug(featuredDisplayName(d.name))}" aria-label="View ${esc(featuredDisplayName(d.name))}"><div class="featured-visual ${d.slug}">${d.card?cardFrame(d.card,'featured-image'):`<div class="featured-monogram">${d.rank===2?'✦':'♛'}</div>`}<span class="featured-rank">#${d.rank} RANKED</span></div><div class="featured-info"><div class="eyebrow small">${d.points.toLocaleString()} POINTS · ${d.share} SHARE</div><h3>${esc(featuredDisplayName(d.name))}</h3><p>${esc(d.description)}</p><span class="view-link">Explore deck <span>↗</span></span></div></a>`}
-function home(){return `${header()}<main><section class="home-hero"><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE DECK ARCHIVE <span class="edition">/ TOP 3</span></div><h1>Build your<br><em>next legend.</em></h1><p>Discover the top competitive decks, explore their strategies, and get ready for your next match.</p><a class="primary-btn" href="#/decks">Explore rankings <span>↗</span></a><div class="hero-meta"><span>✦ LIMITLESS POINTS</span><span>✦ LIVE CARD DATA</span></div></div><div class="hero-visual"><div class="visual-glow"></div><div class="orb orb-one"></div><div class="orb orb-two"></div>${featuredDecks[0]?.card?cardFrame(featuredDecks[0].card,'hero-card'):`<div class="featured-monogram">♛</div>`}<div class="float-label">TOP RANKED <b>01 / 03</b></div></div></section><section class="featured"><div class="section-top"><div><div class="eyebrow small">COMPETITIVE META · LIMITLESS TCG</div><h2>Featured <i>decks.</i></h2></div><span class="section-count">TOP 03 BY TOURNAMENT POINTS</span></div><div class="featured-grid">${featuredDecks.filter(d=>d.rank<=3).map(featureCard).join('')}</div><p class="featured-source">${snapshotLabel()}<a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Source: Limitless TCG ↗</a></p></section></main>${footer()}`}
+function featureCard(d){return `<a class="featured-card" href="#/deck/${slug(featuredDisplayName(d.name))}" aria-label="View ${esc(featuredDisplayName(d.name))}"><div class="featured-visual ${d.slug}"><div class="featured-art-target" data-featured-pokemon="${esc(d.name)}"><div class="featured-monogram">✦</div></div><span class="featured-rank">#${d.rank} RANKED</span></div><div class="featured-info"><div class="eyebrow small">${d.points.toLocaleString()} POINTS · ${d.share} SHARE</div><h3>${esc(featuredDisplayName(d.name))}</h3><p>${esc(d.description)}</p><span class="view-link">Explore deck <span>↗</span></span></div></a>`}
+function home(){return `${header()}<main><section class="home-hero"><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE DECK ARCHIVE <span class="edition">/ TOP 3</span></div><h1>Build your<br><em>next legend.</em></h1><p>Discover the top competitive decks, explore their strategies, and get ready for your next match.</p><a class="primary-btn" href="#/decks">Explore rankings <span>↗</span></a><div class="hero-meta"><span>✦ LIMITLESS POINTS</span><span>✦ LIVE CARD DATA</span></div></div><div class="hero-visual"><div class="visual-glow"></div><div class="orb orb-one"></div><div class="orb orb-two"></div><div class="featured-art-target hero-featured-art" data-featured-pokemon="${esc(featuredDecks[0]?.name||'')}"><div class="featured-monogram">♛</div></div><div class="float-label">TOP RANKED <b>01 / 03</b></div></div></section><section class="featured"><div class="section-top"><div><div class="eyebrow small">COMPETITIVE META · LIMITLESS TCG</div><h2>Featured <i>decks.</i></h2></div><span class="section-count">TOP 03 BY TOURNAMENT POINTS</span></div><div class="featured-grid">${featuredDecks.filter(d=>d.rank<=3).map(featureCard).join('')}</div><p class="featured-source">${snapshotLabel()}<a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Source: Limitless TCG ↗</a></p></section></main>${footer()}`}
 function featuredOverview(d){return deck(d)}
 
 function deck(d=featuredDecks[0]){
@@ -705,6 +752,7 @@ function render(){
  else if(isPlayers)wirePlayerSearch();
  else if(isImport)wireImport();else if(isLibrary)wireLibrary();
  else if(selected){const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});hydrateImages();wireFeaturedArchetypePlayers()}else wire()
+ hydrateFeaturedArtwork();
  window.scrollTo({top:0,behavior:'instant'});
 }
 window.addEventListener('hashchange',render);
