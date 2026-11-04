@@ -529,7 +529,7 @@ function wirePlayerSearch(){
  const dlg=document.getElementById('cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
  loadPlayerSearchRows().then(rows=>{if(!input.isConnected)return;status.textContent=`${rows.length} standings entries loaded.`;renderResults()}).catch(e=>{if(input.isConnected)status.textContent='Unable to load player search: '+e.message});
 }
-function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><a href="#/players" style="display:inline-block;margin:12px 0">Search players across tournaments →</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
+function tournamentEventPage(id){return `${header()}<main class="ranked-library"><a href="#/tournaments" class="back">← &nbsp; All tournaments</a><div class="eyebrow">TOURNAMENT / DAY 2</div><h1>Tournament <em>standings.</em></h1><div id="eventResults" class="rank-rows"><p>Loading tournament standings…</p></div></main>${footer()}`}
 async function wireTournamentEvent(id){
  const node=document.getElementById('eventResults');
  try{
