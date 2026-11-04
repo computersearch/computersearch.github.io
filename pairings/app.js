@@ -69,8 +69,8 @@
     text('updated', updated);
     show('results-section', published);
     show('empty-state', !published);
-    text('empty-title', endpoint ? 'Waiting for the next round' : 'Pairings are not connected yet');
-    text('empty-description', endpoint ? 'This page will update automatically when the organizer publishes pairings.' : 'The organizer will connect the Hostinger pairings endpoint before the first event.');
+    text('empty-title', endpoint ? 'Waiting for the next round' : 'Awaiting setup');
+    text('empty-description', endpoint ? 'This page will update automatically when the organizer publishes pairings.' : 'The organizer will connect the pairings endpoint before the event.');
     if (published) renderMatches();
   }
   async function refresh() {
@@ -98,5 +98,5 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   render();
   if (endpoint) { refresh(); setInterval(refresh, 15000); }
-  else text('status', 'Awaiting Hostinger setup');
+  else text('status', 'Awaiting setup');
 })();
