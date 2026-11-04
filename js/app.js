@@ -29,9 +29,21 @@ function featuredDisplayName(name){
  const key=String(name||'').toLowerCase().normalize('NFKD').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();
  return String(FEATURED_DISPLAY_NAMES[key]||name).replace(/\s+ex\b/gi,'').replace(/\s+/g,' ').trim();
 }
+// The JSON snapshot is refreshed by the independent daily metagame workflow.
+// Keep curated card art/descriptions, but source ranks and points from the snapshot.
+let metagameUpdated=null;
 const featuredDecks=DeckforgeDecks.all();
+function syncFeaturedDecks(){
+ for(const d of featuredDecks){
+  const row=rankedDecks.find(r=>slug(featuredDisplayName(r[0]))===slug(featuredDisplayName(d.name)));
+  if(row){d.rank=rankedDecks.indexOf(row)+1;d.points=row[1];d.share=row[2]}
+  else d.rank=999;
+ }
+}
+function snapshotLabel(){return metagameUpdated?`Ranking snapshot: ${esc(metagameUpdated)} · `:'Ranking data: bundled fallback · '}
+
 function featureCard(d){return `<a class="featured-card" href="#/deck/${slug(featuredDisplayName(d.name))}" aria-label="View ${esc(featuredDisplayName(d.name))}"><div class="featured-visual ${d.slug}">${d.card?cardFrame(d.card,'featured-image'):`<div class="featured-monogram">${d.rank===2?'✦':'♛'}</div>`}<span class="featured-rank">#${d.rank} RANKED</span></div><div class="featured-info"><div class="eyebrow small">${d.points.toLocaleString()} POINTS · ${d.share} SHARE</div><h3>${esc(featuredDisplayName(d.name))}</h3><p>${esc(d.description)}</p><span class="view-link">Explore deck <span>↗</span></span></div></a>`}
-function home(){return `${header()}<main><section class="home-hero"><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE DECK ARCHIVE <span class="edition">/ TOP 3</span></div><h1>Build your<br><em>next legend.</em></h1><p>Discover the top competitive decks, explore their strategies, and get ready for your next match.</p><a class="primary-btn" href="#/decks">Explore rankings <span>↗</span></a><div class="hero-meta"><span>✦ LIMITLESS POINTS</span><span>✦ LIVE CARD DATA</span></div></div><div class="hero-visual"><div class="visual-glow"></div><div class="orb orb-one"></div><div class="orb orb-two"></div>${cardFrame([3,'Dragapult ex','TWM','130'],'hero-card')}<div class="float-label">TOP RANKED <b>01 / 03</b></div></div></section><section class="featured"><div class="section-top"><div><div class="eyebrow small">COMPETITIVE META · LIMITLESS TCG</div><h2>Featured <i>decks.</i></h2></div><span class="section-count">TOP 03 BY TOURNAMENT POINTS</span></div><div class="featured-grid">${featuredDecks.filter(d=>d.rank<=3).map(featureCard).join('')}</div><p class="featured-source">Ranking snapshot: October 28, 2026 · TEF–30C format · <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Source: Limitless TCG ↗</a></p></section></main>${footer()}`}
+function home(){return `${header()}<main><section class="home-hero"><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> THE DECK ARCHIVE <span class="edition">/ TOP 3</span></div><h1>Build your<br><em>next legend.</em></h1><p>Discover the top competitive decks, explore their strategies, and get ready for your next match.</p><a class="primary-btn" href="#/decks">Explore rankings <span>↗</span></a><div class="hero-meta"><span>✦ LIMITLESS POINTS</span><span>✦ LIVE CARD DATA</span></div></div><div class="hero-visual"><div class="visual-glow"></div><div class="orb orb-one"></div><div class="orb orb-two"></div>${cardFrame([3,'Dragapult ex','TWM','130'],'hero-card')}<div class="float-label">TOP RANKED <b>01 / 03</b></div></div></section><section class="featured"><div class="section-top"><div><div class="eyebrow small">COMPETITIVE META · LIMITLESS TCG</div><h2>Featured <i>decks.</i></h2></div><span class="section-count">TOP 03 BY TOURNAMENT POINTS</span></div><div class="featured-grid">${featuredDecks.filter(d=>d.rank<=3).map(featureCard).join('')}</div><p class="featured-source">${snapshotLabel()}<a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Source: Limitless TCG ↗</a></p></section></main>${footer()}`}
 function featuredOverview(d){return deck(d)}
 
 function deck(d=featuredDecks[0]){
@@ -309,12 +321,12 @@ function cardmarketLink(data,c){
 }
 function wireCardButtons(){document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',async()=>{const [set,num]=b.dataset.open.split('-');const c=currentGroups.flatMap(g=>g.cards).find(x=>x[2]===set&&x[3]===num);if(!c)return;const dlg=document.querySelector('#cardDialog'),body=document.querySelector('#dialogBody');body.innerHTML=styledCardDialog(c,null);if(!dlg.open)dlg.showModal();const data=await getCard(set,num,c[1]);if(!dlg.open)return;body.innerHTML=styledCardDialog(c,data)}))}
 
-const rankedDecks=[
+let rankedDecks=[
 ['Dragapult',4937,'36.64%'],['Basic Box',1192,'8.85%'],['Slowking',1021,'7.58%'],["N’s Zoroark",1014,'7.52%'],['Alakazam',852,'6.32%'],['Festival Lead',773,'5.74%'],['Dhelmise',558,'4.14%'],['Hydrapple',497,'3.69%'],['Mega Lopunny',393,'2.92%'],['Crustle',326,'2.42%'],['Mega Excadrill',304,'2.26%'],['Mega Lucario',283,'2.10%'],['Mega Sharpedo',201,'1.49%'],["Rocket’s Honchkrow",195,'1.45%'],["Cynthia’s Garchomp",145,'1.08%'],['Ogerpon Meganium',112,'0.83%'],["Marnie’s Grimmsnarl",95,'0.70%'],['Mew Box Memory Helix',83,'0.62%'],["Rocket’s Mewtwo",56,'0.42%'],['Raging Bolt',47,'0.35%'],["Hop’s Trevenant",47,'0.35%'],["Lillie’s Clefairy",39,'0.29%'],['Mega Absol Box',39,'0.29%'],['Mega Starmie',33,'0.24%'],['Greninja',28,'0.21%']];
 for(const d of DeckforgeDecks.all()) if(!rankedDecks.some(row=>row[0]===featuredDisplayName(d.name))) rankedDecks.push([featuredDisplayName(d.name),d.points,d.share]);
 // All ranked archetypes use one consistent tournament-backed page model.
 // Never reuse legacy featured-deck objects (old slugs, card covers and loaders).
-const archetypePages=rankedDecks.map(([name,points,share],i)=>({
+let archetypePages=rankedDecks.map(([name,points,share],i)=>({
  name,points,share,rank:i+1,slug:slug(name),
  description:'Regional Championship archetype',card:null
 }));
@@ -325,7 +337,7 @@ const LEGACY_ARCHETYPE_SLUGS={
  'alakazam-powerful-hand':'alakazam',
  'dhelmise-hide-n-sneak':'dhelmise'
 };
-function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore all 25 archetypes and the best-finishing verified Day 2 player builds since July 2026. Ranking snapshot: October 28, 2026.</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Ranking points sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Decklists come from imported championship results; archetypes without a verified 60-card list show an availability message.</p></main>${footer()}`}
+function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore competitive archetypes and the best-finishing verified Day 2 player builds since July 2026. ${snapshotLabel()}</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Ranking points sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Decklists come from imported championship results; archetypes without a verified 60-card list show an availability message.</p></main>${footer()}`}
 function wireLibrary(){const input=document.getElementById('rankSearch');const rows=document.getElementById('rankRows');const update=()=>{const q=input.value.trim().toLowerCase();rows.innerHTML=rankedDecks.map((d,i)=>({name:d[0],points:d[1],share:d[2],rank:i+1,page:archetypePages[i]})).filter(d=>d.name.toLowerCase().includes(q)).map(d=>`<a class="rank-row" href="#/deck/${esc(d.page.slug)}"><span class="rank-number">#${d.rank}</span><span class="rank-title">${esc(d.name)}<small>View top-finishing player's decklist ↗</small></span><span class="rank-share">${esc(d.share)} share</span><span class="rank-points">${d.points.toLocaleString()} <small>PTS</small></span><span class="rank-arrow">↗</span></a>`).join('')||'<p>No matching decks found.</p>'};input.addEventListener('input',update);update()}
 
 let importedDeck=null;
@@ -405,12 +417,16 @@ function legacyTournamentSlug(event){
  return `${date}-${name||'tournament'}`;
 }
 function tournamentDisplayName(event){
- // Tournament names are normalized in the imported JSON. Preserve a fallback
- // for legacy archives that have not yet been reimported.
  const raw=String(event?.name||'').trim();
+ // Strip source attribution from imported titles; the banner handles attribution.
  const clean=raw.replace(/\s*[–—-]\s*Limitless(?:\s*TCG)?\s*$/i,'').trim();
- const regional=clean.match(/^Regional\s+(.+)$/i);
- return stripRegionalState(regional ? `${regional[1].split(',')[0].trim()} Regional Championship` : clean || 'Tournament');
+ if(clean && !/^(?:Regional Championship|Tournament)\s*#?\d+$/i.test(clean)){
+  const regional=clean.match(/^Regional\s+(.+)$/i);
+  return stripRegionalState(regional ? `${regional[1]} Regional Championship` : clean);
+ }
+ const id=String(event?.id||'').replace(/^limitless-/,'');
+ const known={'583':'Puebla Regional Championship','582':'Nice Regional Championship','581':'Louisville Regional Championship'};
+ return stripRegionalState(known[id]||clean||'Regional Championship');
 }
 function tournamentPage(){return `${header()}<main class="ranked-library"><div class="tournament-source-banner">Data from Limitless</div><div class="eyebrow">TOURNAMENT ARCHIVE</div><h1>Tournament <em>results.</em></h1><p class="rank-subtitle">Choose a Regional or World Championship to view top players and their published decklists.</p><div id="tournamentResults" class="rank-rows"><p>Loading tournaments…</p></div></main>${footer()}`}
 function tournamentSeason(dateString){
@@ -694,5 +710,27 @@ function render(){
  else if(selected){const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});hydrateImages();wireFeaturedArchetypePlayers()}else wire()
  window.scrollTo({top:0,behavior:'instant'});
 }
-window.addEventListener('hashchange',render);render();
+window.addEventListener('hashchange',render);
+// Show the bundled fallback immediately; replace it only with validated data.
+render();
+(async()=>{
+ try{
+  const response=await fetch('metagame/rankings.json',{cache:'no-store'});
+  if(!response.ok)throw Error(`HTTP ${response.status}`);
+  const snapshot=await response.json();
+  if(!Array.isArray(snapshot.decks)||snapshot.decks.length<10)throw Error('Too few ranked decks');
+  const names=new Set();
+  const rows=snapshot.decks.map(d=>{
+   if(typeof d.name!=='string'||!d.name.trim()||!Number.isSafeInteger(d.points)||d.points<0||typeof d.share!=='string'||!/^\d+(?:\.\d+)?%$/.test(d.share))throw Error('Invalid deck row');
+   const name=featuredDisplayName(d.name),key=slug(name);
+   if(names.has(key))throw Error('Duplicate deck');names.add(key);
+   return [name,d.points,d.share];
+  });
+  rankedDecks=rows;
+  archetypePages=rankedDecks.map(([name,points,share],i)=>({name,points,share,rank:i+1,slug:slug(name),description:'Regional Championship archetype',card:null}));
+  metagameUpdated=snapshot.updated_at||null;
+  syncFeaturedDecks();
+  render();
+ }catch(err){console.warn('Metagame snapshot unavailable; using bundled rankings:',err.message)}
+})();
 
