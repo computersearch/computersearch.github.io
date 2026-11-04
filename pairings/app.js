@@ -36,7 +36,7 @@
       const validRecord = value => /^\d+-\d+-\d+$/.test(value);
       if (record1 && !validRecord(record1)) throw Error('Invalid player record');
       if (record2 && !validRecord(record2)) throw Error('Invalid opponent record');
-      return { table, player1, player2, record1, record2, bye };
+      return { table, player1, player2, record1, record2, static1: m.static1 === true, static2: m.static2 === true, bye };
     }).sort((a, b) => (a.bye ? 1 : 0) - (b.bye ? 1 : 0) || (a.table ?? 0) - (b.table ?? 0));
     return { status: 'published', tournament, division, round, matches, updated_at: clean(data.updated_at) };
   }
@@ -59,6 +59,7 @@
         const player = document.createElement('div'); player.className = 'player';
         const playerName = document.createElement('span'); playerName.className = 'player-name'; playerName.textContent = name;
         player.append(playerName);
+        if (index === 0 ? match.static1 : match.static2) { const badge = document.createElement('span'); badge.className = 'static-seat-badge'; badge.textContent = '★ Static Seat'; player.append(badge); }
         const record = index === 0 ? match.record1 : match.record2;
         if (record) { const recordText = document.createElement('span'); recordText.className = 'player-record'; recordText.textContent = `W–L–T: ${record}`; player.append(recordText); }
         players.append(player);
