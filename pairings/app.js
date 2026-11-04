@@ -80,6 +80,15 @@
     show('no-results', matches.length === 0);
     show('clear', Boolean(query));
   }
+  function renderRoundHeader() {
+    if (!current || current.status !== 'published') { text('round', ''); return; }
+    if (selectedDivision !== 'All' && current.rounds[selectedDivision]) {
+      text('round', `Round ${current.rounds[selectedDivision]}`);
+      return;
+    }
+    const numbers = [...new Set(current.divisions.map(d => current.rounds[d]))].sort((a, b) => a - b);
+    text('round', numbers.length === 1 ? `Round ${numbers[0]}` : `Rounds ${numbers[0]}–${numbers[numbers.length - 1]}`);
+  }
   function renderDivisions() {
     const tabs = $('division-tabs');
     tabs.replaceChildren();
@@ -91,7 +100,7 @@
       button.className = 'division-tab' + (division === selectedDivision ? ' active' : '');
       button.textContent = division === 'All' ? 'All' : `${division} · R${current.rounds[division]}`;
       button.setAttribute('aria-pressed', String(division === selectedDivision));
-      button.addEventListener('click', () => { selectedDivision = division; $('search').value = ''; renderDivisions(); renderMatches(); });
+      button.addEventListener('click', () => { selectedDivision = division; $('search').value = ''; renderDivisions(); renderRoundHeader(); renderMatches(); });
       tabs.append(button);
     }
   }
@@ -99,7 +108,7 @@
     const published = current?.status === 'published';
     text('tournament', clean(current?.tournament) || 'Waiting for pairings');
     text('division', published ? (current.divisions.length > 1 ? current.divisions.map(d => `${d} · Round ${current.rounds[d]}`).join(' · ') : `${current.division} Division`) : 'Pairings will appear here when published.');
-    text('round', published ? (new Set(Object.values(current.rounds)).size === 1 ? `Round ${current.rounds[current.divisions[0]]}` : 'Multiple rounds') : '');
+    renderRoundHeader();
     show('round', published);
     text('count', published ? `${current.matches.filter(m => !m.bye).length} tables · ${current.matches.filter(m => m.bye).length} BYEs · ${current.matches.reduce((n, m) => n + (m.bye ? 1 : 2), 0)} players` : 'No active round');
     let updated = '';
