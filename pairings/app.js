@@ -15,8 +15,8 @@
   function parse(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw Error('Invalid pairings response');
     const state = clean(data.status).toLowerCase();
-    if (!['published', 'waiting'].includes(state)) throw Error('Unknown pairings status');
-    if (state === 'waiting') return { status: 'waiting', tournament: clean(data.tournament), round: data.round };
+    if (!['published', 'waiting', 'unpublished'].includes(state)) throw Error('Unknown pairings status');
+    if (state !== 'published') return { status: state, tournament: state === 'waiting' ? clean(data.tournament) : '', round: data.round };
     const tournament = clean(data.tournament);
     const division = clean(data.division);
     const divisions = Array.isArray(data.divisions) ? data.divisions.map(clean) : [division];
@@ -106,8 +106,8 @@
   }
   function render() {
     const published = current?.status === 'published';
-    text('tournament', clean(current?.tournament) || 'Waiting for pairings');
-    text('division', published ? (current.divisions.length > 1 ? current.divisions.map(d => `${d} · Round ${current.rounds[d]}`).join(' · ') : `${current.division} Division`) : 'Pairings will appear here when published.');
+    text('tournament', current?.status === 'unpublished' ? 'No tournament is running at the moment.' : (clean(current?.tournament) || 'Waiting for pairings'));
+    text('division', published ? (current.divisions.length > 1 ? current.divisions.map(d => `${d} · Round ${current.rounds[d]}`).join(' · ') : `${current.division} Division`) : (current?.status === 'unpublished' ? '' : 'Pairings will appear here when published.'));
     renderRoundHeader();
     show('round', published);
     text('count', published ? `${current.matches.filter(m => !m.bye).length} tables · ${current.matches.filter(m => m.bye).length} BYEs · ${current.matches.reduce((n, m) => n + (m.bye ? 1 : 2), 0)} players` : 'No active round');
@@ -119,8 +119,8 @@
     text('updated', updated);
     show('results-section', published);
     show('empty-state', !published);
-    text('empty-title', endpoint ? 'Waiting for the next round' : 'Awaiting setup');
-    text('empty-description', endpoint ? 'This page will update automatically when the organizer publishes pairings.' : 'The organizer will connect the pairings endpoint before the event.');
+    text('empty-title', current?.status === 'unpublished' ? 'No tournament is running at the moment.' : (endpoint ? 'Waiting for the next round' : 'Awaiting setup'));
+    text('empty-description', current?.status === 'unpublished' ? 'Check back when the next tournament begins.' : (endpoint ? 'This page will update automatically when the organizer publishes pairings.' : 'The organizer will connect the pairings endpoint before the event.'));
     renderDivisions();
     if (published) renderMatches();
   }
