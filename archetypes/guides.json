@@ -43,7 +43,22 @@
         "Budew",
         "Crushing Hammer",
         "Unfair Stamp"
-      ]
+      ],
+      "variants": [
+        {
+          "guide": "dragapult-ex",
+          "label": "Standard Dragapult"
+        },
+        {
+          "guide": "dragapult-blaziken",
+          "label": "Dragapult / Blaziken"
+        },
+        {
+          "guide": "dragapult-dusknoir",
+          "label": "Dragapult / Dusknoir"
+        }
+      ],
+      "variantsIntro": "All three builds share Dragapult ex’s Phantom Dive spread strategy. Choose a variant to see its distinct engine and trade-offs."
     },
     "basic-box": {
       "title": "Basic Box",
