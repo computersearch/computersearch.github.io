@@ -619,66 +619,44 @@ async function wireTournamentDeck(id,requested){
 function normalizeArchetypeName(name){
  return String(name||'').toLowerCase().normalize('NFKD').replace(/[’']/g,'').replace(/\b(pok[eé]mon|deck|box)\b/g,'').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
 }
-// Limitless uses short archetype labels; Computer Search often uses card/attack names.
-// Keep mappings explicit to avoid accidentally mixing unrelated decks.
-const FEATURED_ARCHETYPE_TAGS={
- 'dragapult ex':['dragapult','dragapult ex','dragapult dusknoir','dragapult dudunsparce','dragapult blaziken','dragapult pidgeot'],
- 'slowking seek inspiration':['slowking','slowking seek inspiration'],
- 'basic box':['basic box'],
- 'ns zoroark ex':['ns zoroark','ns zoroark ex'],
- 'alakazam powerful hand':['alakazam','alakazam dudunsparce','alakazam dusknoir','alakazam powerful hand'],
- 'festival lead':['festival lead','seaking festival lead'],
- 'dhelmise hide n sneak':['dhelmise','dhelmise hide n sneak'],
- 'hydrapple ex':['hydrapple','hydrapple ex','ogerpon meganium hydrapple'],
- 'mega lopunny ex':['mega lopunny','lopunny dusknoir','lopunny dudunsparce'],
- 'crustle mysterious rock inn':['crustle','crustle mysterious rock inn'],
- 'mega excadrill ex':['mega excadrill','mega excadrill ex'],
- 'mega lucario ex':['mega lucario','mega lucario ex'],
- 'mega sharpedo ex':['mega sharpedo','mega sharpedo ex','sharpedo toxtricity','mega sharpedo toxtricity','sharpedo mega toxtricity'],
- 'rockets honchkrow':['rockets honchkrow'],
- 'cynthias garchomp ex':['cynthias garchomp','cynthias garchomp ex'],
- 'ogerpon meganium':['ogerpon meganium hydrapple','ogerpon meganium arboliva','ogerpon meganium'],
- 'marnies grimmsnarl ex':['marnies grimmsnarl','grimmsnarl froslass','grimmsnarl'],
- 'mew box memory helix':['mew box','mew box memory helix'],
- 'rockets mewtwo ex':['rockets mewtwo','rockets mewtwo ex'],
- 'raging bolt ex':['raging bolt','raging bolt ex','raging bolt ogerpon'],
- 'hops trevenant':['hops trevenant'],
- 'lillies clefairy ex':['lillies clefairy','lillies clefairy ex'],
- 'mega absol box':['mega absol','mega absol box'],
- 'mega starmie ex':['mega starmie','mega starmie ex'],
- 'greninja ex':['greninja','greninja ex']
-};
-// Display names and imported Limitless labels must resolve to the same canonical archetype.
-// The aliases below also preserve the original names used by the featured registry.
-const ARCHETYPE_CANONICAL={
- 'dragapult':'dragapult ex',
- 'slowking':'slowking seek inspiration',
- 'alakazam':'alakazam powerful hand',
- 'dhelmise':'dhelmise hide n sneak',
- 'crustle':'crustle mysterious rock inn',
- 'hydrapple':'hydrapple ex',
- 'mega lopunny':'mega lopunny ex',
- 'mega excadrill':'mega excadrill ex',
- 'mega lucario':'mega lucario ex',
- 'mega sharpedo':'mega sharpedo ex',
- 'cynthias garchomp':'cynthias garchomp ex',
- 'marnies grimmsnarl':'marnies grimmsnarl ex',
- 'rockets mewtwo':'rockets mewtwo ex',
- 'raging bolt':'raging bolt ex',
- 'lillies clefairy':'lillies clefairy ex',
- 'mega starmie':'mega starmie ex',
- 'greninja':'greninja ex',
- 'ns zoroark':'ns zoroark ex',
- 'mew memory helix':'mew',
- 'mew box memory helix':'mew'
-};
+// Tournament aliases are loaded directly from archetypes/mappings.json.
+// No generated JavaScript or build step is required.
+const ARCHETYPE_ALIAS_INDEX=new Map();
+const ARCHETYPE_ALLOWED_INDEX=new Map();
+const archetypeMappingsReady=(async()=>{
+ const response=await fetch('archetypes/mappings.json',{cache:'no-store'});
+ if(!response.ok)throw Error(`Could not load archetype mappings (HTTP ${response.status})`);
+ const config=await response.json();
+ if(!Array.isArray(config.archetypes)||!config.archetypes.length)throw Error('Invalid archetype mapping configuration');
+ const aliases=new Map(),allowedIndex=new Map();
+ for(const item of config.archetypes){
+  if(typeof item.canonical!=='string'||!item.canonical.trim()||!Array.isArray(item.aliases)||!item.aliases.every(a=>typeof a==='string'&&a.trim()))throw Error('Invalid archetype mapping entry');
+  const canonical=normalizeArchetypeName(item.canonical);
+  if(allowedIndex.has(canonical))throw Error(`Duplicate canonical archetype: ${item.canonical}`);
+  const allowed=new Set([item.canonical,...item.aliases].map(normalizeArchetypeName));
+  allowedIndex.set(canonical,allowed);
+  for(const label of [item.canonical,...item.aliases,...(item.display_aliases||[])]){
+   const key=normalizeArchetypeName(label);
+   if(!key)throw Error(`Empty archetype alias: ${label}`);
+   const existing=aliases.get(key);
+   if(existing&&existing!==canonical)throw Error(`Conflicting archetype alias: ${label} (${existing} / ${canonical})`);
+   aliases.set(key,canonical);
+  }
+ }
+ ARCHETYPE_ALIAS_INDEX.clear();ARCHETYPE_ALLOWED_INDEX.clear();
+ for(const [key,value] of aliases)ARCHETYPE_ALIAS_INDEX.set(key,value);
+ for(const [key,value] of allowedIndex)ARCHETYPE_ALLOWED_INDEX.set(key,value);
+ return config;
+})();
+archetypeMappingsReady.catch(err=>console.error('Archetype mappings unavailable:',err));
 function matchesFeaturedArchetype(deckName, featuredNormalized){
  const actual=normalizeArchetypeName(deckName);
- if(!actual||!featuredNormalized)return false;
- const canonical=ARCHETYPE_CANONICAL[featuredNormalized]||featuredNormalized;
- const allowed=FEATURED_ARCHETYPE_TAGS[canonical];
- if(allowed)return allowed.some(tag=>normalizeArchetypeName(tag)===actual);
- return actual===featuredNormalized||actual===canonical;
+ const featured=normalizeArchetypeName(featuredNormalized);
+ if(!actual||!featured)return false;
+ const canonical=ARCHETYPE_ALIAS_INDEX.get(featured)||featured;
+ const allowed=ARCHETYPE_ALLOWED_INDEX.get(canonical);
+ // Do not fall back to fuzzy matching for a configured archetype.
+ return allowed?allowed.has(actual):actual===featured;
 }
 
 async function wireFeaturedArchetypePlayers(){
@@ -686,6 +664,7 @@ async function wireFeaturedArchetypePlayers(){
  if(!node)return;
  const target=normalizeArchetypeName(node.dataset.archetype);
  try{
+  await archetypeMappingsReady;
   const events=await getTournamentIndex();
   const matches=[];
   let failedEvents=0;

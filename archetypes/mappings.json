@@ -1,0 +1,254 @@
+{
+  "schema_version": 1,
+  "notes": "Canonical tournament matching. Keys and aliases use normalization defined in js/app.js. Add new Limitless labels here; avoid assigning one label to multiple archetypes.",
+  "archetypes": [
+    {
+      "canonical": "dragapult ex",
+      "aliases": [
+        "dragapult",
+        "dragapult ex",
+        "dragapult dusknoir",
+        "dragapult dudunsparce",
+        "dragapult blaziken",
+        "dragapult pidgeot"
+      ],
+      "display_aliases": [
+        "dragapult"
+      ]
+    },
+    {
+      "canonical": "slowking seek inspiration",
+      "aliases": [
+        "slowking",
+        "slowking seek inspiration"
+      ],
+      "display_aliases": [
+        "slowking"
+      ]
+    },
+    {
+      "canonical": "basic box",
+      "aliases": [
+        "basic box"
+      ],
+      "display_aliases": []
+    },
+    {
+      "canonical": "ns zoroark ex",
+      "aliases": [
+        "ns zoroark",
+        "ns zoroark ex"
+      ],
+      "display_aliases": [
+        "ns zoroark"
+      ]
+    },
+    {
+      "canonical": "alakazam powerful hand",
+      "aliases": [
+        "alakazam",
+        "alakazam dudunsparce",
+        "alakazam dusknoir",
+        "alakazam powerful hand"
+      ],
+      "display_aliases": [
+        "alakazam"
+      ]
+    },
+    {
+      "canonical": "festival lead",
+      "aliases": [
+        "festival lead",
+        "seaking festival lead"
+      ],
+      "display_aliases": []
+    },
+    {
+      "canonical": "dhelmise hide n sneak",
+      "aliases": [
+        "dhelmise",
+        "dhelmise hide n sneak"
+      ],
+      "display_aliases": [
+        "dhelmise"
+      ]
+    },
+    {
+      "canonical": "hydrapple ex",
+      "aliases": [
+        "hydrapple",
+        "hydrapple ex"
+      ],
+      "display_aliases": [
+        "hydrapple"
+      ]
+    },
+    {
+      "canonical": "mega lopunny ex",
+      "aliases": [
+        "mega lopunny",
+        "lopunny dusknoir",
+        "lopunny dudunsparce"
+      ],
+      "display_aliases": [
+        "mega lopunny"
+      ]
+    },
+    {
+      "canonical": "crustle mysterious rock inn",
+      "aliases": [
+        "crustle",
+        "crustle mysterious rock inn"
+      ],
+      "display_aliases": [
+        "crustle"
+      ]
+    },
+    {
+      "canonical": "mega excadrill ex",
+      "aliases": [
+        "mega excadrill",
+        "mega excadrill ex"
+      ],
+      "display_aliases": [
+        "mega excadrill"
+      ]
+    },
+    {
+      "canonical": "mega lucario ex",
+      "aliases": [
+        "mega lucario",
+        "mega lucario ex"
+      ],
+      "display_aliases": [
+        "mega lucario"
+      ]
+    },
+    {
+      "canonical": "mega sharpedo ex",
+      "aliases": [
+        "mega sharpedo",
+        "mega sharpedo ex",
+        "sharpedo toxtricity",
+        "mega sharpedo toxtricity",
+        "sharpedo mega toxtricity"
+      ],
+      "display_aliases": [
+        "mega sharpedo"
+      ]
+    },
+    {
+      "canonical": "rockets honchkrow",
+      "aliases": [
+        "rockets honchkrow"
+      ],
+      "display_aliases": []
+    },
+    {
+      "canonical": "cynthias garchomp ex",
+      "aliases": [
+        "cynthias garchomp",
+        "cynthias garchomp ex"
+      ],
+      "display_aliases": [
+        "cynthias garchomp"
+      ]
+    },
+    {
+      "canonical": "ogerpon meganium",
+      "aliases": [
+        "ogerpon meganium hydrapple",
+        "ogerpon meganium arboliva",
+        "ogerpon meganium"
+      ],
+      "display_aliases": []
+    },
+    {
+      "canonical": "marnies grimmsnarl ex",
+      "aliases": [
+        "marnies grimmsnarl",
+        "grimmsnarl froslass",
+        "grimmsnarl"
+      ],
+      "display_aliases": [
+        "marnies grimmsnarl"
+      ]
+    },
+    {
+      "canonical": "mew box memory helix",
+      "aliases": [
+        "mew box",
+        "mew box memory helix"
+      ],
+      "display_aliases": [
+        "mew memory helix"
+      ]
+    },
+    {
+      "canonical": "rockets mewtwo ex",
+      "aliases": [
+        "rockets mewtwo",
+        "rockets mewtwo ex"
+      ],
+      "display_aliases": [
+        "rockets mewtwo"
+      ]
+    },
+    {
+      "canonical": "raging bolt ex",
+      "aliases": [
+        "raging bolt",
+        "raging bolt ex",
+        "raging bolt ogerpon"
+      ],
+      "display_aliases": [
+        "raging bolt"
+      ]
+    },
+    {
+      "canonical": "hops trevenant",
+      "aliases": [
+        "hops trevenant"
+      ],
+      "display_aliases": []
+    },
+    {
+      "canonical": "lillies clefairy ex",
+      "aliases": [
+        "lillies clefairy",
+        "lillies clefairy ex"
+      ],
+      "display_aliases": [
+        "lillies clefairy"
+      ]
+    },
+    {
+      "canonical": "mega absol box",
+      "aliases": [
+        "mega absol",
+        "mega absol box"
+      ],
+      "display_aliases": []
+    },
+    {
+      "canonical": "mega starmie ex",
+      "aliases": [
+        "mega starmie",
+        "mega starmie ex"
+      ],
+      "display_aliases": [
+        "mega starmie"
+      ]
+    },
+    {
+      "canonical": "greninja ex",
+      "aliases": [
+        "greninja",
+        "greninja ex"
+      ],
+      "display_aliases": [
+        "greninja"
+      ]
+    }
+  ]
+}
