@@ -1,6 +1,6 @@
 /* Computer Search: cache only TCGdex artwork; leave JSON, API and application assets untouched. */
 const CARD_CACHE = 'computersearch-tcgdex-art-v1';
-const MAX_CARDS = 300;
+const MAX_CARDS = 500;
 const IMAGE_HOST = 'assets.tcgdex.net';
 
 self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
