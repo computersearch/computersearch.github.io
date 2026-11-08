@@ -249,6 +249,190 @@
       "display_aliases": [
         "greninja"
       ]
+    },
+    {
+      "canonical": "okidogi adrena power",
+      "aliases": [
+        "Okidogi Adrena-Power"
+      ],
+      "display_aliases": [],
+      "display_name": "Okidogi"
+    },
+    {
+      "canonical": "ceruledge ex",
+      "aliases": [
+        "Ceruledge ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Ceruledge"
+    },
+    {
+      "canonical": "beedrill ex",
+      "aliases": [
+        "Beedrill ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Beedrill"
+    },
+    {
+      "canonical": "toucannon feather rondo",
+      "aliases": [
+        "Toucannon Feather Rondo"
+      ],
+      "display_aliases": [],
+      "display_name": "Toucannon"
+    },
+    {
+      "canonical": "toxtricity sinister surge",
+      "aliases": [
+        "Toxtricity Sinister Surge"
+      ],
+      "display_aliases": [],
+      "display_name": "Toxtricity"
+    },
+    {
+      "canonical": "ethans typhlosion",
+      "aliases": [
+        "Ethan's Typhlosion"
+      ],
+      "display_aliases": [],
+      "display_name": "Ethan's Typhlosion"
+    },
+    {
+      "canonical": "mega chandelure ex",
+      "aliases": [
+        "Mega Chandelure ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Mega Chandelure"
+    },
+    {
+      "canonical": "tera",
+      "aliases": [
+        "Tera Box"
+      ],
+      "display_aliases": [],
+      "display_name": "Tera Box"
+    },
+    {
+      "canonical": "archaludon ex",
+      "aliases": [
+        "Archaludon ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Archaludon"
+    },
+    {
+      "canonical": "stevens metagross ex",
+      "aliases": [
+        "Steven's Metagross ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Steven's Metagross"
+    },
+    {
+      "canonical": "mega kangaskhan ex",
+      "aliases": [
+        "Mega Kangaskhan ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Mega Kangaskhan"
+    },
+    {
+      "canonical": "mega manectric ex",
+      "aliases": [
+        "Mega Manectric ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Mega Manectric"
+    },
+    {
+      "canonical": "mega greninja ex",
+      "aliases": [
+        "Mega Greninja ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Mega Greninja"
+    },
+    {
+      "canonical": "joltik",
+      "aliases": [
+        "Joltik Box"
+      ],
+      "display_aliases": [],
+      "display_name": "Joltik Box"
+    },
+    {
+      "canonical": "flareon ex",
+      "aliases": [
+        "Flareon ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Flareon"
+    },
+    {
+      "canonical": "mega venusaur ex",
+      "aliases": [
+        "Mega Venusaur ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Mega Venusaur"
+    },
+    {
+      "canonical": "eelektrik dynamotor",
+      "aliases": [
+        "Eelektrik Dynamotor"
+      ],
+      "display_aliases": [],
+      "display_name": "Eelektrik"
+    },
+    {
+      "canonical": "bloodmoon ursaluna mad bite",
+      "aliases": [
+        "Bloodmoon Ursaluna Mad Bite"
+      ],
+      "display_aliases": [],
+      "display_name": "Bloodmoon Ursaluna"
+    },
+    {
+      "canonical": "metagross metal maker",
+      "aliases": [
+        "Metagross Metal Maker"
+      ],
+      "display_aliases": [],
+      "display_name": "Metagross"
+    },
+    {
+      "canonical": "mega diancie ex",
+      "aliases": [
+        "Mega Diancie ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Mega Diancie"
+    },
+    {
+      "canonical": "yanmega ex",
+      "aliases": [
+        "Yanmega ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Yanmega"
+    },
+    {
+      "canonical": "mega darkrai ex",
+      "aliases": [
+        "Mega Darkrai ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Mega Darkrai"
+    },
+    {
+      "canonical": "cinccino ex",
+      "aliases": [
+        "Cinccino ex"
+      ],
+      "display_aliases": [],
+      "display_name": "Cinccino"
     }
   ]
 }

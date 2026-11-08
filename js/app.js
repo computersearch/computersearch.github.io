@@ -623,6 +623,22 @@ function normalizeArchetypeName(name){
 // No generated JavaScript or build step is required.
 const ARCHETYPE_ALIAS_INDEX=new Map();
 const ARCHETYPE_ALLOWED_INDEX=new Map();
+function addUnrankedArchetypePages(config){
+ // Mappings are independent of the top-25 rankings; unranked pages never
+ // affect homepage placement, points, shares or metagame calculations.
+ const rankedSlugs=new Set(archetypePages.filter(d=>!d.unranked).map(d=>d.slug));
+ const extras=[];
+ for(const item of config.archetypes){
+  if(!item.display_name)continue;
+  const name=item.display_name;
+  const pageSlug=slug(featuredDisplayName(name));
+  if(rankedSlugs.has(pageSlug))continue;
+  rankedSlugs.add(pageSlug);
+  extras.push({name,points:0,share:'0%',rank:null,slug:pageSlug,
+   description:'Tournament archetype',card:null,unranked:true});
+ }
+ archetypePages=archetypePages.filter(d=>!d.unranked).concat(extras);
+}
 const archetypeMappingsReady=(async()=>{
  const response=await fetch('archetypes/mappings.json',{cache:'no-store'});
  if(!response.ok)throw Error(`Could not load archetype mappings (HTTP ${response.status})`);
@@ -643,6 +659,7 @@ const archetypeMappingsReady=(async()=>{
    aliases.set(key,canonical);
   }
  }
+ addUnrankedArchetypePages(config);
  ARCHETYPE_ALIAS_INDEX.clear();ARCHETYPE_ALLOWED_INDEX.clear();
  for(const [key,value] of aliases)ARCHETYPE_ALIAS_INDEX.set(key,value);
  for(const [key,value] of allowedIndex)ARCHETYPE_ALLOWED_INDEX.set(key,value);
@@ -829,6 +846,9 @@ render();
   archetypePages=rankedDecks.map(([name,points,share],i)=>({name,points,share,rank:i+1,slug:slug(name),description:'Regional Championship archetype',card:null}));
   metagameUpdated=snapshot.updated_at||null;
   syncFeaturedDecks();
+  // Rankings refresh must not remove pages registered through mappings.json.
+  await archetypeMappingsReady;
+  addUnrankedArchetypePages(await archetypeMappingsReady);
   render();
  }catch(err){console.warn('Metagame snapshot unavailable; using bundled rankings:',err.message)}
 })();
