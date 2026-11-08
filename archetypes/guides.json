@@ -581,6 +581,57 @@
         "Hariyama",
         "Unfair Stamp"
       ]
+    },
+    "mew-box": {
+      "title": "Mew Box",
+      "aliases": [
+        "Mew Box",
+        "Mew Box Memory Helix",
+        "Mew Box Memory Helix ex"
+      ],
+      "summary": "A flexible Basic Pokémon toolbox centered on Mew ex, backed by Mega Kangaskhan ex draw and a range of attackers chosen for the matchup.",
+      "steps": [
+        "Use Mega Kangaskhan ex to build a steady hand while assembling the correct attacker for the matchup.",
+        "Establish Mew ex and the supporting Basic Pokémon; prioritize which attacker and Energy types are needed before committing resources.",
+        "Use Crispin and Wondrous Patch to assemble the Energy required by your chosen attacker.",
+        "Exploit the flexibility of the toolbox, switching between attackers and using Boss’s Orders or Prime Catcher to target important opposing Pokémon."
+      ],
+      "strengths": [
+        "Flexible attacker selection and matchup-specific answers",
+        "Mega Kangaskhan ex supports consistent draw",
+        "Multiple Basic Pokémon options reduce reliance on one attacker"
+      ],
+      "weaknesses": [
+        "Correct attacker and Energy sequencing can be demanding",
+        "A broad toolbox can draw the wrong pieces at the wrong time",
+        "Bench space and multi-type Energy requirements constrain setup"
+      ],
+      "against": [
+        "Identify which attacker threatens your deck and disrupt its Energy setup.",
+        "Pressure the draw engine and force inefficient Prize trades.",
+        "Limit Bench space or remove key supporting Pokémon when possible."
+      ],
+      "reference": {
+        "energy": "Varies by list; common choices include Psychic, Telepathic Psychic, Water and Fighting Energy",
+        "aceSpec": "Prime Catcher (common reference choice; varies by list)"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Varies",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Varies",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Mew ex",
+        "Mega Kangaskhan ex",
+        "Meowth ex",
+        "Lillie’s Clefairy ex",
+        "Latias ex",
+        "Crispin",
+        "Wondrous Patch",
+        "Area Zero Underdepths",
+        "Prime Catcher"
+      ]
     }
   }
 }

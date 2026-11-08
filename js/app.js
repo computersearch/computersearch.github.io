@@ -21,7 +21,8 @@ const FEATURED_DISPLAY_NAMES={
  'slowking seek inspiration':'Slowking',
  'alakazam powerful hand':'Alakazam',
  'dhelmise hide n sneak':'Dhelmise',
- 'crustle mysterious rock inn':'Crustle'
+ 'crustle mysterious rock inn':'Crustle',
+ 'mew box memory helix':'Mew Box'
 };
 function featuredDisplayName(name){
  const key=String(name||'').toLowerCase().normalize('NFKD').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();
@@ -386,7 +387,8 @@ const LEGACY_ARCHETYPE_SLUGS={
  'dragapult-ex':'dragapult','slowking-seek-inspiration':'slowking',
  'crustle-mysterious-rock-inn':'crustle',
  'alakazam-powerful-hand':'alakazam',
- 'dhelmise-hide-n-sneak':'dhelmise'
+ 'dhelmise-hide-n-sneak':'dhelmise',
+ 'mew-box-memory-helix':'mew-box'
 };
 function library(){return `${header()}<main class="ranked-library"><div class="eyebrow">COMPETITIVE META / LIMITLESS TCG</div><h1>Deck <em>rankings.</em></h1><p class="rank-subtitle">Explore competitive archetypes and the best-finishing verified Day 2 player builds since July 2026. ${snapshotLabel()}</p><div class="rank-controls"><input id="rankSearch" type="search" placeholder="Search decks…" aria-label="Search decks"/><span>Sorted by points ↓</span></div><div id="rankRows" class="rank-rows"></div><p class="rank-note">Ranking points sourced from <a href="https://limitlesstcg.com/decks" target="_blank" rel="noopener">Limitless TCG ↗</a>. Decklists come from imported championship results; archetypes without a verified 60-card list show an availability message.</p></main>${footer()}`}
 function wireLibrary(){const input=document.getElementById('rankSearch');const rows=document.getElementById('rankRows');const update=()=>{const q=input.value.trim().toLowerCase();rows.innerHTML=rankedDecks.map((d,i)=>({name:d[0],points:d[1],share:d[2],rank:i+1,page:archetypePages[i]})).filter(d=>d.name.toLowerCase().includes(q)).map(d=>`<a class="rank-row" href="#/deck/${esc(d.page.slug)}"><span class="rank-number">#${d.rank}</span><span class="rank-title">${esc(d.name)}<small>View top-finishing player's decklist ↗</small></span><span class="rank-share">${esc(d.share)} share</span><span class="rank-points">${d.points.toLocaleString()} <small>PTS</small></span><span class="rank-arrow">↗</span></a>`).join('')||'<p>No matching decks found.</p>'};input.addEventListener('input',update);update()}
@@ -666,7 +668,9 @@ const ARCHETYPE_CANONICAL={
  'lillies clefairy':'lillies clefairy ex',
  'mega starmie':'mega starmie ex',
  'greninja':'greninja ex',
- 'ns zoroark':'ns zoroark ex'
+ 'ns zoroark':'ns zoroark ex',
+ 'mew memory helix':'mew',
+ 'mew box memory helix':'mew'
 };
 function matchesFeaturedArchetype(deckName, featuredNormalized){
  const actual=normalizeArchetypeName(deckName);
