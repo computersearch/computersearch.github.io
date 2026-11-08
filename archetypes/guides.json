@@ -14,18 +14,18 @@
         "Spread damage with Phantom Dive to line up a decisive 4–6 Prize turn."
       ],
       "strengths": [
-        "Active and Bench pressure at once",
-        "Evolution-based draw",
+        "Simultaneous Active and Bench pressure",
+        "Consistent draw through Drakloak",
         "Item and Energy disruption"
       ],
       "weaknesses": [
-        "Stage 2 setup and mixed Energy can delay attacks",
-        "Healing or spread protection disrupts Prize mapping",
-        "Item lock interferes with search"
+        "Stage 2 setup and multiple Energy types can delay attacks",
+        "Healing and Bench protection disrupt Prize planning",
+        "Item lock limits search options"
       ],
       "against": [
         "Pressure the evolution setup before Dragapult attacks.",
-        "Protect or heal damaged Benched Pokémon to deny multi-KOs."
+        "Protect or heal damaged Benched Pokémon to prevent multiple Knock Outs."
       ],
       "reference": {
         "energy": "9: 3 Psychic / 3 Fire / 3 Darkness",
@@ -73,14 +73,14 @@
         "Adapt Prize trades rather than committing to a single attacker."
       ],
       "strengths": [
-        "Flexible Basic attackers",
-        "Several attack options",
-        "Can exploit opposing Weakness"
+        "Flexible selection of Basic attackers",
+        "Attackers for different matchups",
+        "Options to exploit opposing Weakness"
       ],
       "weaknesses": [
-        "Complex sequencing",
-        "Several Energy types",
-        "Wrong attacker at the wrong time loses tempo"
+        "Demanding attacker and Energy sequencing",
+        "Requires several Energy types",
+        "Choosing the wrong attacker can cost tempo"
       ],
       "against": [
         "Disrupt access to Energy Switch and search Items.",
@@ -117,13 +117,13 @@
         "Trade efficiently using single-Prize attackers."
       ],
       "strengths": [
-        "Flexible attack access",
+        "Access to different attacks through Seek Inspiration",
         "Efficient single-Prize trades"
       ],
       "weaknesses": [
-        "Relies on the top card of the deck",
+        "Requires the right Pokémon on top of the deck",
         "Item lock limits setup and search",
-        "Cannot copy attacks from cards already in the discard pile"
+        "Seek Inspiration needs an eligible Pokémon on top of the deck"
       ],
       "against": [
         "Disrupt the top-deck setup or lock search Items.",
@@ -161,11 +161,11 @@
       ],
       "strengths": [
         "Scalable damage at modest Energy cost",
-        "Evolution draw can work through Item lock"
+        "Evolution-based draw functions under Item lock"
       ],
       "weaknesses": [
-        "Hand disruption lowers damage",
-        "Rare Candy and search Items are Item-lock vulnerable"
+        "Hand disruption reduces Powerful Hand damage",
+        "Item lock limits Rare Candy and search Items"
       ],
       "against": [
         "Disrupt the hand before Powerful Hand.",
@@ -202,14 +202,14 @@
         "Use Pecharunt ex for non-Item switching when needed."
       ],
       "strengths": [
-        "Repeatable draw",
-        "Flexible copied attacks",
-        "Pecharunt ex helps reposition Darkness Pokémon"
+        "Repeatable draw through Trade",
+        "Flexible attacks through Night Joker",
+        "Pecharunt ex can reposition Darkness Pokémon"
       ],
       "weaknesses": [
-        "Removing Benched N’s Pokémon cuts off attacks",
-        "Several engine pieces are needed",
-        "Search Item disruption slows setup"
+        "Removing Benched N’s Pokémon limits Night Joker",
+        "Needs Zoroark and supporting N’s Pokémon",
+        "Item lock slows setup"
       ],
       "against": [
         "Target the Benched N’s Pokémon that enable key attacks.",
@@ -247,12 +247,12 @@
         "Attack twice when Festival Lead conditions are met."
       ],
       "strengths": [
-        "Efficient single-Prize pressure",
-        "Repeatable search through Thwackey"
+        "Efficient single-Prize attacks",
+        "Repeatable card search through Thwackey"
       ],
       "weaknesses": [
-        "Low-HP Pokémon are exposed to spread",
-        "Stadium removal disrupts double attacks"
+        "Low-HP Pokémon are vulnerable to spread damage",
+        "Removing Festival Grounds stops double attacks"
       ],
       "against": [
         "Remove Festival Grounds.",
@@ -281,7 +281,7 @@
         "Dragapult / Blaziken",
         "Dragapult Blaziken"
       ],
-      "summary": "Combine Dragapult ex spread damage with Blaziken ex Energy acceleration for sustained multi-KO pressure.",
+      "summary": "Combine Dragapult ex spread damage with Blaziken ex Energy acceleration to threaten multiple Knock Outs.",
       "steps": [
         "Set up both Stage 2 evolution lines.",
         "Use Blaziken ex to restore Energy.",
@@ -289,13 +289,13 @@
         "Plan a decisive 4–6 Prize turn, using Unfair Stamp after a Knock Out."
       ],
       "strengths": [
-        "Energy recovery supports repeated attacks",
-        "Strong multi-KO potential"
+        "Blaziken ex restores Energy for repeated attacks",
+        "Potential for multiple Knock Outs"
       ],
       "weaknesses": [
-        "Two Stage 2 lines require setup",
+        "Two Stage 2 evolution lines require setup",
         "Item lock blocks Rare Candy",
-        "Reference list has no Switch effect"
+        "Limited switching options in the reference build"
       ],
       "against": [
         "Slow Rare Candy setup with Item lock.",
@@ -323,7 +323,7 @@
         "Dhelmise",
         "Dhelmise Hide n Sneak"
       ],
-      "summary": "Use Hide ’n’ Sneak pieces with Sinistcha spread and Spiritomb damage multiplication to create multi-KOs.",
+      "summary": "Combine the Hide ’n’ Sneak engine, Sinistcha spread damage and Spiritomb to threaten multiple Knock Outs.",
       "steps": [
         "Set up the Hide ’n’ Sneak engine.",
         "Prepare Dhelmise’s attack by discarding four Pokémon with Hide ’n’ Sneak.",
@@ -332,15 +332,15 @@
       ],
       "strengths": [
         "Single-Prize attackers",
-        "Mobility and protection through Hide ’n’ Sneak",
-        "Explosive damage-counter combinations"
+        "Mobility and protection from Hide ’n’ Sneak",
+        "High damage potential through counter combinations"
       ],
       "weaknesses": [
-        "Multiple evolution lines require setup",
-        "Other Pokémon can still be trapped if the engine is unavailable"
+        "Several evolution lines require setup",
+        "Other Pokémon can be trapped without the engine"
       ],
       "against": [
-        "Interrupt the evolution engine.",
+        "Disrupt the Hide ’n’ Sneak evolution engine before it can set up.",
         "Limit damage-counter buildup before Spiritomb can capitalize."
       ],
       "reference": {
@@ -367,7 +367,7 @@
         "Dragapult / Dusknoir",
         "Dragapult Dusknoir"
       ],
-      "summary": "Pair Phantom Dive with Dusclops and Dusknoir damage counters to reach exact multi-KO thresholds.",
+      "summary": "Pair Phantom Dive with Dusclops and Dusknoir damage counters to reach precise Knock Out thresholds.",
       "steps": [
         "Develop Dragapult ex and the Dusknoir evolution line.",
         "Spread damage with Phantom Dive.",
@@ -376,13 +376,13 @@
       ],
       "strengths": [
         "Precise damage placement",
-        "Multi-KO thresholds beyond Phantom Dive alone"
+        "Additional Knock Out opportunities beyond Phantom Dive"
       ],
       "weaknesses": [
         "Psyduck can shut off the Dusknoir line",
         "Patrat can stop Munkidori",
-        "Cursed Blast concedes a Prize",
-        "Rare Candy vulnerable to Item lock"
+        "Cursed Blast gives up a Prize card",
+        "Item lock disrupts Rare Candy setup"
       ],
       "against": [
         "Use Ability disruption such as Psyduck.",
@@ -420,12 +420,12 @@
         "Choose Mega Excadrill ex or another powered attacker based on the matchup."
       ],
       "strengths": [
-        "Fast wide Bench with Precious Trolley",
-        "Flexible Energy acceleration"
+        "Rapid Bench setup with Precious Trolley",
+        "Energy acceleration through Metang"
       ],
       "weaknesses": [
-        "Early Item lock blocks the key setup Item",
-        "Metang takes time to develop",
+        "Early Item lock prevents Precious Trolley setup",
+        "Metang requires time to evolve",
         "Energy disruption can slow attacks"
       ],
       "against": [
@@ -462,12 +462,12 @@
         "Build Energy across the board for larger attacks."
       ],
       "strengths": [
-        "Energy attachment Abilities scale damage",
-        "Healing and alternate attackers"
+        "Energy attachment Abilities increase Syrup Storm damage",
+        "Healing and alternative Grass attackers"
       ],
       "weaknesses": [
-        "Needs several Pokémon and much Energy in play",
-        "Ability lock disrupts engine",
+        "Needs multiple Pokémon and substantial Energy in play",
+        "Ability lock disrupts Energy acceleration",
         "Fire attackers exploit Grass Weakness"
       ],
       "against": [
@@ -505,15 +505,15 @@
         "Attack with Superb Scissors or pivot to Mega Kangaskhan ex."
       ],
       "strengths": [
-        "Walls damage from Pokémon ex",
+        "Blocks attack damage from Pokémon ex",
         "Favorable Prize trades",
-        "Alternative attacker available"
+        "Mega Kangaskhan ex offers an alternative attacker"
       ],
       "weaknesses": [
-        "Non-ex attackers bypass the wall",
-        "Ability-placed damage counters still work",
-        "150 HP and Fire Weakness",
-        "Special Energy and Item-dependent setup"
+        "Non-ex attackers bypass Mysterious Rock Inn",
+        "Damage counters from Abilities bypass the protection",
+        "150 HP and a Fire Weakness",
+        "Setup relies on Special Energy and Items"
       ],
       "against": [
         "Attack with non-ex Pokémon or place damage counters through Abilities.",
@@ -550,15 +550,15 @@
         "Use Mega Brave against high-HP targets; prepare Hariyama for Gust when needed."
       ],
       "strengths": [
-        "Draw support from Solrock and Lunatone",
+        "Solrock and Lunatone provide draw support",
         "Aura Jab powers Benched Pokémon",
-        "Hariyama offers Gust",
-        "Can exploit Fighting Weakness"
+        "Hariyama provides Gust support",
+        "Can exploit opposing Fighting Weakness"
       ],
       "weaknesses": [
-        "Mega Lucario ex gives up three Prize cards",
+        "Mega Lucario ex concedes three Prize cards",
         "Mega Brave cannot be used on consecutive turns",
-        "Multiple Pokémon required for setup"
+        "Setup depends on several supporting Pokémon"
       ],
       "against": [
         "Plan around Mega Brave’s following-turn restriction.",
@@ -597,14 +597,14 @@
         "Exploit the flexibility of the toolbox, switching between attackers and using Boss’s Orders or Prime Catcher to target important opposing Pokémon."
       ],
       "strengths": [
-        "Flexible attacker selection and matchup-specific answers",
-        "Mega Kangaskhan ex supports consistent draw",
-        "Multiple Basic Pokémon options reduce reliance on one attacker"
+        "Flexible attackers for different matchups",
+        "Consistent draw through Mega Kangaskhan ex",
+        "Multiple Basic attackers reduce reliance on a single attacker"
       ],
       "weaknesses": [
-        "Correct attacker and Energy sequencing can be demanding",
-        "A broad toolbox can draw the wrong pieces at the wrong time",
-        "Bench space and multi-type Energy requirements constrain setup"
+        "Attacker selection and Energy sequencing are demanding",
+        "A broad toolbox can produce awkward draws",
+        "Bench space and multiple Energy types constrain setup"
       ],
       "against": [
         "Identify which attacker threatens your deck and disrupt its Energy setup.",
