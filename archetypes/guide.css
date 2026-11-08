@@ -33,3 +33,16 @@
 .guide-flavour-details>h3{font-size:23px;margin:0 0 8px}
 .guide-flavour-summary{color:#c8cee0;line-height:1.7;margin:0 0 20px}
 @media(max-width:650px){.guide-flavour-buttons{display:grid;grid-template-columns:1fr}.guide-flavour-buttons button{text-align:left}}
+
+/* Strengths and weaknesses: subtle, distinct cards in Overview and Variants. */
+.guide-section.guide-strengths{background:#1d2927;border-color:#344b40}
+.guide-section.guide-weaknesses{background:#2b2229;border-color:#503944}
+.guide-strengths h3,.guide-weaknesses h3{display:flex;align-items:center;gap:9px}
+.guide-strengths h3::before,.guide-weaknesses h3::before{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;border-radius:50%;font-size:14px;font-weight:800}
+.guide-strengths h3::before{content:"✓";color:#a8e67b;background:#2c4534}
+.guide-weaknesses h3::before{content:"!";color:#f5ad94;background:#4b3035}
+.guide-strengths .guide-list,.guide-weaknesses .guide-list{list-style:none;padding-left:0}
+.guide-strengths .guide-list li,.guide-weaknesses .guide-list li{position:relative;padding-left:17px}
+.guide-strengths .guide-list li::before,.guide-weaknesses .guide-list li::before{content:"";position:absolute;left:2px;top:.7em;width:5px;height:5px;border-radius:50%}
+.guide-strengths .guide-list li::before{background:#a8e67b}
+.guide-weaknesses .guide-list li::before{background:#f5ad94}
