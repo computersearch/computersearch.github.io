@@ -23,3 +23,13 @@
 .guide-flags>div:last-child{border:0}.guide-flag{font-weight:700;white-space:nowrap;color:#f3ca90}.guide-flag-no{color:#c3ff72}.guide-flag-yes{color:#f3a68c}
 .guide-jump{display:inline-block;margin-top:8px;color:#c3ff72;font-weight:700;text-decoration:underline;text-underline-offset:4px}
 @media(max-width:650px){.archetype-guide{padding:15px;margin:20px 0}.guide-heading{align-items:start;flex-direction:column}.guide-source{white-space:normal}.guide-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.guide-tabs button{padding:11px 8px}.guide-columns{grid-template-columns:1fr}.guide-content{padding:12px}.guide-section{padding:15px}}
+
+/* Dragapult build flavours */
+.guide-flavour-intro{color:#c8cee0;line-height:1.65;margin-bottom:18px}
+.guide-flavour-buttons{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:20px}
+.guide-flavour-buttons button{font:inherit;font-weight:700;font-size:13px;padding:12px 16px;color:#e2e5f1;background:#202337;border:1px solid #41465d;border-radius:10px;cursor:pointer}
+.guide-flavour-buttons button[aria-pressed=true]{color:#10121d;background:#c3ff72;border-color:#c3ff72}
+.guide-flavour-buttons button:focus-visible{outline:2px solid #c3ff72;outline-offset:3px}
+.guide-flavour-details>h3{font-size:23px;margin:0 0 8px}
+.guide-flavour-summary{color:#c8cee0;line-height:1.7;margin:0 0 20px}
+@media(max-width:650px){.guide-flavour-buttons{display:grid;grid-template-columns:1fr}.guide-flavour-buttons button{text-align:left}}

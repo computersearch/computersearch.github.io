@@ -744,7 +744,25 @@ function findArchetypeGuide(name){
 }
 function guideList(items){return `<ul class="guide-list">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}
 function guideFlag(value){return `<span class="guide-flag ${value==='Yes'?'guide-flag-yes':value==='No'?'guide-flag-no':'guide-flag-mixed'}">${esc(value)}</span>`}
+function guideFlavours(){
+ const keys=['dragapult-ex','dragapult-blaziken','dragapult-dusknoir'];
+ const labels=['Standard Dragapult','Dragapult / Blaziken','Dragapult / Dusknoir'];
+ const variants=keys.map((key,i)=>({key,label:labels[i],guide:archetypeGuideData?.[key]})).filter(v=>v.guide);
+ if(!variants.length)return '<p>No variant information is available.</p>';
+ return `<div class="guide-flavour-intro">All three builds share Dragapult ex’s Phantom Dive spread strategy. Choose a variant to see its distinct engine and trade-offs.</div><div class="guide-flavour-buttons" role="group" aria-label="Dragapult deck variants">${variants.map((v,i)=>`<button type="button" data-flavour="${esc(v.key)}" aria-pressed="${i===0}">${esc(v.label)}</button>`).join('')}</div><div id="guide-flavour-details" class="guide-flavour-details">${guideFlavourDetail(variants[0].guide)}</div>`;
+}
+function guideFlavourDetail(g){
+ return `<h3>${esc(g.title)}</h3><p class="guide-flavour-summary">${esc(g.summary)}</p><div class="guide-columns"><div class="guide-section"><h3>How it plays</h3><ol class="guide-steps">${g.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div><div class="guide-section"><h3>Key cards</h3>${guideList(g.keyCards)}<p><b>ACE SPEC (reference):</b> ${esc(g.reference.aceSpec)}</p></div><div class="guide-section"><h3>Strengths</h3>${guideList(g.strengths)}</div><div class="guide-section"><h3>Weaknesses</h3>${guideList(g.weaknesses)}</div></div><p class="guide-disclaimer">Build descriptions are based on the Gdańsk preparation guide; individual tournament decklists may differ.</p>`;
+}
+function wireGuideFlavours(el){
+ el.querySelectorAll('[data-flavour]').forEach(button=>button.addEventListener('click',()=>{
+  const selected=archetypeGuideData?.[button.dataset.flavour];if(!selected)return;
+  el.querySelectorAll('[data-flavour]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+  const detail=el.querySelector('#guide-flavour-details');if(detail)detail.innerHTML=guideFlavourDetail(selected);
+ }));
+}
 function guidePanel(g,tab){
+ if(tab==='flavours')return guideFlavours();
  if(tab==='strategy')return `<div class="guide-section"><h3>How to play</h3><ol class="guide-steps">${g.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div><div class="guide-columns"><div class="guide-section"><h3>Key cards</h3>${guideList(g.keyCards)}</div><div class="guide-section"><h3>Reference build</h3><p><b>Energy:</b> ${esc(g.reference.energy)}</p><p><b>ACE SPEC:</b> ${esc(g.reference.aceSpec)}</p><small>These are examples from the preparation guide, not mandatory deck requirements.</small></div></div>`;
  if(tab==='matchups')return `<div class="guide-columns"><div class="guide-section"><h3>Playing against it</h3>${guideList(g.against)}</div><div class="guide-section"><h3>Vulnerabilities & tools</h3><div class="guide-flags">${[['Retreat lock',g.vulnerabilities.retreatLock],['Item lock',g.vulnerabilities.itemLock],['Plays hand disruption',g.vulnerabilities.playsHandDisruption],['Plays Gust',g.vulnerabilities.playsGust]].map(([k,v])=>`<div><span>${esc(k)}</span>${guideFlag(v)}</div>`).join('')}</div></div></div><p class="guide-disclaimer">Qualitative notes from the preparation guide, not statistical matchup predictions.</p>`;
  if(tab==='decklists')return `<div class="guide-section"><h3>Verified tournament decklists</h3><p>Explore the highest-finishing imported championship decklist and other players' results below. Those lists are updated independently of this strategy guide.</p><a class="guide-jump" href="#featuredRecentPlayerDeck">View top player's decklist ↓</a></div>`;
@@ -755,12 +773,12 @@ function wireArchetypeGuide(){
  const guide=findArchetypeGuide(el.dataset.archetype);
  if(!guide){el.hidden=true;return}
  el.hidden=false;
- const tabs=[['overview','Overview'],['strategy','Strategy'],['matchups','Matchups'],['decklists','Decklists']];
+ const tabs=[['overview','Overview'],['strategy','Strategy'],['matchups','Matchups'],...(guideKey(el.dataset.archetype)==='dragapult'? [['flavours','Variants']]:[]),['decklists','Decklists']];
  el.innerHTML=`<div class="guide-heading"><div><div class="eyebrow small">COMPUTER SEARCH / ARCHETYPE GUIDE</div><h2>Learn the <i>archetype.</i></h2></div><span class="guide-source">Gdańsk preparation guide</span></div><div class="guide-tabs" role="tablist" aria-label="Archetype guide sections">${tabs.map(([id,label],i)=>`<button type="button" role="tab" id="guide-tab-${id}" aria-controls="guide-content" aria-selected="${i===0}" data-guide-tab="${id}">${label}</button>`).join('')}</div><div class="guide-content" id="guide-content" role="tabpanel" aria-labelledby="guide-tab-overview">${guidePanel(guide,'overview')}</div>`;
  el.querySelectorAll('[data-guide-tab]').forEach(button=>button.addEventListener('click',()=>{
   const tab=button.dataset.guideTab;
   el.querySelectorAll('[data-guide-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b===button));b.tabIndex=b===button?0:-1});
-  const content=el.querySelector('#guide-content');content.innerHTML=guidePanel(guide,tab);content.setAttribute('aria-labelledby','guide-tab-'+tab);
+  const content=el.querySelector('#guide-content');content.innerHTML=guidePanel(guide,tab);content.setAttribute('aria-labelledby','guide-tab-'+tab);if(tab==='flavours')wireGuideFlavours(content);
   if(tab==='decklists')content.querySelector('.guide-jump')?.addEventListener('click',e=>{e.preventDefault();document.getElementById('featuredRecentPlayerDeck')?.scrollIntoView({behavior:'smooth',block:'start'})});
  }));
  el.querySelectorAll('[data-guide-tab]').forEach((b,i)=>b.tabIndex=i===0?0:-1);
