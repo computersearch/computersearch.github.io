@@ -99,7 +99,7 @@ function featuredOverview(d){return deck(d)}
 
 function deck(d=featuredDecks[0]){
  const name=featuredDisplayName(d.name);
- return `${header()}<main class="deck-page"><a href="#/decks" class="back">← &nbsp; Back to rankings</a><section class="deck-heading"><div><div class="eyebrow small">ARCHETYPE <span class="edition">/ #${d.rank}</span></div><h1>${esc(name)}<em>.</em></h1><p>Verified Regional and World Championship builds from top players since July 2026. The featured build is from the highest-placing player, with the newest event breaking ties.</p><div class="deck-badges"><span>✦ ${Number(d.points||0).toLocaleString()} TOURNAMENT POINTS</span><span>${esc(d.share||'')} META SHARE</span></div></div>${d.card?`<div class="deck-cover">${cardFrame(d.card,'deck-hero-card')}</div>`:''}</section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">BEST CHAMPIONSHIP FINISH</div><h2>Top player's <i>60-card decklist.</i></h2></div></div><div id="featuredRecentPlayerDeck"><p>Loading verified tournament decklist…</p></div></section><section class="deck-list" style="margin-top:32px"><div class="deck-toolbar"><div><div class="eyebrow small">CHAMPIONSHIP RESULTS</div><h2>Players using <i>this archetype.</i></h2></div></div><p class="rank-subtitle">Top 12 Day 2 finishes since July 2026, sorted by placement.</p><div id="featuredArchetypePlayers" data-archetype="${esc(d.name)}"><p>Loading tournament players…</p></div></section></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`;
+ return `${header()}<main class="deck-page"><a href="#/decks" class="back">← &nbsp; Back to rankings</a><section class="deck-heading"><div><div class="eyebrow small">ARCHETYPE <span class="edition">/ #${d.rank}</span></div><h1>${esc(name)}<em>.</em></h1><p>Verified Regional and World Championship builds from top players since July 2026. The featured build is from the highest-placing player, with the newest event breaking ties.</p><div class="deck-badges"><span>✦ ${Number(d.points||0).toLocaleString()} TOURNAMENT POINTS</span><span>${esc(d.share||'')} META SHARE</span></div></div>${d.card?`<div class="deck-cover">${cardFrame(d.card,'deck-hero-card')}</div>`:''}</section><section class="archetype-guide" id="archetypeGuide" data-archetype="${esc(d.name)}" hidden></section><section class="deck-list"><div class="deck-toolbar"><div><div class="eyebrow small">BEST CHAMPIONSHIP FINISH</div><h2>Top player's <i>60-card decklist.</i></h2></div></div><div id="featuredRecentPlayerDeck"><p>Loading verified tournament decklist…</p></div></section><section class="deck-list" style="margin-top:32px"><div class="deck-toolbar"><div><div class="eyebrow small">CHAMPIONSHIP RESULTS</div><h2>Players using <i>this archetype.</i></h2></div></div><p class="rank-subtitle">Top 12 Day 2 finishes since July 2026, sorted by placement.</p><div id="featuredArchetypePlayers" data-archetype="${esc(d.name)}"><p>Loading tournament players…</p></div></section></main>${footer()}<dialog id="cardDialog" class="card-dialog"><button class="close-dialog" aria-label="Close card details">✕</button><div id="dialogBody"></div></dialog>`;
 }
 
 const cmMoney=new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'});
@@ -733,6 +733,47 @@ async function wireFeaturedArchetypePlayers(){
   }).join('')}</div>`;
  }catch(err){if(node.isConnected)node.textContent='Could not load tournament player history: '+err.message}
 }
+
+// Editorial strategy guides are independent of the live tournament importer.
+let archetypeGuideData=null;
+const guideKey=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+function findArchetypeGuide(name){
+ if(!archetypeGuideData)return null;
+ const key=guideKey(name);
+ return Object.values(archetypeGuideData).find(g=>g.aliases.some(a=>guideKey(a)===key))||null;
+}
+function guideList(items){return `<ul class="guide-list">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`}
+function guideFlag(value){return `<span class="guide-flag ${value==='Yes'?'guide-flag-yes':value==='No'?'guide-flag-no':'guide-flag-mixed'}">${esc(value)}</span>`}
+function guidePanel(g,tab){
+ if(tab==='strategy')return `<div class="guide-section"><h3>How to play</h3><ol class="guide-steps">${g.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></div><div class="guide-columns"><div class="guide-section"><h3>Key cards</h3>${guideList(g.keyCards)}</div><div class="guide-section"><h3>Reference build</h3><p><b>Energy:</b> ${esc(g.reference.energy)}</p><p><b>ACE SPEC:</b> ${esc(g.reference.aceSpec)}</p><small>These are examples from the preparation guide, not mandatory deck requirements.</small></div></div>`;
+ if(tab==='matchups')return `<div class="guide-columns"><div class="guide-section"><h3>Playing against it</h3>${guideList(g.against)}</div><div class="guide-section"><h3>Vulnerabilities & tools</h3><div class="guide-flags">${[['Retreat lock',g.vulnerabilities.retreatLock],['Item lock',g.vulnerabilities.itemLock],['Plays hand disruption',g.vulnerabilities.playsHandDisruption],['Plays Gust',g.vulnerabilities.playsGust]].map(([k,v])=>`<div><span>${esc(k)}</span>${guideFlag(v)}</div>`).join('')}</div></div></div><p class="guide-disclaimer">Qualitative notes from the preparation guide, not statistical matchup predictions.</p>`;
+ if(tab==='decklists')return `<div class="guide-section"><h3>Verified tournament decklists</h3><p>Explore the highest-finishing imported championship decklist and other players' results below. Those lists are updated independently of this strategy guide.</p><a class="guide-jump" href="#featuredRecentPlayerDeck">View top player's decklist ↓</a></div>`;
+ return `<div class="guide-intro">${esc(g.summary)}</div><div class="guide-columns"><div class="guide-section"><h3>Strengths</h3>${guideList(g.strengths)}</div><div class="guide-section"><h3>Weaknesses</h3>${guideList(g.weaknesses)}</div></div>`;
+}
+function wireArchetypeGuide(){
+ const el=document.getElementById('archetypeGuide');if(!el)return;
+ const guide=findArchetypeGuide(el.dataset.archetype);
+ if(!guide){el.hidden=true;return}
+ el.hidden=false;
+ const tabs=[['overview','Overview'],['strategy','Strategy'],['matchups','Matchups'],['decklists','Decklists']];
+ el.innerHTML=`<div class="guide-heading"><div><div class="eyebrow small">COMPUTER SEARCH / ARCHETYPE GUIDE</div><h2>Learn the <i>archetype.</i></h2></div><span class="guide-source">Gdańsk preparation guide</span></div><div class="guide-tabs" role="tablist" aria-label="Archetype guide sections">${tabs.map(([id,label],i)=>`<button type="button" role="tab" id="guide-tab-${id}" aria-controls="guide-content" aria-selected="${i===0}" data-guide-tab="${id}">${label}</button>`).join('')}</div><div class="guide-content" id="guide-content" role="tabpanel" aria-labelledby="guide-tab-overview">${guidePanel(guide,'overview')}</div>`;
+ el.querySelectorAll('[data-guide-tab]').forEach(button=>button.addEventListener('click',()=>{
+  const tab=button.dataset.guideTab;
+  el.querySelectorAll('[data-guide-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b===button));b.tabIndex=b===button?0:-1});
+  const content=el.querySelector('#guide-content');content.innerHTML=guidePanel(guide,tab);content.setAttribute('aria-labelledby','guide-tab-'+tab);
+  if(tab==='decklists')content.querySelector('.guide-jump')?.addEventListener('click',e=>{e.preventDefault();document.getElementById('featuredRecentPlayerDeck')?.scrollIntoView({behavior:'smooth',block:'start'})});
+ }));
+ el.querySelectorAll('[data-guide-tab]').forEach((b,i)=>b.tabIndex=i===0?0:-1);
+}
+async function loadArchetypeGuides(){
+ try{
+  const response=await fetch('archetypes/guides.json');if(!response.ok)throw Error('HTTP '+response.status);
+  const data=await response.json();if(!data||typeof data.guides!=='object'||Array.isArray(data.guides))throw Error('Invalid guide data');
+  archetypeGuideData=data.guides;
+  wireArchetypeGuide();
+ }catch(err){console.warn('Archetype guides unavailable:',err)}
+}
+
 function render(){
  activeFilter='All';
  const hash=location.hash;
@@ -758,7 +799,7 @@ function render(){
  else if(isTournament)wireTournaments();
  else if(isPlayers)wirePlayerSearch();
  else if(isImport)wireImport();else if(isLibrary)wireLibrary();
- else if(selected){const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});hydrateImages();wireFeaturedArchetypePlayers()}else wire()
+ else if(selected){const dlg=document.querySelector('#cardDialog');dlg?.querySelector('.close-dialog')?.addEventListener('click',()=>dlg.close());dlg?.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});hydrateImages();wireFeaturedArchetypePlayers();wireArchetypeGuide()}else wire()
  hydrateFeaturedArtwork();
  window.scrollTo({top:0,behavior:'instant'});
 }
@@ -786,3 +827,5 @@ render();
  }catch(err){console.warn('Metagame snapshot unavailable; using bundled rankings:',err.message)}
 })();
 
+
+loadArchetypeGuides();

@@ -1,0 +1,573 @@
+{
+  "source": "Gdańsk Regional Preparation guide",
+  "sourceType": "strategy snapshot",
+  "guides": {
+    "dragapult-ex": {
+      "title": "Dragapult ex",
+      "aliases": [
+        "Dragapult",
+        "Dragapult ex"
+      ],
+      "summary": "Spread damage with Phantom Dive, disrupt setup and plan a multi-Knock Out Prize turn.",
+      "steps": [
+        "Establish several Drakloak for ongoing draw.",
+        "Use Budew’s Itchy Pollen and Crushing Hammer to slow the opponent.",
+        "After one of your Pokémon is Knocked Out, Unfair Stamp can reduce the opponent’s hand.",
+        "Spread damage with Phantom Dive to line up a decisive 4–6 Prize turn."
+      ],
+      "strengths": [
+        "Active and Bench pressure at once",
+        "Evolution-based draw",
+        "Item and Energy disruption"
+      ],
+      "weaknesses": [
+        "Stage 2 setup and mixed Energy can delay attacks",
+        "Healing or spread protection disrupts Prize mapping",
+        "Item lock interferes with search"
+      ],
+      "against": [
+        "Pressure the evolution setup before Dragapult attacks.",
+        "Protect or heal damaged Benched Pokémon to deny multi-KOs."
+      ],
+      "reference": {
+        "energy": "9: 3 Psychic / 3 Fire / 3 Darkness",
+        "aceSpec": "Unfair Stamp"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Yes",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Dragapult ex",
+        "Drakloak",
+        "Budew",
+        "Crushing Hammer",
+        "Unfair Stamp"
+      ]
+    },
+    "basic-box": {
+      "title": "Basic Box",
+      "aliases": [
+        "Basic Box"
+      ],
+      "summary": "A toolbox of Basic attackers supported by Mega Kangaskhan ex draw; choose attackers to exploit Weakness and Prize trades.",
+      "steps": [
+        "Use Mega Kangaskhan ex to draw cards.",
+        "Identify the attacker that best fits the opponent’s board.",
+        "Use Crispin and Energy Switch to prepare that attacker.",
+        "Adapt Prize trades rather than committing to a single attacker."
+      ],
+      "strengths": [
+        "Flexible Basic attackers",
+        "Several attack options",
+        "Can exploit opposing Weakness"
+      ],
+      "weaknesses": [
+        "Complex sequencing",
+        "Several Energy types",
+        "Wrong attacker at the wrong time loses tempo"
+      ],
+      "against": [
+        "Disrupt access to Energy Switch and search Items.",
+        "Force awkward attacker choices and Energy commitments."
+      ],
+      "reference": {
+        "energy": "15: 6 Grass / 3 Psychic / 2 Lightning / 2 Fighting / 2 Water",
+        "aceSpec": "Unfair Stamp (reference); Prime Catcher (alternative)"
+      },
+      "vulnerabilities": {
+        "retreatLock": "No",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Varies",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Mega Kangaskhan ex",
+        "Crispin",
+        "Energy Switch",
+        "Iron Leaves ex"
+      ]
+    },
+    "slowking": {
+      "title": "Slowking",
+      "aliases": [
+        "Slowking",
+        "Slowking Seek Inspiration"
+      ],
+      "summary": "Use Seek Inspiration to access attacks from Pokémon without Rule Boxes by controlling the top card of the deck.",
+      "steps": [
+        "Set up Slowking and Psychic Energy.",
+        "Use Academy at Night or Ciphermaniac’s Codebreaking to place a useful Pokémon on top.",
+        "Attack with Seek Inspiration to discard the top card and use its attack if eligible.",
+        "Trade efficiently using single-Prize attackers."
+      ],
+      "strengths": [
+        "Flexible attack access",
+        "Efficient single-Prize trades"
+      ],
+      "weaknesses": [
+        "Relies on the top card of the deck",
+        "Item lock limits setup and search",
+        "Cannot copy attacks from cards already in the discard pile"
+      ],
+      "against": [
+        "Disrupt the top-deck setup or lock search Items.",
+        "Force awkward turns when the correct attack is not prepared."
+      ],
+      "reference": {
+        "energy": "10: 4 Telepathic Psychic / 4 Psychic / 2 Boomerang",
+        "aceSpec": "Secret Box"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Varies",
+        "playsGust": "No"
+      },
+      "keyCards": [
+        "Slowking",
+        "Academy at Night",
+        "Ciphermaniac’s Codebreaking",
+        "Telepathic Psychic Energy"
+      ]
+    },
+    "alakazam": {
+      "title": "Alakazam",
+      "aliases": [
+        "Alakazam",
+        "Alakazam Powerful Hand"
+      ],
+      "summary": "Grow your hand through evolution-based draw, then scale Powerful Hand damage with the number of cards held.",
+      "steps": [
+        "Develop several Alakazam lines.",
+        "Evolve to draw cards and maintain a large hand.",
+        "Use Powerful Hand to place two damage counters per card in hand.",
+        "Keep a backup draw engine in case of disruption."
+      ],
+      "strengths": [
+        "Scalable damage at modest Energy cost",
+        "Evolution draw can work through Item lock"
+      ],
+      "weaknesses": [
+        "Hand disruption lowers damage",
+        "Rare Candy and search Items are Item-lock vulnerable"
+      ],
+      "against": [
+        "Disrupt the hand before Powerful Hand.",
+        "Slow evolution setup with Item lock."
+      ],
+      "reference": {
+        "energy": "7: 4 Telepathic Psychic / 2 Psychic / 1 Enriching",
+        "aceSpec": "Enriching Energy (reference); Prime Catcher in Dusknoir variant"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Partial",
+        "playsHandDisruption": "Varies",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Alakazam",
+        "Telepathic Psychic Energy",
+        "Enriching Energy"
+      ]
+    },
+    "ns-zoroark-ex": {
+      "title": "N’s Zoroark ex",
+      "aliases": [
+        "N's Zoroark ex",
+        "N's Zoroark",
+        "Ns Zoroark"
+      ],
+      "summary": "Draw with Trade and use Night Joker to copy attacks from Benched N’s Pokémon.",
+      "steps": [
+        "Establish N’s Zoroark ex and supporting N’s Pokémon.",
+        "Use Trade to cycle cards.",
+        "Choose the right Benched N’s Pokémon attack for Night Joker.",
+        "Use Pecharunt ex for non-Item switching when needed."
+      ],
+      "strengths": [
+        "Repeatable draw",
+        "Flexible copied attacks",
+        "Pecharunt ex helps reposition Darkness Pokémon"
+      ],
+      "weaknesses": [
+        "Removing Benched N’s Pokémon cuts off attacks",
+        "Several engine pieces are needed",
+        "Search Item disruption slows setup"
+      ],
+      "against": [
+        "Target the Benched N’s Pokémon that enable key attacks.",
+        "Interrupt assembly with Item lock or hand disruption."
+      ],
+      "reference": {
+        "energy": "7 Darkness",
+        "aceSpec": "Secret Box (common; varies by list)"
+      },
+      "vulnerabilities": {
+        "retreatLock": "No",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Yes",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "N's Zoroark ex",
+        "N's Pokémon",
+        "Pecharunt ex",
+        "Yveltal",
+        "Budew"
+      ]
+    },
+    "festival-lead": {
+      "title": "Festival Lead",
+      "aliases": [
+        "Festival Lead",
+        "Seaking Festival Lead"
+      ],
+      "summary": "Use Festival Grounds to let Festival Lead attackers attack twice per turn; Dipplin and Seaking are distinct variants.",
+      "steps": [
+        "Set up the chosen attacker (Dipplin or Seaking) and Thwackey.",
+        "Use Thwackey to search for key pieces.",
+        "Keep Festival Grounds in play.",
+        "Attack twice when Festival Lead conditions are met."
+      ],
+      "strengths": [
+        "Efficient single-Prize pressure",
+        "Repeatable search through Thwackey"
+      ],
+      "weaknesses": [
+        "Low-HP Pokémon are exposed to spread",
+        "Stadium removal disrupts double attacks"
+      ],
+      "against": [
+        "Remove Festival Grounds.",
+        "Use Bench damage or spread to take multiple Knock Outs."
+      ],
+      "reference": {
+        "energy": "5: 3 Grass / 2 Growing Grass (both reference variants)",
+        "aceSpec": "Secret Box"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Varies",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Dipplin",
+        "Seaking",
+        "Thwackey",
+        "Festival Grounds"
+      ]
+    },
+    "dragapult-blaziken": {
+      "title": "Dragapult / Blaziken",
+      "aliases": [
+        "Dragapult / Blaziken",
+        "Dragapult Blaziken"
+      ],
+      "summary": "Combine Dragapult ex spread damage with Blaziken ex Energy acceleration for sustained multi-KO pressure.",
+      "steps": [
+        "Set up both Stage 2 evolution lines.",
+        "Use Blaziken ex to restore Energy.",
+        "Spread damage with Phantom Dive.",
+        "Plan a decisive 4–6 Prize turn, using Unfair Stamp after a Knock Out."
+      ],
+      "strengths": [
+        "Energy recovery supports repeated attacks",
+        "Strong multi-KO potential"
+      ],
+      "weaknesses": [
+        "Two Stage 2 lines require setup",
+        "Item lock blocks Rare Candy",
+        "Reference list has no Switch effect"
+      ],
+      "against": [
+        "Slow Rare Candy setup with Item lock.",
+        "Trap Blaziken ex Active when retreat is prevented."
+      ],
+      "reference": {
+        "energy": "8: 3 Psychic / 3 Fire / 2 Darkness",
+        "aceSpec": "Unfair Stamp"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Yes",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Dragapult ex",
+        "Blaziken ex",
+        "Unfair Stamp"
+      ]
+    },
+    "dhelmise-hide-n-sneak": {
+      "title": "Dhelmise — Hide ’n’ Sneak",
+      "aliases": [
+        "Dhelmise",
+        "Dhelmise Hide n Sneak"
+      ],
+      "summary": "Use Hide ’n’ Sneak pieces with Sinistcha spread and Spiritomb damage multiplication to create multi-KOs.",
+      "steps": [
+        "Set up the Hide ’n’ Sneak engine.",
+        "Prepare Dhelmise’s attack by discarding four Pokémon with Hide ’n’ Sneak.",
+        "Spread damage counters with Sinistcha.",
+        "Use Spiritomb to multiply existing counters for multiple Knock Outs."
+      ],
+      "strengths": [
+        "Single-Prize attackers",
+        "Mobility and protection through Hide ’n’ Sneak",
+        "Explosive damage-counter combinations"
+      ],
+      "weaknesses": [
+        "Multiple evolution lines require setup",
+        "Other Pokémon can still be trapped if the engine is unavailable"
+      ],
+      "against": [
+        "Interrupt the evolution engine.",
+        "Limit damage-counter buildup before Spiritomb can capitalize."
+      ],
+      "reference": {
+        "energy": "8: 4 Telepathic Psychic / 3 Psychic / 1 Legacy",
+        "aceSpec": "Legacy Energy"
+      },
+      "vulnerabilities": {
+        "retreatLock": "No",
+        "itemLock": "Partial",
+        "playsHandDisruption": "Varies",
+        "playsGust": "Varies"
+      },
+      "keyCards": [
+        "Dhelmise",
+        "Banette",
+        "Sinistcha",
+        "Spiritomb",
+        "Legacy Energy"
+      ]
+    },
+    "dragapult-dusknoir": {
+      "title": "Dragapult / Dusknoir",
+      "aliases": [
+        "Dragapult / Dusknoir",
+        "Dragapult Dusknoir"
+      ],
+      "summary": "Pair Phantom Dive with Dusclops and Dusknoir damage counters to reach exact multi-KO thresholds.",
+      "steps": [
+        "Develop Dragapult ex and the Dusknoir evolution line.",
+        "Spread damage with Phantom Dive.",
+        "Use Dusclops or Dusknoir to place precise counters.",
+        "Account for the Prize card conceded by Cursed Blast; use Unfair Stamp to disrupt."
+      ],
+      "strengths": [
+        "Precise damage placement",
+        "Multi-KO thresholds beyond Phantom Dive alone"
+      ],
+      "weaknesses": [
+        "Psyduck can shut off the Dusknoir line",
+        "Patrat can stop Munkidori",
+        "Cursed Blast concedes a Prize",
+        "Rare Candy vulnerable to Item lock"
+      ],
+      "against": [
+        "Use Ability disruption such as Psyduck.",
+        "Track the Prize trade created by Cursed Blast."
+      ],
+      "reference": {
+        "energy": "7: 3 Fire / 3 Psychic / 1 Darkness",
+        "aceSpec": "Unfair Stamp"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Yes",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Dragapult ex",
+        "Dusclops",
+        "Dusknoir",
+        "Munkidori",
+        "Unfair Stamp"
+      ]
+    },
+    "mega-excadrill": {
+      "title": "Mega Excadrill",
+      "aliases": [
+        "Mega Excadrill",
+        "Mega Excadrill ex"
+      ],
+      "summary": "Use Precious Trolley to fill the Bench and Metang’s Metal Maker to accelerate Energy to a flexible selection of attackers.",
+      "steps": [
+        "Aim for turn-one Precious Trolley.",
+        "Develop Metang on the Bench.",
+        "Use Metal Maker to accelerate Metal Energy.",
+        "Choose Mega Excadrill ex or another powered attacker based on the matchup."
+      ],
+      "strengths": [
+        "Fast wide Bench with Precious Trolley",
+        "Flexible Energy acceleration"
+      ],
+      "weaknesses": [
+        "Early Item lock blocks the key setup Item",
+        "Metang takes time to develop",
+        "Energy disruption can slow attacks"
+      ],
+      "against": [
+        "Use Item lock early to stop Precious Trolley.",
+        "Disrupt Metang or trap it Active."
+      ],
+      "reference": {
+        "energy": "16 Metal",
+        "aceSpec": "Precious Trolley"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Varies",
+        "playsGust": "No"
+      },
+      "keyCards": [
+        "Mega Excadrill ex",
+        "Metang",
+        "Precious Trolley"
+      ]
+    },
+    "hydrapple": {
+      "title": "Hydrapple",
+      "aliases": [
+        "Hydrapple",
+        "Hydrapple ex"
+      ],
+      "summary": "Attach Grass Energy through Teal Mask Ogerpon ex and Hydrapple ex, then scale Syrup Storm with Meganium.",
+      "steps": [
+        "Use Teal Dance to attach Energy and draw.",
+        "Use Ripening Charge to attach Energy and heal.",
+        "Establish Meganium so Basic Grass Energy counts double for Syrup Storm.",
+        "Build Energy across the board for larger attacks."
+      ],
+      "strengths": [
+        "Energy attachment Abilities scale damage",
+        "Healing and alternate attackers"
+      ],
+      "weaknesses": [
+        "Needs several Pokémon and much Energy in play",
+        "Ability lock disrupts engine",
+        "Fire attackers exploit Grass Weakness"
+      ],
+      "against": [
+        "Disrupt Energy-attachment Abilities.",
+        "Apply pressure before Syrup Storm reaches high damage."
+      ],
+      "reference": {
+        "energy": "13 Basic Grass",
+        "aceSpec": "Unfair Stamp"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Yes",
+        "itemLock": "Partial",
+        "playsHandDisruption": "Yes",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Hydrapple ex",
+        "Teal Mask Ogerpon ex",
+        "Meganium",
+        "Forest of Vitality"
+      ]
+    },
+    "crustle": {
+      "title": "Crustle",
+      "aliases": [
+        "Crustle",
+        "Crustle Mysterious Rock Inn"
+      ],
+      "summary": "Use Mysterious Rock Inn to wall attacks from Pokémon ex while trading with single-Prize attackers.",
+      "steps": [
+        "Evolve Dwebble into Crustle.",
+        "Use Mysterious Rock Inn to block damage from opposing Pokémon ex.",
+        "Attach Hero’s Cape and supportive Special Energy.",
+        "Attack with Superb Scissors or pivot to Mega Kangaskhan ex."
+      ],
+      "strengths": [
+        "Walls damage from Pokémon ex",
+        "Favorable Prize trades",
+        "Alternative attacker available"
+      ],
+      "weaknesses": [
+        "Non-ex attackers bypass the wall",
+        "Ability-placed damage counters still work",
+        "150 HP and Fire Weakness",
+        "Special Energy and Item-dependent setup"
+      ],
+      "against": [
+        "Attack with non-ex Pokémon or place damage counters through Abilities.",
+        "Exploit Fire Weakness or disrupt setup Items."
+      ],
+      "reference": {
+        "energy": "13: 4 Spiky / 4 Mist / 4 Growing Grass / 1 Basic Grass",
+        "aceSpec": "Hero’s Cape"
+      },
+      "vulnerabilities": {
+        "retreatLock": "Partial",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Yes",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Crustle",
+        "Dwebble",
+        "Hero’s Cape",
+        "Mega Kangaskhan ex"
+      ]
+    },
+    "mega-lucario-ex": {
+      "title": "Mega Lucario ex",
+      "aliases": [
+        "Mega Lucario",
+        "Mega Lucario ex"
+      ],
+      "summary": "Use Solrock and Lunatone for draw, Aura Jab for Energy acceleration and Mega Brave for major Knock Outs.",
+      "steps": [
+        "Set up Solrock and Lunatone for draw.",
+        "Develop Mega Lucario ex as the primary attacker.",
+        "Use Aura Jab to accelerate Energy from the discard pile.",
+        "Use Mega Brave against high-HP targets; prepare Hariyama for Gust when needed."
+      ],
+      "strengths": [
+        "Draw support from Solrock and Lunatone",
+        "Aura Jab powers Benched Pokémon",
+        "Hariyama offers Gust",
+        "Can exploit Fighting Weakness"
+      ],
+      "weaknesses": [
+        "Mega Lucario ex gives up three Prize cards",
+        "Mega Brave cannot be used on consecutive turns",
+        "Multiple Pokémon required for setup"
+      ],
+      "against": [
+        "Plan around Mega Brave’s following-turn restriction.",
+        "Pressure the supporting Pokémon and exploit the three-Prize liability."
+      ],
+      "reference": {
+        "energy": "10 Basic Fighting / 1 Rocky Fighting",
+        "aceSpec": "Unfair Stamp"
+      },
+      "vulnerabilities": {
+        "retreatLock": "No",
+        "itemLock": "Yes",
+        "playsHandDisruption": "Yes",
+        "playsGust": "Yes"
+      },
+      "keyCards": [
+        "Mega Lucario ex",
+        "Solrock",
+        "Lunatone",
+        "Hariyama",
+        "Unfair Stamp"
+      ]
+    }
+  }
+}
