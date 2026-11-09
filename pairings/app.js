@@ -150,14 +150,14 @@
       show('inactive-error', false);
     } catch (error) {
       text('status', current?.status === 'published' ? 'Connection interrupted · showing last received round' : 'Unable to load pairings');
-      if (current?.status !== 'published') { text('inactive-error', 'Unable to load pairings. Retrying automatically.'); show('inactive-error', true); }
+      if (current?.status !== 'published') { if (!current) render(); text('inactive-error', 'Unable to load pairings. Retrying automatically.'); show('inactive-error', true); }
       console.warn('Pairings refresh:', error);
     } finally { fetching = false; }
   }
   $('search').addEventListener('input', renderMatches);
   $('clear').addEventListener('click', () => { $('search').value = ''; renderMatches(); $('search').focus(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
-  render();
+  // Wait for the initial API response before showing the tournament status.
   if (endpoint) { refresh(); setInterval(refresh, 15000); }
-  else text('status', 'Awaiting setup');
+  else { render(); text('status', 'Awaiting setup'); }
 })();
