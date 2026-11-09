@@ -30,11 +30,13 @@
       const matchDivision = clean(m.division) || division;
       if (!divisions.includes(matchDivision)) throw Error('Unknown match division');
       const bye = m.bye === true;
-      const table = bye ? null : Number(m.table);
+      const loss = m.loss === true;
+      if (bye && loss) throw Error('Invalid unpaired status');
+      const table = (bye || loss) ? null : Number(m.table);
       const player1 = clean(m.player1), player2 = clean(m.player2);
       if (!player1 || player1.length > 200 || player2.length > 200) throw Error('Invalid player name');
-      if (bye) {
-        if (player2 || m.table !== null) throw Error('Invalid BYE data');
+      if (bye || loss) {
+        if (player2 || m.table !== null) throw Error('Invalid unpaired player data');
       } else {
         if (!Number.isSafeInteger(table) || table < 1 || !player2 || seen.has(`${matchDivision}:${table}`)) throw Error('Invalid match data');
         seen.add(`${matchDivision}:${table}`);
@@ -43,8 +45,8 @@
       const validRecord = value => /^\d+-\d+-\d+$/.test(value);
       if (record1 && !validRecord(record1)) throw Error('Invalid player record');
       if (record2 && !validRecord(record2)) throw Error('Invalid opponent record');
-      return { division: matchDivision, table, player1, player2, record1, record2, static1: m.static1 === true, static2: m.static2 === true, bye };
-    }).sort((a, b) => (a.bye ? 1 : 0) - (b.bye ? 1 : 0) || (a.table ?? 0) - (b.table ?? 0));
+      return { division: matchDivision, table, player1, player2, record1, record2, static1: m.static1 === true, static2: m.static2 === true, bye, loss };
+    }).sort((a, b) => ((a.bye || a.loss) ? 1 : 0) - ((b.bye || b.loss) ? 1 : 0) || (a.table ?? 0) - (b.table ?? 0));
     return { status: 'published', tournament, division, divisions, round, rounds, matches, updated_at: clean(data.updated_at) };
   }
   function renderMatches() {
@@ -52,17 +54,17 @@
     container.replaceChildren();
     if (!current || current.status !== 'published') return;
     const query = normalized($('search').value);
-    const matches = current.matches.filter(m => (selectedDivision === 'All' || m.division === selectedDivision || Boolean(query)) && (normalized(`${m.player1} ${m.player2}`).includes(query) || (!m.bye && String(m.table).includes(query))));
+    const matches = current.matches.filter(m => (selectedDivision === 'All' || m.division === selectedDivision || Boolean(query)) && (normalized(`${m.player1} ${m.player2}`).includes(query) || (!m.bye && !m.loss && String(m.table).includes(query))));
     for (const match of matches) {
       const card = document.createElement('article'); card.className = 'match';
       if (query && (normalized(match.player1).includes(query) || normalized(match.player2).includes(query))) card.classList.add('highlight');
       const table = document.createElement('div'); table.className = 'table-num';
-      const caption = document.createElement('span'); caption.textContent = match.bye ? 'STATUS' : 'TABLE';
-      const number = document.createElement('strong'); number.textContent = match.bye ? 'BYE' : match.table;
+      const caption = document.createElement('span'); caption.textContent = (match.bye || match.loss) ? 'STATUS' : 'TABLE';
+      const number = document.createElement('strong'); number.textContent = match.bye ? 'BYE' : (match.loss ? 'LOSS' : match.table);
       table.append(caption, number);
       if (current.divisions.length > 1 && (selectedDivision === 'All' || query)) { const tag = document.createElement('span'); tag.className = 'division-label'; tag.textContent = `${match.division} · Round ${current.rounds[match.division]}`; table.append(tag); }
       const players = document.createElement('div'); players.className = 'players';
-      for (const [index, name] of (match.bye ? [match.player1] : [match.player1, match.player2]).entries()) {
+      for (const [index, name] of ((match.bye || match.loss) ? [match.player1] : [match.player1, match.player2]).entries()) {
         if (index) { const vs = document.createElement('span'); vs.className = 'vs'; vs.textContent = 'VS'; players.append(vs); }
         const player = document.createElement('div'); player.className = 'player';
         const playerName = document.createElement('span'); playerName.className = 'player-name'; playerName.textContent = name;
@@ -72,7 +74,7 @@
         if (record) { const recordText = document.createElement('span'); recordText.className = 'player-record'; recordText.textContent = record.replaceAll("-", "/"); player.append(recordText); }
         players.append(player);
       }
-      if (match.bye) { const note = document.createElement('span'); note.className = 'vs'; note.textContent = 'No opponent this round'; players.append(note); }
+      if (match.bye || match.loss) { const note = document.createElement('span'); note.className = 'vs'; note.textContent = match.loss ? 'Unpaired loss' : 'No opponent this round'; players.append(note); }
       card.append(table, players); container.append(card);
     }
     const visibleTotal = selectedDivision === 'All' ? current.matches.length : current.matches.filter(m => m.division === selectedDivision).length;
@@ -110,7 +112,7 @@
     text('division', published ? (current.divisions.length > 1 ? current.divisions.map(d => `${d} · Round ${current.rounds[d]}`).join(' · ') : `${current.division} Division`) : (current?.status === 'unpublished' ? '' : 'Pairings will appear here when published.'));
     renderRoundHeader();
     show('round', published);
-    text('count', published ? `${current.matches.filter(m => !m.bye).length} tables · ${current.matches.filter(m => m.bye).length} BYEs · ${current.matches.reduce((n, m) => n + (m.bye ? 1 : 2), 0)} players` : 'No active round');
+    text('count', published ? `${current.matches.filter(m => !m.bye && !m.loss).length} tables · ${current.matches.filter(m => m.bye).length} BYEs · ${current.matches.filter(m => m.loss).length} losses · ${current.matches.reduce((n, m) => n + ((m.bye || m.loss) ? 1 : 2), 0)} players` : 'No active round');
     let updated = '';
     if (published && current.updated_at) {
       const date = new Date(current.updated_at);
