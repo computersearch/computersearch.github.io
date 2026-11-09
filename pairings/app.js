@@ -49,6 +49,7 @@
     }).sort((a, b) => ((a.bye || a.loss) ? 1 : 0) - ((b.bye || b.loss) ? 1 : 0) || (a.table ?? 0) - (b.table ?? 0));
     return { status: 'published', tournament, division, divisions, round, rounds, matches, updated_at: clean(data.updated_at) };
   }
+  const divisionAbbreviation = division => ({ junior: 'JR', senior: 'SR', master: 'MA', masters: 'MA' })[normalized(division).replace(/\s+division$/, '')] || '';
   function renderMatches() {
     const container = $('matches');
     container.replaceChildren();
@@ -59,15 +60,18 @@
       const card = document.createElement('article'); card.className = 'match';
       if (query && (normalized(match.player1).includes(query) || normalized(match.player2).includes(query))) card.classList.add('highlight');
       const table = document.createElement('div'); table.className = 'table-num';
-      const caption = document.createElement('span'); caption.textContent = (match.bye || match.loss) ? 'STATUS' : 'TABLE';
       const number = document.createElement('strong'); number.textContent = match.bye ? 'BYE' : (match.loss ? 'LOSS' : match.table);
-      table.append(caption, number);
-      if (current.divisions.length > 1 && (selectedDivision === 'All' || query)) { const tag = document.createElement('span'); tag.className = 'division-label'; tag.textContent = `${match.division} · Round ${current.rounds[match.division]}`; table.append(tag); }
+      table.append(number);
       const players = document.createElement('div'); players.className = 'players';
       for (const [index, name] of ((match.bye || match.loss) ? [match.player1] : [match.player1, match.player2]).entries()) {
         if (index) { const vs = document.createElement('span'); vs.className = 'vs'; vs.textContent = 'VS'; players.append(vs); }
         const player = document.createElement('div'); player.className = 'player';
         const playerName = document.createElement('span'); playerName.className = 'player-name'; playerName.textContent = name;
+        const divisionCode = divisionAbbreviation(match.division);
+        if (divisionCode) {
+          const suffix = document.createElement('span'); suffix.className = 'player-division'; suffix.textContent = ` ${divisionCode}`;
+          playerName.append(suffix);
+        }
         player.append(playerName);
         if (index === 0 ? match.static1 : match.static2) { const badge = document.createElement('span'); badge.className = 'static-seat-badge'; badge.textContent = '★ Static Seat'; player.append(badge); }
         const record = index === 0 ? match.record1 : match.record2;

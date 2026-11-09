@@ -11,3 +11,6 @@
 
 /* Division selection */
 .division-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 18px}.division-tabs[hidden]{display:none}.division-tab{border:1px solid #34394d;border-radius:10px;background:#171b2b;color:#d5d9e8;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer}.division-tab.active{background:#6457dc;border-color:#8174f0;color:#fff}.division-tab:focus-visible{outline:2px solid #a7a0ff;outline-offset:3px}.division-label{font-size:10px;color:#a9a4f5;margin-top:4px;font-weight:700;white-space:nowrap}
+
+/* Division code appears beside each player, not inside the table/status square. */
+.player-division{font-size:.72em;font-weight:800;letter-spacing:.04em;color:#a8b6d2;white-space:nowrap}
