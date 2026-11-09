@@ -69,7 +69,7 @@
         const playerName = document.createElement('span'); playerName.className = 'player-name'; playerName.textContent = name;
         const divisionCode = divisionAbbreviation(match.division);
         if (divisionCode) {
-          const suffix = document.createElement('span'); suffix.className = 'player-division'; suffix.textContent = ` ${divisionCode}`;
+          const suffix = document.createElement('span'); suffix.className = 'player-division'; suffix.textContent = ` (${divisionCode})`;
           playerName.append(suffix);
         }
         player.append(playerName);
