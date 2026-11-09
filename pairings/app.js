@@ -112,6 +112,7 @@
   }
   function render() {
     const published = current?.status === 'published';
+    show('tournament-panel', published);
     text('tournament', current?.status === 'unpublished' ? 'No tournament is running at the moment.' : (clean(current?.tournament) || 'Waiting for pairings'));
     text('division', published ? (current.divisions.length > 1 ? current.divisions.map(d => `${d} · Round ${current.rounds[d]}`).join(' · ') : `${current.division} Division`) : (current?.status === 'unpublished' ? '' : 'Pairings will appear here when published.'));
     renderRoundHeader();
@@ -125,8 +126,8 @@
     text('updated', updated);
     show('results-section', published);
     show('empty-state', !published);
-    text('empty-title', current?.status === 'unpublished' ? 'No tournament is running at the moment.' : (endpoint ? 'Waiting for the next round' : 'Awaiting setup'));
-    text('empty-description', current?.status === 'unpublished' ? 'Check back when the next tournament begins.' : (endpoint ? 'This page will update automatically when the organizer publishes pairings.' : 'The organizer will connect the pairings endpoint before the event.'));
+    text('empty-title', current?.status === 'unpublished' ? 'No active tournament' : (endpoint ? 'Waiting for pairings' : 'Awaiting setup'));
+    text('empty-description', current?.status === 'unpublished' ? 'Pairings will appear here when the next tournament begins.' : (endpoint ? 'Pairings will appear here when the organizer publishes them.' : 'The organizer will connect the pairings endpoint before the event.'));
     renderDivisions();
     if (published) renderMatches();
   }
@@ -145,8 +146,11 @@
       const nextFingerprint = JSON.stringify(next);
       if (nextFingerprint !== fingerprint) { current = next; fingerprint = nextFingerprint; render(); }
       text('status', 'Up to date');
+      text('inactive-error', '');
+      show('inactive-error', false);
     } catch (error) {
       text('status', current?.status === 'published' ? 'Connection interrupted · showing last received round' : 'Unable to load pairings');
+      if (current?.status !== 'published') { text('inactive-error', 'Unable to load pairings. Retrying automatically.'); show('inactive-error', true); }
       console.warn('Pairings refresh:', error);
     } finally { fetching = false; }
   }
