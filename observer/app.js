@@ -1,12 +1,22 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const state = { events: [], event: '', snapshot: null, people: [], watched: readWatched(), view: 'watched', countryFilter: '', playerQuery: '', sort: 'rank', selectedPlayer: '', loading: false, requestId: 0 };
+  const state = { events: [], event: '', snapshot: null, people: [], watched: readWatched(), view: 'watched', countryFilter: '', playerQuery: '', sort: 'rank', selectedPlayer: '', previousRanks: new Map(), movement: new Map(), loading: false, requestId: 0 };
   function readWatched() { try { return JSON.parse(localStorage.getItem('cs-observer-watch-v1') || '{}'); } catch { return {}; } }
   function save() { try { localStorage.setItem('cs-observer-watch-v1', JSON.stringify(state.watched)); } catch {} }
   const LAST_EVENT_KEY = 'cs-observer-last-event-v1';
   function lastEvent() { try { return localStorage.getItem(LAST_EVENT_KEY) || ''; } catch { return ''; } }
   function rememberEvent(id) { try { localStorage.setItem(LAST_EVENT_KEY, id); } catch {} }
+  const PREF_KEY='cs-observer-preferences-v1';
+  function readPrefs(){try{return JSON.parse(localStorage.getItem(PREF_KEY)||'{}');}catch{return {};}}
+  function savePrefs(){try{localStorage.setItem(PREF_KEY,JSON.stringify({view:state.view,country:state.countryFilter,sort:state.sort}));}catch{}}
+  function searchNorm(s){return str(s).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
+  function rankNumber(p,index){const n=Number(val(p,['rank','placement','place','position']));return Number.isInteger(n)&&n>0?n:index+1;}
+  function ranksFor(people){return new Map(people.map((p,i)=>[watchKey(p),rankNumber(p,i)]));}
+  function movementLabel(p){const delta=state.movement.get(watchKey(p));return delta?`${delta>0?'▲ +':'▼ '}${delta}`:'';}
+  function snapshotTime(snap){const raw=snap?.raw||{};const value=val(snap,['fetched_at','updated_at','timestamp'])??val(raw,['fetched_at','updated_at']);if(!value)return null;const d=new Date(value);return Number.isNaN(d.getTime())?null:d;}
+  function renderFreshness(snap){const node=$('snapshot-freshness');if(!node)return;const d=snapshotTime(snap);node.textContent=d?`Snapshot updated ${d.toLocaleString()}`:'Snapshot update time unavailable';node.title=d?d.toISOString():'';}
+  function renderCountryOverview(){const root=$('country-overview');if(!root)return;root.replaceChildren();const counts=new Map();for(const p of state.people){const c=country(p).trim().toUpperCase()||'Unknown';if(!counts.has(c))counts.set(c,{total:0,cut:0});const item=counts.get(c);item.total++;const seed=Number(p.top_cut_seed),size=Number(p.bracket_size);if(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size)item.cut++;}if(!counts.size)return;add(root,'h3','','Countries');add(root,'p','muted','Players / confirmed Top Cut');const list=add(root,'div','country-overview-list');for(const [c,v] of [...counts].sort((a,b)=>b[1].total-a[1].total||a[0].localeCompare(b[0]))){const b=btn(`${flag(c)} ${c}  ·  ${v.total} / ${v.cut}`,()=>{state.view='all';state.countryFilter=c==='Unknown'?'__UNKNOWN__':c;savePrefs();render();},'country-overview-item');list.append(b);}}
   function val(o, keys) { if (!o || typeof o !== 'object') return undefined; for (const k of keys) if (o[k] !== undefined && o[k] !== null && o[k] !== '') return o[k]; }
   const str = x => x === undefined || x === null ? '' : String(x);
   const norm = s => str(s).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -74,8 +84,8 @@
     updateWatch(keys);
   }
   function renderSuggestions() {
-    const box=$('suggestions'); box.replaceChildren(); const q=norm($('search').value); if(q.length<2)return;
-    const tracked=new Set(watched()); const list=state.people.filter(p=>norm(nameOf(p)).includes(q) && !tracked.has(watchKey(p))).slice(0,12);
+    const box=$('suggestions'); box.replaceChildren(); const q=searchNorm($('search').value); if(q.length<2)return;
+    const tracked=new Set(watched()); const list=state.people.filter(p=>searchNorm(nameOf(p)).includes(q) && !tracked.has(watchKey(p))).slice(0,12);
     if(!list.length){add(box,'div','tiny',state.snapshot?'No matching players in the published snapshot.':'No snapshot loaded yet.');return;}
     for(const p of list){const row=add(box,'div','suggestion');const label=add(row,'span','',nameOf(p));const c=country(p);if(c)label.append(document.createTextNode(' '+flag(c)+' '+c));row.append(btn('+ Follow',()=>{updateWatch([...watched(),watchKey(p)]);$('search').value='';renderSuggestions();},'primary'));}
   }
@@ -137,10 +147,11 @@
     select.replaceChildren();
     const all=make('option','',`All countries (${state.people.length})`);all.value='';select.append(all);
     for(const [c,n] of [...counts].sort((a,b)=>a[0].localeCompare(b[0]))){const o=make('option','',`${flag(c)} ${c} (${n})`);o.value=c;select.append(o);}
-    if(previous && !counts.has(previous))state.countryFilter='';
+    if(state.people.some(p=>!country(p).trim())){const o=make('option','','Unknown country');o.value='__UNKNOWN__';select.append(o);}
+    if(previous && !counts.has(previous) && !(previous==='__UNKNOWN__'&&state.people.some(p=>!country(p).trim()))) {state.countryFilter='';savePrefs();}
     select.value=state.countryFilter;
-    const query=norm(state.playerQuery);
-    let rows=state.people.map((p,index)=>({p,index})).filter(({p})=>(!state.countryFilter||country(p).trim().toUpperCase()===state.countryFilter)&&(!query||norm(nameOf(p)).includes(query)));
+    const query=searchNorm(state.playerQuery);
+    let rows=state.people.map((p,index)=>({p,index})).filter(({p})=>(!state.countryFilter||(state.countryFilter==='__UNKNOWN__'?!country(p).trim():country(p).trim().toUpperCase()===state.countryFilter))&&(!query||searchNorm(nameOf(p)).includes(query)));
     if(state.sort==='name')rows.sort((a,b)=>nameOf(a.p).localeCompare(nameOf(b.p)));
     else if(state.sort==='country')rows.sort((a,b)=>country(a.p).localeCompare(country(b.p))||a.index-b.index);
     else rows.sort((a,b)=>a.index-b.index);
@@ -153,7 +164,7 @@
       add(line,'span','directory-rank',rankOf(p)==='—'?`#${index+1}`:rankOf(p));
       const info=add(line,'div','directory-info');
       const name=btn(`${flag(country(p))} ${nameOf(p)}`,()=>{state.selectedPlayer=state.selectedPlayer===key?'':key;renderDirectory();},'directory-name');info.append(name);
-      add(info,'span','muted',`${country(p)||'Country unknown'} · ${record(p)}`);
+      add(info,'span','muted',`${country(p)||'Country unknown'} · ${record(p)}`);const move=movementLabel(p);if(move)add(info,'span',state.movement.get(key)>0?'movement-up':'movement-down',move+' places since previous snapshot');
       line.append(btn(tracked.has(key)?'Following':'+ Follow',()=>{if(tracked.has(key))updateWatch(watched().filter(k=>k!==key));else updateWatch([...watched(),key]);},tracked.has(key)?'':'primary'));
       if(state.selectedPlayer===key){
         const details=add(root,'div','directory-details');
@@ -173,6 +184,7 @@
   function render(){
     renderSuggestions();
     renderDirectory();
+    renderCountryOverview();
     try { renderBracket(); }
     catch (error) {
       console.error('Observer bracket rendering failed:', error);
@@ -183,7 +195,7 @@
     const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
     for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){
-        const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);
+        const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);const move=movementLabel(p);if(move)add(left,'div',state.movement.get(key)>0?'movement-up':'movement-down',move+' places since previous snapshot');
         const seed=Number(p.top_cut_seed), size=Number(p.bracket_size);
         if(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size){
           const badges=add(left,'div','top-cut-badges');
@@ -376,11 +388,18 @@
       const fingerprint=JSON.stringify(next);
       const changed=fingerprint!==state.fingerprint;
       state.fingerprint=fingerprint;
-      if(changed){state.snapshot=next;state.people=playersFrom(next.raw);}
+      if(changed){
+        const oldRanks=state.eventRanksEvent===event?state.previousRanks:new Map();
+        state.snapshot=next;state.people=playersFrom(next.raw);
+        const newRanks=ranksFor(state.people);state.movement=new Map();
+        for(const [key,rank] of newRanks){if(oldRanks.has(key)){const delta=oldRanks.get(key)-rank;if(delta)state.movement.set(key,delta);}}
+        state.previousRanks=newRanks;state.eventRanksEvent=event;
+      }
       const eventTitle=snap.raw?.tournament?.title || snap.event_name || state.events.find(e=>e.id===state.event)?.name || 'Tournament';
       $('event-title').textContent=eventTitle;
       const option=$('event').selectedOptions[0];if(option)option.textContent=eventTitle;
       const when=snap.fetched_at?new Date(snap.fetched_at).toLocaleString():'unknown';
+      renderFreshness(next);
       $('status').textContent=state.people.length?`${state.people.length} players · Updated ${when}`:'Snapshot fetched, but player fields could not be recognized — check JSON schema';
       if(changed)render();
     }catch(e){if(requestId===state.requestId)$('status').textContent=`Snapshot refresh failed: ${e.message}`;}
@@ -394,14 +413,18 @@
       const previousEvent=lastEvent();
       state.event=state.events.some(e=>e.id===previousEvent)?previousEvent:state.events[0].id;
       selector.value=state.event;
-      selector.addEventListener('change',()=>{state.event=selector.value;rememberEvent(state.event);state.snapshot=null;state.fingerprint=null;state.people=[];state.countryFilter='';state.playerQuery='';state.selectedPlayer='';$('directory-search').value='';render();load();});
+      const prefs=readPrefs();if(['watched','all'].includes(prefs.view))state.view=prefs.view;
+      if(['rank','name','country'].includes(prefs.sort))state.sort=prefs.sort;
+      if(typeof prefs.country==='string')state.countryFilter=prefs.country;
+      $('directory-sort').value=state.sort;
+      selector.addEventListener('change',()=>{state.event=selector.value;rememberEvent(state.event);state.snapshot=null;state.fingerprint=null;state.people=[];state.movement=new Map();state.previousRanks=new Map();state.eventRanksEvent='';state.countryFilter='';savePrefs();state.playerQuery='';state.selectedPlayer='';$('directory-search').value='';render();load();});
       $('search').addEventListener('input',renderSuggestions);
       $('reload').addEventListener('click',load);
-      $('watched-tab').addEventListener('click',()=>{state.view='watched';render();});
-      $('all-tab').addEventListener('click',()=>{state.view='all';render();});
+      $('watched-tab').addEventListener('click',()=>{state.view='watched';savePrefs();render();});
+      $('all-tab').addEventListener('click',()=>{state.view='all';savePrefs();render();});
       $('directory-search').addEventListener('input',e=>{state.playerQuery=e.target.value;renderDirectory();});
-      $('country-filter').addEventListener('change',e=>{state.countryFilter=e.target.value;renderDirectory();});
-      $('directory-sort').addEventListener('change',e=>{state.sort=e.target.value;renderDirectory();});
+      $('country-filter').addEventListener('change',e=>{state.countryFilter=e.target.value;savePrefs();renderDirectory();});
+      $('directory-sort').addEventListener('change',e=>{state.sort=e.target.value;savePrefs();renderDirectory();});
       await load();setInterval(load,60*1000);
     }catch(e){$('status').textContent=e.message;}
   }
