@@ -15,6 +15,22 @@
       "source": "https://www.pokedata.ovh/standings2/standings/1000080_Masters.json",
       "enabled": true,
       "active": false
+    },
+    {
+      "id": "1000082_master",
+      "name": "2027 Buenos Aires Pokémon TCG Special Championships - Masters",
+      "division": "Master",
+      "source": "https://www.pokedata.ovh/standings2/standings/1000082_Master.json",
+      "enabled": true,
+      "active": true
+    },
+    {
+      "id": "1000084_master",
+      "name": "2027 Buenos Aires Pokémon VG Special Championships",
+      "division": "Master",
+      "source": "https://www.pokedata.ovh/standings2/standings/1000084_Master.json",
+      "enabled": true,
+      "active": true
     }
   ]
 }
