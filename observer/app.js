@@ -4,6 +4,9 @@
   const state = { events: [], event: '', snapshot: null, people: [], watched: readWatched(), view: 'watched', countryFilter: '', playerQuery: '', sort: 'rank', selectedPlayer: '', loading: false, requestId: 0 };
   function readWatched() { try { return JSON.parse(localStorage.getItem('cs-observer-watch-v1') || '{}'); } catch { return {}; } }
   function save() { try { localStorage.setItem('cs-observer-watch-v1', JSON.stringify(state.watched)); } catch {} }
+  const LAST_EVENT_KEY = 'cs-observer-last-event-v1';
+  function lastEvent() { try { return localStorage.getItem(LAST_EVENT_KEY) || ''; } catch { return ''; } }
+  function rememberEvent(id) { try { localStorage.setItem(LAST_EVENT_KEY, id); } catch {} }
   function val(o, keys) { if (!o || typeof o !== 'object') return undefined; for (const k of keys) if (o[k] !== undefined && o[k] !== null && o[k] !== '') return o[k]; }
   const str = x => x === undefined || x === null ? '' : String(x);
   const norm = s => str(s).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -387,8 +390,11 @@
       const response=await fetch('./events.json',{cache:'no-store'});if(!response.ok)throw new Error('Cannot load event list');
       const config=await response.json();state.events=(config.events||[]).filter(e=>e.enabled!==false);
       const selector=$('event');for(const e of state.events){const opt=make('option','',e.name);opt.value=e.id;selector.append(opt);}
-      if(!state.events.length)throw new Error('No events configured');state.event=state.events[0].id;
-      selector.addEventListener('change',()=>{state.event=selector.value;state.snapshot=null;state.fingerprint=null;state.people=[];state.countryFilter='';state.playerQuery='';state.selectedPlayer='';$('directory-search').value='';render();load();});
+      if(!state.events.length)throw new Error('No events configured');
+      const previousEvent=lastEvent();
+      state.event=state.events.some(e=>e.id===previousEvent)?previousEvent:state.events[0].id;
+      selector.value=state.event;
+      selector.addEventListener('change',()=>{state.event=selector.value;rememberEvent(state.event);state.snapshot=null;state.fingerprint=null;state.people=[];state.countryFilter='';state.playerQuery='';state.selectedPlayer='';$('directory-search').value='';render();load();});
       $('search').addEventListener('input',renderSuggestions);
       $('reload').addEventListener('click',load);
       $('watched-tab').addEventListener('click',()=>{state.view='watched';render();});
