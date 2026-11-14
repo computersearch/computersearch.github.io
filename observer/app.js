@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const state = { events: [], event: '', snapshot: null, people: [], watched: readWatched() };
+  const state = { events: [], event: '', snapshot: null, people: [], watched: readWatched(), view: 'watched', countryFilter: '', playerQuery: '', sort: 'rank', selectedPlayer: '', loading: false, requestId: 0 };
   function readWatched() { try { return JSON.parse(localStorage.getItem('cs-observer-watch-v1') || '{}'); } catch { return {}; } }
   function save() { try { localStorage.setItem('cs-observer-watch-v1', JSON.stringify(state.watched)); } catch {} }
   function val(o, keys) { if (!o || typeof o !== 'object') return undefined; for (const k of keys) if (o[k] !== undefined && o[k] !== null && o[k] !== '') return o[k]; }
@@ -119,8 +119,57 @@
     }
     return places;
   }
+
+  function renderDirectory(){
+    const root=$('directory'); if(!root)return;
+    const isAll=state.view==='all';
+    $('watched-tab').setAttribute('aria-selected',String(!isAll));
+    $('all-tab').setAttribute('aria-selected',String(isAll));
+    $('watched-section').hidden=isAll;
+    $('directory-section').hidden=!isAll;
+    if(!isAll)return;
+    const select=$('country-filter'), previous=state.countryFilter;
+    const counts=new Map();
+    for(const p of state.people){const c=country(p).trim().toUpperCase();if(c)counts.set(c,(counts.get(c)||0)+1);}
+    select.replaceChildren();
+    const all=make('option','',`All countries (${state.people.length})`);all.value='';select.append(all);
+    for(const [c,n] of [...counts].sort((a,b)=>a[0].localeCompare(b[0]))){const o=make('option','',`${flag(c)} ${c} (${n})`);o.value=c;select.append(o);}
+    if(previous && !counts.has(previous))state.countryFilter='';
+    select.value=state.countryFilter;
+    const query=norm(state.playerQuery);
+    let rows=state.people.map((p,index)=>({p,index})).filter(({p})=>(!state.countryFilter||country(p).trim().toUpperCase()===state.countryFilter)&&(!query||norm(nameOf(p)).includes(query)));
+    if(state.sort==='name')rows.sort((a,b)=>nameOf(a.p).localeCompare(nameOf(b.p)));
+    else if(state.sort==='country')rows.sort((a,b)=>country(a.p).localeCompare(country(b.p))||a.index-b.index);
+    else rows.sort((a,b)=>a.index-b.index);
+    $('directory-count').textContent=`${rows.length} of ${state.people.length} players`;
+    root.replaceChildren();
+    if(!rows.length){add(root,'div','empty',state.people.length?'No players match your filters.':'No players available in this snapshot.');return;}
+    const tracked=new Set(watched());
+    for(const {p,index} of rows){
+      const key=watchKey(p), line=add(root,'div','directory-row');
+      add(line,'span','directory-rank',rankOf(p)==='—'?`#${index+1}`:rankOf(p));
+      const info=add(line,'div','directory-info');
+      const name=btn(`${flag(country(p))} ${nameOf(p)}`,()=>{state.selectedPlayer=state.selectedPlayer===key?'':key;renderDirectory();},'directory-name');info.append(name);
+      add(info,'span','muted',`${country(p)||'Country unknown'} · ${record(p)}`);
+      line.append(btn(tracked.has(key)?'Following':'+ Follow',()=>{if(tracked.has(key))updateWatch(watched().filter(k=>k!==key));else updateWatch([...watched(),key]);},tracked.has(key)?'':'primary'));
+      if(state.selectedPlayer===key){
+        const details=add(root,'div','directory-details');
+        const rounds=matches(p);add(details,'strong','',`${nameOf(p)} · Round history`);
+        if(!rounds.length)add(details,'div','muted','Round history is not available in this snapshot.');
+        for(let i=0;i<rounds.length;i++){
+          const m=rounds[i];if(!m)continue;
+          const r=add(details,'div','directory-round');
+          add(r,'span','',`R${val(m,['round','roundNumber','round_number'])??i+1} · ${opponent(m)||'Opponent unavailable'}`);
+          const table=val(m,['table','tableNumber','table_number']);
+          add(r,'span','muted',`${table?`Table ${table} · `:''}${result(m)}`);
+        }
+      }
+    }
+  }
+
   function render(){
     renderSuggestions();
+    renderDirectory();
     try { renderBracket(); }
     catch (error) {
       console.error('Observer bracket rendering failed:', error);
@@ -312,14 +361,43 @@
     }
   }
   async function load(){
-    $('status').textContent='Loading snapshot…';state.people=[];state.snapshot=null;render();
-    try {const response=await fetch(`./data/${encodeURIComponent(state.event)}.json?t=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error('Snapshot not available yet');const snap=await response.json();if(!snap || !(snap.raw||snap.standings?.players))throw new Error('Invalid snapshot');state.snapshot=snap.raw?snap:{...snap,raw:snap};state.people=playersFrom(state.snapshot.raw);const eventTitle=snap.raw?.tournament?.title || snap.event_name || state.events.find(e=>e.id===state.event)?.name || 'Tournament';$('event-title').textContent=eventTitle;const option=$('event').selectedOptions[0];if(option)option.textContent=eventTitle;const when=snap.fetched_at?new Date(snap.fetched_at).toLocaleString():'unknown';$('status').textContent=`${state.people.length} players · Updated ${when}`;if(!state.people.length)$('status').textContent='Snapshot fetched, but player fields could not be recognized — check JSON schema';}
-    catch(e){$('status').textContent=`No published snapshot: ${e.message}`;}
-    render();
+    const event=state.event, requestId=++state.requestId;
+    if(!state.snapshot)$('status').textContent='Loading snapshot…';
+    try {
+      const response=await fetch(`./data/${encodeURIComponent(event)}.json?t=${Date.now()}`,{cache:'no-store'});
+      if(!response.ok)throw new Error('Snapshot not available yet');
+      const snap=await response.json();
+      if(!snap || !(snap.raw||snap.standings?.players))throw new Error('Invalid snapshot');
+      if(requestId!==state.requestId||event!==state.event)return;
+      const next=snap.raw?snap:{...snap,raw:snap};
+      const fingerprint=JSON.stringify(next);
+      const changed=fingerprint!==state.fingerprint;
+      state.fingerprint=fingerprint;
+      if(changed){state.snapshot=next;state.people=playersFrom(next.raw);}
+      const eventTitle=snap.raw?.tournament?.title || snap.event_name || state.events.find(e=>e.id===state.event)?.name || 'Tournament';
+      $('event-title').textContent=eventTitle;
+      const option=$('event').selectedOptions[0];if(option)option.textContent=eventTitle;
+      const when=snap.fetched_at?new Date(snap.fetched_at).toLocaleString():'unknown';
+      $('status').textContent=state.people.length?`${state.people.length} players · Updated ${when}`:'Snapshot fetched, but player fields could not be recognized — check JSON schema';
+      if(changed)render();
+    }catch(e){if(requestId===state.requestId)$('status').textContent=`Snapshot refresh failed: ${e.message}`;}
   }
   async function init(){
-    try{const response=await fetch('./events.json',{cache:'no-store'});if(!response.ok)throw new Error('Cannot load event list');const config=await response.json();state.events=(config.events||[]).filter(e=>e.enabled!==false);const selector=$('event');for(const e of state.events){const opt=make('option','',e.name);opt.value=e.id;selector.append(opt);}if(!state.events.length)throw new Error('No events configured');state.event=state.events[0].id;selector.addEventListener('change',()=>{state.event=selector.value;$('search').value='';load();});$('search').addEventListener('input',renderSuggestions);$('reload').addEventListener('click',load);await load();setInterval(load,5*60*1000);}
-    catch(e){$('status').textContent=e.message;}
+    try{
+      const response=await fetch('./events.json',{cache:'no-store'});if(!response.ok)throw new Error('Cannot load event list');
+      const config=await response.json();state.events=(config.events||[]).filter(e=>e.enabled!==false);
+      const selector=$('event');for(const e of state.events){const opt=make('option','',e.name);opt.value=e.id;selector.append(opt);}
+      if(!state.events.length)throw new Error('No events configured');state.event=state.events[0].id;
+      selector.addEventListener('change',()=>{state.event=selector.value;state.snapshot=null;state.fingerprint=null;state.people=[];state.countryFilter='';state.playerQuery='';state.selectedPlayer='';$('directory-search').value='';render();load();});
+      $('search').addEventListener('input',renderSuggestions);
+      $('reload').addEventListener('click',load);
+      $('watched-tab').addEventListener('click',()=>{state.view='watched';render();});
+      $('all-tab').addEventListener('click',()=>{state.view='all';render();});
+      $('directory-search').addEventListener('input',e=>{state.playerQuery=e.target.value;renderDirectory();});
+      $('country-filter').addEventListener('change',e=>{state.countryFilter=e.target.value;renderDirectory();});
+      $('directory-sort').addEventListener('change',e=>{state.sort=e.target.value;renderDirectory();});
+      await load();setInterval(load,60*1000);
+    }catch(e){$('status').textContent=e.message;}
   }
   init();
 })();
