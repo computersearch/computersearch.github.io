@@ -26,6 +26,31 @@
       localStorage.setItem(MOVEMENT_KEY,JSON.stringify(all));
     } catch {}
   }
+  // Preserve followed players' last known standings and resolved round history
+  // when an upstream snapshot omits them or publishes a shorter history.
+  const FOLLOWED_CACHE_KEY='cs-observer-followed-history-v1';
+  function readFollowedCache(event){
+    try { return JSON.parse(localStorage.getItem(FOLLOWED_CACHE_KEY)||'{}')[event]||{}; }
+    catch { return {}; }
+  }
+  function updateFollowedCache(){
+    if(!state.event || !state.snapshot)return;
+    try {
+      const all=JSON.parse(localStorage.getItem(FOLLOWED_CACHE_KEY)||'{}');
+      const entries=all[state.event]||{};
+      for(const key of watched()){
+        const p=findWatchedPlayer(key);
+        if(!p)continue;
+        const previous=entries[key];
+        const rounds=matches(p);
+        const oldRounds=previous?.rounds||[];
+        entries[key]={player:p,rounds:rounds.length>=oldRounds.length?rounds:oldRounds,rank:rankOf(p),savedAt:new Date().toISOString()};
+      }
+      all[state.event]=entries;
+      while(Object.keys(all).length>12)delete all[Object.keys(all)[0]];
+      localStorage.setItem(FOLLOWED_CACHE_KEY,JSON.stringify(all));
+    }catch(e){console.warn('Could not cache followed players',e);}
+  }
   function movementLabel(p){const delta=state.movement.get(watchKey(p));return delta?`${delta>0?'▲ +':'▼ '}${delta}`:'';}
   function snapshotTime(snap){const raw=snap?.raw||{};const value=val(snap,['fetched_at','updated_at','timestamp'])??val(raw,['fetched_at','updated_at']);if(!value)return null;const d=new Date(value);return Number.isNaN(d.getTime())?null:d;}
   function renderFreshness(snap){const node=$('snapshot-freshness');if(!node)return;const d=snapshotTime(snap);node.textContent=d?`Snapshot updated ${d.toLocaleString()}`:'Snapshot update time unavailable';node.title=d?d.toISOString():'';}
@@ -87,8 +112,41 @@
   function add(parent,tag,cls,text) { const e=make(tag,cls,text); parent.append(e); return e; }
   function btn(text,fn,cls='') { const b=make('button',cls,text); b.type='button'; b.addEventListener('click',fn); return b; }
   function watchKey(p) { return norm(nameOf(p)); }
+  // Watchlist keys may predate PokéData's appended player nicknames.
+  // Match exact names first, then unambiguous full-name prefixes. As a final
+  // fallback, tolerate a small spelling/spacing difference in the surname.
+  function editDistance(a,b){
+    const row=Array.from({length:b.length+1},(_,i)=>i);
+    for(let i=1;i<=a.length;i++){
+      let prev=row[0];row[0]=i;
+      for(let j=1;j<=b.length;j++){
+        const old=row[j];row[j]=Math.min(row[j]+1,row[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;
+      }
+    }
+    return row[b.length];
+  }
+  function findWatchedPlayer(key){
+    const wanted=norm(key);
+    const exact=state.people.find(p=>watchKey(p)===wanted);
+    if(exact)return exact;
+    const prefix=state.people.filter(p=>watchKey(p).startsWith(wanted+' '));
+    if(prefix.length===1)return prefix[0];
+    if(prefix.length>1)return null;
+    const parts=wanted.split(' ');
+    if(parts.length<2)return null;
+    const first=parts[0], surname=parts.slice(1).join('');
+    const candidates=state.people.filter(p=>{
+      const tokens=watchKey(p).split(' ');
+      if(tokens[0]!==first||tokens.length<2)return false;
+      // Allow one or two edits in the original surname, but not an arbitrary
+      // nickname match; the original surname is the second name token.
+      const candidate=tokens[1];
+      return Math.abs(candidate.length-surname.length)<=2 && editDistance(candidate,surname)<=2;
+    });
+    return candidates.length===1?candidates[0]:null;
+  }
   function watched() { return state.watched[state.event] || []; }
-  function updateWatch(keys) { state.watched[state.event]=keys; save(); render(); }
+  function updateWatch(keys) { state.watched[state.event]=keys; save(); updateFollowedCache(); render(); }
   function moveWatch(key, offset) {
     const keys=[...watched()]; const index=keys.indexOf(key); const target=index+offset;
     if(index<0 || target<0 || target>=keys.length)return;
@@ -204,21 +262,22 @@
       if(bracketRoot){bracketRoot.replaceChildren();add(bracketRoot,'div','muted','Bracket temporarily unavailable. Followed players are still available.');}
     }
     const placements=finalPlacements();
-    const root=$('players');root.replaceChildren();const keys=watched();$('count').textContent=keys.length;
+    const root=$('players');root.replaceChildren();const keys=watched();const followedCache=readFollowedCache(state.event);$('count').textContent=keys.length;
     if(!keys.length){add(root,'div','empty','Search for a player above and choose “+ Follow”. Your watchlist stays in this browser.');return;}
-    for(const [position,key] of keys.entries()){const p=state.people.find(x=>watchKey(x)===key);const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){
-        const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);const move=movementLabel(p);if(move)add(left,'div',state.movement.get(key)>0?'movement-up':'movement-down',move+' places since previous snapshot');
+    for(const [position,key] of keys.entries()){const current=findWatchedPlayer(key);const saved=followedCache[key];const p=current||saved?.player;const panel=add(root,'article','player');const head=add(panel,'div','player-head');const top=add(head,'div','between');const left=add(top,'div');const nameRow=add(left,'div','player-name-row');add(nameRow,'h3','',p?nameOf(p):key);if(p){
+        if(!current)add(left,'div','muted','Last known data · Not in latest snapshot');
+        const c=country(p);if(c)add(left,'div','muted',`${flag(c)} ${c}`);const move=current?movementLabel(p):'';if(move)add(left,'div',state.movement.get(key)>0?'movement-up':'movement-down',move+' places since previous snapshot');
         const seed=Number(p.top_cut_seed), size=Number(p.bracket_size);
         if(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size){
           const badges=add(left,'div','top-cut-badges');
           add(badges,'span','top-cut-badge',`Top Cut · Top ${size}`);
           add(badges,'span','seed-badge',`Seed #${seed}`);
-          const place=placements.get(p);
+          const place=current?placements.get(p):null;
           if(place)add(badges,'span','placement-badge placement-'+place,`${place} Place`);
         }
         // A recorded finalist can have missing seed metadata.
-        if(placements.has(p)&&!(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size)){
-          const badges=add(left,'div','top-cut-badges');const place=placements.get(p);
+        if(current&&placements.has(p)&&!(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size)){
+          const badges=add(left,'div','top-cut-badges');const place=current?placements.get(p):null;
           add(badges,'span','placement-badge placement-'+place,`${place} Place`);
         }
       }else add(left,'div','muted','Not present in latest snapshot');
@@ -226,8 +285,8 @@
       const up=btn('↑',()=>moveWatch(key,-1),'move-player');up.title='Move player up';up.setAttribute('aria-label',`Move ${p?nameOf(p):key} up`);up.disabled=position===0;controls.append(up);
       const down=btn('↓',()=>moveWatch(key,1),'move-player');down.title='Move player down';down.setAttribute('aria-label',`Move ${p?nameOf(p):key} down`);down.disabled=position===keys.length-1;controls.append(down);
       controls.append(btn('Remove',()=>updateWatch(watched().filter(x=>x!==key))));
-      const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?rankOf(p):'—');
-      const history=add(panel,'div','history');const rounds=p?matches(p):[];const latest=rounds[rounds.length-1];const dropRound=p?.d;const dropped=dropRound!==null && dropRound!==undefined && dropRound!=='' && dropRound!==false;if(dropped){const label=Number.isInteger(Number(dropRound)) && Number(dropRound)>0?`Dropped · Round ${dropRound}`:'Dropped';add(nameRow,'div','dropped-badge',label);}else if(latest && result(latest)==='Pending'){const live=add(nameRow,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;toggle.textContent=`Round history (${rounds.length}) ▾`;
+      const grid=add(head,'div','stats');stat(grid,'MATCH RECORD',p?record(p):'—');stat(grid,'POINTS',p?str(val(p,['p','points','matchPoints','match_points','score'])??'—'):'—');stat(grid,'RANK',p?(current?rankOf(p):(saved?.rank||'—')):'—');
+      const history=add(panel,'div','history');const liveRounds=current?matches(current):[];const cachedRounds=saved?.rounds||[];const rounds=liveRounds.length>=cachedRounds.length?liveRounds:cachedRounds;const latest=rounds[rounds.length-1];const dropRound=p?.d;const dropped=dropRound!==null && dropRound!==undefined && dropRound!=='' && dropRound!==false;if(dropped){const label=Number.isInteger(Number(dropRound)) && Number(dropRound)>0?`Dropped · Round ${dropRound}`:'Dropped';add(nameRow,'div','dropped-badge',label);}else if(current && latest && result(latest)==='Pending'){const live=add(nameRow,'div','still-playing');add(live,'span','live-dot');add(live,'span','','Still playing');}const toggle=btn(`Round history (${rounds.length}) ▾`,()=>{history.hidden=!history.hidden;toggle.textContent=`Round history (${rounds.length}) ${history.hidden?'▾':'▴'}`;});head.append(toggle);history.hidden=true;toggle.textContent=`Round history (${rounds.length}) ▾`;
       if(!rounds.length)add(history,'div','muted','Round-by-round opponents are not available in this snapshot.');
       for(let i=0;i<rounds.length;i++){const m=rounds[i];if(!m||typeof m!=='object')continue;const row=add(history,'div','match');add(row,'div','muted',`R${val(m,['round','roundNumber','round_number'])??i+1}`);const center=add(row,'div');const opp=opponent(m);const oc=val(m,['opponentCountry']);add(center,'div','',opp?(opp+(oc?' '+flag(oc):'')):'Opponent unavailable');const table=val(m,['table','tableNumber','table_number']);add(center,'div','tiny',table!==undefined && table!==null && table!==''?`Table ${table}`:'No table');const r=result(m);if(r==='Pending'){const badge=add(row,'div','result still-playing');add(badge,'span','live-dot');add(badge,'span','','Still playing');}else add(row,'div','result '+(/win|bye/i.test(r)?'win':/loss|lose/i.test(r)?'loss':/tie|draw/i.test(r)?'tie':''),r);}
     }
@@ -426,6 +485,7 @@
       const when=snap.fetched_at?new Date(snap.fetched_at).toLocaleString():'unknown';
       renderFreshness(next);
       $('status').textContent=state.people.length?`${state.people.length} players · Updated ${when}`:'Snapshot fetched, but player fields could not be recognized — check JSON schema';
+      updateFollowedCache();
       if(changed)render();
     }catch(e){if(requestId===state.requestId)$('status').textContent=`Snapshot refresh failed: ${e.message}`;}
   }
