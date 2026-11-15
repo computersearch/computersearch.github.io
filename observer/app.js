@@ -13,6 +13,19 @@
   function searchNorm(s){return str(s).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();}
   function rankNumber(p,index){const n=Number(val(p,['rank','placement','place','position']));return Number.isInteger(n)&&n>0?n:index+1;}
   function ranksFor(people){return new Map(people.map((p,i)=>[watchKey(p),rankNumber(p,i)]));}
+  const MOVEMENT_KEY='cs-observer-movement-v2';
+  function readMovement(event){
+    try { const all=JSON.parse(localStorage.getItem(MOVEMENT_KEY)||'{}');return all[event]||null; } catch { return null; }
+  }
+  function saveMovement(event,fingerprint,ranks,movement){
+    try {
+      const all=JSON.parse(localStorage.getItem(MOVEMENT_KEY)||'{}');
+      all[event]={fingerprint,ranks:[...ranks],movement:[...movement]};
+      // Keep a bounded number of tournaments in browser storage.
+      while(Object.keys(all).length>12)delete all[Object.keys(all)[0]];
+      localStorage.setItem(MOVEMENT_KEY,JSON.stringify(all));
+    } catch {}
+  }
   function movementLabel(p){const delta=state.movement.get(watchKey(p));return delta?`${delta>0?'▲ +':'▼ '}${delta}`:'';}
   function snapshotTime(snap){const raw=snap?.raw||{};const value=val(snap,['fetched_at','updated_at','timestamp'])??val(raw,['fetched_at','updated_at']);if(!value)return null;const d=new Date(value);return Number.isNaN(d.getTime())?null:d;}
   function renderFreshness(snap){const node=$('snapshot-freshness');if(!node)return;const d=snapshotTime(snap);node.textContent=d?`Snapshot updated ${d.toLocaleString()}`:'Snapshot update time unavailable';node.title=d?d.toISOString():'';}
@@ -388,11 +401,24 @@
       const changed=fingerprint!==state.fingerprint;
       state.fingerprint=fingerprint;
       if(changed){
-        const oldRanks=state.eventRanksEvent===event?state.previousRanks:new Map();
+        const saved=readMovement(event);
+        const oldRanks=state.eventRanksEvent===event?state.previousRanks:new Map(saved?.ranks||[]);
+        const lastMovement=state.eventRanksEvent===event?state.movement:new Map(saved?.movement||[]);
+        const previousFingerprint=state.eventRanksEvent===event?state.previousFingerprint:saved?.fingerprint;
         state.snapshot=next;state.people=playersFrom(next.raw);
-        const newRanks=ranksFor(state.people);state.movement=new Map();
-        for(const [key,rank] of newRanks){if(oldRanks.has(key)){const delta=oldRanks.get(key)-rank;if(delta)state.movement.set(key,delta);}}
-        state.previousRanks=newRanks;state.eventRanksEvent=event;
+        const newRanks=ranksFor(state.people);
+        const rankChanges=new Map();
+        for(const [key,rank] of newRanks){
+          if(oldRanks.has(key)){
+            const delta=oldRanks.get(key)-rank;
+            if(delta)rankChanges.set(key,delta);
+          }
+        }
+        // Keep the latest meaningful movement visible across no-change fetches and reloads.
+        // A first visit has no previous standings to compare, so don't invent movement.
+        state.movement=previousFingerprint===fingerprint||rankChanges.size===0?lastMovement:rankChanges;
+        state.previousRanks=newRanks;state.previousFingerprint=fingerprint;state.eventRanksEvent=event;
+        saveMovement(event,fingerprint,newRanks,state.movement);
       }
       const eventTitle=snap.raw?.tournament?.title || snap.event_name || state.events.find(e=>e.id===state.event)?.name || 'Tournament';
       $('event-title').textContent=eventTitle;
@@ -416,7 +442,7 @@
       if(['rank','name','country'].includes(prefs.sort))state.sort=prefs.sort;
       if(typeof prefs.country==='string')state.countryFilter=prefs.country;
       $('directory-sort').value=state.sort;
-      selector.addEventListener('change',()=>{state.event=selector.value;rememberEvent(state.event);state.snapshot=null;state.fingerprint=null;state.people=[];state.movement=new Map();state.previousRanks=new Map();state.eventRanksEvent='';state.countryFilter='';savePrefs();state.playerQuery='';state.selectedPlayer='';$('directory-search').value='';render();load();});
+      selector.addEventListener('change',()=>{state.event=selector.value;rememberEvent(state.event);state.snapshot=null;state.fingerprint=null;state.people=[];state.movement=new Map();state.previousRanks=new Map();state.previousFingerprint=null;state.eventRanksEvent='';state.countryFilter='';savePrefs();state.playerQuery='';state.selectedPlayer='';$('directory-search').value='';render();load();});
       $('search').addEventListener('input',renderSuggestions);
       $('reload').addEventListener('click',load);
       $('watched-tab').addEventListener('click',()=>{state.view='watched';savePrefs();render();});
