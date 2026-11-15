@@ -16,7 +16,6 @@
   function movementLabel(p){const delta=state.movement.get(watchKey(p));return delta?`${delta>0?'▲ +':'▼ '}${delta}`:'';}
   function snapshotTime(snap){const raw=snap?.raw||{};const value=val(snap,['fetched_at','updated_at','timestamp'])??val(raw,['fetched_at','updated_at']);if(!value)return null;const d=new Date(value);return Number.isNaN(d.getTime())?null:d;}
   function renderFreshness(snap){const node=$('snapshot-freshness');if(!node)return;const d=snapshotTime(snap);node.textContent=d?`Snapshot updated ${d.toLocaleString()}`:'Snapshot update time unavailable';node.title=d?d.toISOString():'';}
-  function renderCountryOverview(){const root=$('country-overview');if(!root)return;root.replaceChildren();const counts=new Map();for(const p of state.people){const c=country(p).trim().toUpperCase()||'Unknown';if(!counts.has(c))counts.set(c,{total:0,cut:0});const item=counts.get(c);item.total++;const seed=Number(p.top_cut_seed),size=Number(p.bracket_size);if(Number.isInteger(seed)&&seed>0&&Number.isInteger(size)&&size>1&&seed<=size)item.cut++;}if(!counts.size)return;add(root,'h3','','Countries');add(root,'p','muted','Players / confirmed Top Cut');const list=add(root,'div','country-overview-list');for(const [c,v] of [...counts].sort((a,b)=>b[1].total-a[1].total||a[0].localeCompare(b[0]))){const b=btn(`${flag(c)} ${c}  ·  ${v.total} / ${v.cut}`,()=>{state.view='all';state.countryFilter=c==='Unknown'?'__UNKNOWN__':c;savePrefs();render();},'country-overview-item');list.append(b);}}
   function val(o, keys) { if (!o || typeof o !== 'object') return undefined; for (const k of keys) if (o[k] !== undefined && o[k] !== null && o[k] !== '') return o[k]; }
   const str = x => x === undefined || x === null ? '' : String(x);
   const norm = s => str(s).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -184,7 +183,7 @@
   function render(){
     renderSuggestions();
     renderDirectory();
-    renderCountryOverview();
+
     try { renderBracket(); }
     catch (error) {
       console.error('Observer bracket rendering failed:', error);
