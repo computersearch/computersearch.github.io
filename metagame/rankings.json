@@ -1,101 +1,101 @@
 {
   "source": "https://limitlesstcg.com/decks",
-  "updated_at": "2026-11-04",
+  "updated_at": "2026-11-17",
   "decks": [
     {
       "name": "Dragapult ex",
-      "points": 5777,
-      "share": "36.50%"
+      "points": 5872,
+      "share": "36.46%"
     },
     {
       "name": "Basic Box",
-      "points": 1402,
-      "share": "8.86%"
+      "points": 1414,
+      "share": "8.78%"
     },
     {
       "name": "Slowking Seek Inspiration",
-      "points": 1206,
-      "share": "7.62%"
+      "points": 1236,
+      "share": "7.67%"
     },
     {
       "name": "N's Zoroark ex",
-      "points": 1154,
-      "share": "7.29%"
+      "points": 1169,
+      "share": "7.26%"
     },
     {
       "name": "Alakazam Powerful Hand",
-      "points": 1012,
-      "share": "6.39%"
+      "points": 1032,
+      "share": "6.41%"
     },
     {
       "name": "Festival Lead",
-      "points": 902,
-      "share": "5.70%"
+      "points": 917,
+      "share": "5.69%"
     },
     {
       "name": "Hydrapple ex",
-      "points": 670,
-      "share": "4.23%"
+      "points": 696,
+      "share": "4.32%"
     },
     {
       "name": "Dhelmise Hide n' Sneak",
-      "points": 634,
-      "share": "4.01%"
+      "points": 644,
+      "share": "4.00%"
+    },
+    {
+      "name": "Crustle Mysterious Rock Inn",
+      "points": 451,
+      "share": "2.80%"
     },
     {
       "name": "Mega Lopunny ex",
       "points": 437,
-      "share": "2.76%"
-    },
-    {
-      "name": "Crustle Mysterious Rock Inn",
-      "points": 431,
-      "share": "2.72%"
+      "share": "2.71%"
     },
     {
       "name": "Mega Excadrill ex",
-      "points": 385,
+      "points": 392,
       "share": "2.43%"
     },
     {
       "name": "Mega Lucario ex",
-      "points": 303,
-      "share": "1.91%"
+      "points": 306,
+      "share": "1.90%"
     },
     {
       "name": "Rocket's Honchkrow",
-      "points": 252,
-      "share": "1.59%"
+      "points": 254,
+      "share": "1.58%"
     },
     {
       "name": "Mega Sharpedo ex",
-      "points": 218,
-      "share": "1.38%"
+      "points": 220,
+      "share": "1.37%"
     },
     {
       "name": "Cynthia's Garchomp ex",
-      "points": 145,
-      "share": "0.92%"
+      "points": 146,
+      "share": "0.91%"
     },
     {
       "name": "Ogerpon Meganium",
-      "points": 122,
-      "share": "0.77%"
+      "points": 127,
+      "share": "0.79%"
     },
     {
       "name": "Marnie's Grimmsnarl ex",
       "points": 100,
-      "share": "0.63%"
+      "share": "0.62%"
     },
     {
       "name": "Mew Box Memory Helix",
-      "points": 90,
+      "points": 92,
       "share": "0.57%"
     },
     {
       "name": "Rocket's Mewtwo ex",
-      "points": 73,
-      "share": "0.46%"
+      "points": 81,
+      "share": "0.50%"
     },
     {
       "name": "Greninja ex",
@@ -110,7 +110,7 @@
     {
       "name": "Hop's Trevenant",
       "points": 47,
-      "share": "0.30%"
+      "share": "0.29%"
     },
     {
       "name": "Mega Starmie ex",
@@ -120,12 +120,12 @@
     {
       "name": "Lillie's Clefairy ex",
       "points": 39,
-      "share": "0.25%"
+      "share": "0.24%"
     },
     {
       "name": "Mega Absol Box",
       "points": 39,
-      "share": "0.25%"
+      "share": "0.24%"
     }
   ]
 }
