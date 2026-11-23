@@ -1,131 +1,131 @@
 {
   "source": "https://limitlesstcg.com/decks",
-  "updated_at": "2026-11-17",
+  "updated_at": "2026-11-23",
   "decks": [
     {
       "name": "Dragapult ex",
-      "points": 5872,
-      "share": "36.46%"
+      "points": 1063,
+      "share": "35.65%"
     },
     {
       "name": "Basic Box",
-      "points": 1414,
-      "share": "8.78%"
-    },
-    {
-      "name": "Slowking Seek Inspiration",
-      "points": 1236,
-      "share": "7.67%"
+      "points": 347,
+      "share": "11.64%"
     },
     {
       "name": "N's Zoroark ex",
-      "points": 1169,
-      "share": "7.26%"
+      "points": 265,
+      "share": "8.89%"
     },
     {
-      "name": "Alakazam Powerful Hand",
-      "points": 1032,
-      "share": "6.41%"
-    },
-    {
-      "name": "Festival Lead",
-      "points": 917,
-      "share": "5.69%"
-    },
-    {
-      "name": "Hydrapple ex",
-      "points": 696,
-      "share": "4.32%"
-    },
-    {
-      "name": "Dhelmise Hide n' Sneak",
-      "points": 644,
-      "share": "4.00%"
+      "name": "Slowking Seek Inspiration",
+      "points": 249,
+      "share": "8.35%"
     },
     {
       "name": "Crustle Mysterious Rock Inn",
-      "points": 451,
-      "share": "2.80%"
-    },
-    {
-      "name": "Mega Lopunny ex",
-      "points": 437,
-      "share": "2.71%"
+      "points": 175,
+      "share": "5.87%"
     },
     {
       "name": "Mega Excadrill ex",
-      "points": 392,
-      "share": "2.43%"
+      "points": 135,
+      "share": "4.53%"
     },
     {
-      "name": "Mega Lucario ex",
-      "points": 306,
-      "share": "1.90%"
+      "name": "Hydrapple ex",
+      "points": 121,
+      "share": "4.06%"
+    },
+    {
+      "name": "Festival Lead",
+      "points": 102,
+      "share": "3.42%"
+    },
+    {
+      "name": "Alakazam Powerful Hand",
+      "points": 92,
+      "share": "3.09%"
+    },
+    {
+      "name": "Mega Rayquaza ex",
+      "points": 77,
+      "share": "2.58%"
+    },
+    {
+      "name": "Dhelmise Hide n' Sneak",
+      "points": 61,
+      "share": "2.05%"
     },
     {
       "name": "Rocket's Honchkrow",
-      "points": 254,
+      "points": 47,
       "share": "1.58%"
     },
     {
+      "name": "Mega Lucario ex",
+      "points": 39,
+      "share": "1.31%"
+    },
+    {
+      "name": "Talonflame Dusknoir",
+      "points": 37,
+      "share": "1.24%"
+    },
+    {
       "name": "Mega Sharpedo ex",
-      "points": 220,
-      "share": "1.37%"
+      "points": 30,
+      "share": "1.01%"
     },
     {
-      "name": "Cynthia's Garchomp ex",
-      "points": 146,
-      "share": "0.91%"
-    },
-    {
-      "name": "Ogerpon Meganium",
-      "points": 127,
-      "share": "0.79%"
+      "name": "Mega Lopunny ex",
+      "points": 24,
+      "share": "0.80%"
     },
     {
       "name": "Marnie's Grimmsnarl ex",
-      "points": 100,
-      "share": "0.62%"
-    },
-    {
-      "name": "Mew Box Memory Helix",
-      "points": 92,
-      "share": "0.57%"
+      "points": 15,
+      "share": "0.50%"
     },
     {
       "name": "Rocket's Mewtwo ex",
-      "points": 81,
+      "points": 15,
+      "share": "0.50%"
+    },
+    {
+      "name": "Beedrill ex",
+      "points": 15,
       "share": "0.50%"
     },
     {
       "name": "Greninja ex",
-      "points": 56,
-      "share": "0.35%"
+      "points": 14,
+      "share": "0.47%"
     },
     {
-      "name": "Raging Bolt ex",
-      "points": 54,
-      "share": "0.34%"
+      "name": "Mew Box Memory Helix",
+      "points": 12,
+      "share": "0.40%"
     },
     {
-      "name": "Hop's Trevenant",
-      "points": 47,
-      "share": "0.29%"
+      "name": "Cynthia's Garchomp ex",
+      "points": 11,
+      "share": "0.37%"
     },
     {
-      "name": "Mega Starmie ex",
-      "points": 40,
-      "share": "0.25%"
+      "name": "Ethan's Typhlosion",
+      "points": 11,
+      "share": "0.37%"
     },
     {
-      "name": "Lillie's Clefairy ex",
-      "points": 39,
-      "share": "0.24%"
+      "name": "Ogerpon Meganium",
+      "points": 6,
+      "share": "0.20%"
     },
     {
-      "name": "Mega Absol Box",
-      "points": 39,
-      "share": "0.24%"
+      "name": "Mega Froslass ex",
+      "points": 5,
+      "share": "0.17%"
     }
   ]
 }
